@@ -308,7 +308,7 @@ int main()
         alphaPlus = ( exp( -2 * (-1) * h(l_chosen,i_chosen) * nu ) - 1 );
         alphaMinus = ( exp( 2 * (-1) * h(l_chosen,i_chosen) * nu ) - 1 );
         
-        smartAccept = ( 1 + alphaPlus  * ( 1 - GreenPlus(l_chosen, i_chosen) ) ) * ( 1 + alphaMinus  * ( 1 - GreenMinus(l_chosen, i_chosen) ) );
+        smartAccept = ( 1 + alphaPlus  * ( 1 - GreenPlus(i_chosen, i_chosen) ) ) * ( 1 + alphaMinus  * ( 1 - GreenMinus(i_chosen, i_chosen) ) );
         
         if (printsOn == 1)
         {
