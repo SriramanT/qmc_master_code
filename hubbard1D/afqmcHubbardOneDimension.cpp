@@ -13,7 +13,6 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <armadillo>
 #include <cstdlib>
 #include <typeinfo>
 #include <cmath>
@@ -23,7 +22,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <fstream>
 
-#define NSITES 50
+#define NSITES 100
 
 using namespace Eigen;
 using namespace std;
@@ -106,7 +105,7 @@ int main()
     
     //  Monte Carlo specific variables
     
-    const static int totalMCSteps = 10;
+    const static int totalMCSteps = 100;
     const static int W = 3000;                                  //  warm-up steps
     const static int autoCorrTime = 500;                        //  auto-correlation time
     const static int M = (totalMCSteps - W)/autoCorrTime;       //  number of measurements
@@ -115,13 +114,13 @@ int main()
     
     const static int L = 5;                                     //  number of imaginary time subintervals
     cout << "L: " << L << endl;
-    const static double beta = 1.;                              //  imaginary time interval or equivalent maximum temperature of the (d+1) classical system
+    const static double beta = .1;                              //  imaginary time interval or equivalent maximum temperature of the (d+1) classical system
     cout << "beta: " << beta << endl;
     const static double dt = beta/L;                            //  time subinterval width
     cout << "dt: " << dt << endl;
     const static double t = 1.;                                 //  hopping parameters
     cout << "t: " << t << endl;
-    const static double U = 10.;                                //  interaction energy
+    const static double U = 5;                                //  interaction energy
     cout << "U: " << U << endl;
     double nu = acosh( exp( U * dt / 2 ) );                     //  Hubbard Stratonovich transformation parameter
     
@@ -165,11 +164,11 @@ int main()
         // The new matrices are initially set as equal to the old ones
         BpNew[l] = BpOld[l];
         BmNew[l] = BmOld[l];
-        if (printsOn ==1)
-        {
-            cout << "\n\nHere is a B_plus matrix\n\n" << BpOld[l] << endl;
-            cout << "\n\nHere is a B_minus matrix\n\n" << BmOld[l] << endl;
-        }
+//        if (printsOn ==1)
+//        {
+//            cout << "\n\nHere is a B_plus matrix\n\n" << BpOld[l] << endl;
+//            cout << "\n\nHere is a B_minus matrix\n\n" << BmOld[l] << endl;
+//        }
     }
     
     // Build the M-matrices and Green's function (matrix)
@@ -194,19 +193,19 @@ int main()
     GreenPlus = MPlusOld.inverse();
     GreenMinus = MMinusOld.inverse();
     
-    if (printsOn == 1)
-    {
-        cout << "\n\nHere is a M_plus matrix\n\n" << MPlusOld << endl;
-        cout << "\n\nHere is a M_minus matrix\n\n" << MMinusOld << endl;
-        cout << "\n\nHere is the M_plus determinant\n\n" << MPlusOld.determinant() << endl;
-        cout << "\n\nHere is the M_minus determinant\n\n" << MMinusOld.determinant() << endl;
-    }
+//    if (printsOn == 1)
+//    {
+//        cout << "\n\nHere is a M_plus matrix\n\n" << MPlusOld << endl;
+//        cout << "\n\nHere is a M_minus matrix\n\n" << MMinusOld << endl;
+//        cout << "\n\nHere is the M_plus determinant\n\n" << MPlusOld.determinant() << endl;
+//        cout << "\n\nHere is the M_minus determinant\n\n" << MMinusOld.determinant() << endl;
+//    }
     
     //  Initialize determinants and acceptance ratio
     
     double detOldPlus = MPlusOld.determinant();
     double detOldMinus = MMinusOld.determinant();
-    double detsProdOld = abs( detOldPlus * detOldMinus );
+    double detsProdOld = detOldPlus * detOldMinus;
     double detsProdNew = detsProdOld;
     double detNewPlus;
     double detNewMinus;
@@ -214,6 +213,8 @@ int main()
     double smartAccept;
     double alphaPlus;
     double alphaMinus;
+    
+    double weight = detsProdOld;
     
     VectorXd weights(totalMCSteps);
 //    VectorXd density(M);
@@ -225,7 +226,7 @@ int main()
     
     for (step = 0; step < totalMCSteps; step++)
     {
-        if (step % (totalMCSteps/10) == 0)
+        if ((step+1) % (totalMCSteps/10) == 0)
         {
             cout << "\nstep: " << step + 1 << "/" << totalMCSteps << endl; // print step
         }
@@ -245,7 +246,7 @@ int main()
         
         // save weight of the configuration to see convergence
         
-        weights(step) = detsProdNew;
+        weights(step) = weight;
         
         // flip
         h(l_chosen, i_chosen) *= -1;
@@ -290,19 +291,19 @@ int main()
         MPlusNew += MatrixXd::Identity(NSITES,NSITES);
         MMinusNew += MatrixXd::Identity(NSITES,NSITES);
             
-        if (printsOn == 1)
-        {
-            cout << "\n\nOld M_plus matrix\n\n" << MPlusOld << endl;
-            cout << "\n\nOld M_minus matrix\n\n" << MMinusOld << endl;
-            cout << "\n\nNew M_plus matrix\n\n" << MPlusNew << endl;
-            cout << "\n\nNew M_minus matrix\n\n" << MMinusNew << endl;
-            cout << "\n\nNew M_plus determinant\n\n" << MPlusNew.determinant() << endl;
-            cout << "\n\nNew M_minus determinant\n\n" << MMinusNew.determinant() << endl;
-        }
+//        if (printsOn == 1)
+//        {
+//            cout << "\n\nOld M_plus matrix\n\n" << MPlusOld << endl;
+//            cout << "\n\nOld M_minus matrix\n\n" << MMinusOld << endl;
+//            cout << "\n\nNew M_plus matrix\n\n" << MPlusNew << endl;
+//            cout << "\n\nNew M_minus matrix\n\n" << MMinusNew << endl;
+//            cout << "\n\nNew M_plus determinant\n\n" << MPlusNew.determinant() << endl;
+//            cout << "\n\nNew M_minus determinant\n\n" << MMinusNew.determinant() << endl;
+//        }
 
         detNewPlus = MPlusNew.determinant();
         detNewMinus = MMinusNew.determinant();
-        detsProdNew = abs(detNewPlus * detNewMinus);
+        detsProdNew = detNewPlus * detNewMinus;
         acceptanceRatio = detsProdNew / detsProdOld;
         
         alphaPlus = ( exp( -2 * (-1) * h(l_chosen,i_chosen) * nu ) - 1 );
@@ -310,11 +311,16 @@ int main()
         
         smartAccept = ( 1 + alphaPlus  * ( 1 - GreenPlus(i_chosen, i_chosen) ) ) * ( 1 + alphaMinus  * ( 1 - GreenMinus(i_chosen, i_chosen) ) );
         
-        if (printsOn == 1)
-        {
-            cout << "\n\nacceptance ratio: " << acceptanceRatio << endl;
-        }
+        weight *= smartAccept;
         
+//        cout << "\n\nGreenPlus\n\n" << GreenPlus << endl;
+//        cout << "\n\nGreenMinus\n\n" << GreenMinus << endl;
+//
+//        if (printsOn == 1)
+//        {
+//            cout << "\n\nacceptance ratio: " << acceptanceRatio << endl;
+//        }
+//
         cout << "\n\nacceptance ratio: " << acceptanceRatio << endl;
         cout << "\n\nacceptance ratio: " << smartAccept << endl;
         
@@ -337,21 +343,43 @@ int main()
                 cout << "Accepted\n" << endl;
             }
             
-            GreenPlus = MPlusNew.inverse();
-            GreenMinus = MMinusNew.inverse();
+//            // Brute force update
+//
+//            GreenPlus = MPlusNew.inverse();
+//            GreenMinus = MMinusNew.inverse();
             
-//            if ( l_chosen == i_chosen )
-//            {
-//                GreenPlus(i_chosen, i_chosen) -= alphaPlus/smartAccept * ( 1 - GreenPlus(i_chosen, i_chosen) ) * GreenPlus(i_chosen, i_chosen);
-//                GreenMinus(i_chosen, i_chosen) -= alphaMinus/smartAccept * ( 1 - GreenMinus(i_chosen, i_chosen) ) * GreenMinus(i_chosen, i_chosen);
-//            }
-//            else
-//            {
-//                GreenPlus(i_chosen, i_chosen) -= alphaPlus/smartAccept * ( - GreenPlus(i_chosen, i_chosen) ) * GreenPlus(i_chosen, i_chosen);
-//                GreenMinus(i_chosen, i_chosen) -= alphaMinus/smartAccept * ( - GreenMinus(i_chosen, i_chosen) ) * GreenMinus(i_chosen, i_chosen);
-//            }
+            // Rank-one update --> O ( 2 * N^2 )
+
+            for (i = 0; i < NSITES; i++)
+            {
+                for (j = 0; j < NSITES; j++)
+                {
+                    // row i_chosen
+                    if (i == i_chosen)
+                    {
+                        GreenPlus(i, j) *= ( 1 + alphaPlus/smartAccept * ( GreenPlus(i_chosen, i_chosen) - 1 ) );
+                        GreenMinus(i, j) *= ( 1 + alphaMinus/smartAccept * ( GreenMinus(i_chosen, i_chosen) - 1 ) );
+                    }
+                    else
+                    {
+                        GreenPlus(i, j) += alphaPlus/smartAccept *  GreenPlus(i, i_chosen) * GreenPlus(i_chosen, j);
+                        GreenMinus(i, j) += alphaMinus/smartAccept *  GreenMinus(i, i_chosen) * GreenMinus(i_chosen, j);
+                    }
+                    
+
+                }
+            }
             
-            
+//            cout << "Update\n" << endl;
+//
+//            cout << "\n\nGreenPlus\n\n" << GreenPlus << endl;
+//            cout << "\n\nGreenMinus\n\n" << GreenMinus << endl;
+//
+//            cout << "Brute force\n" << endl;
+//
+//            cout << MPlusNew.inverse() << endl << endl;
+//            cout << MMinusNew.inverse() << endl << endl;
+
             
         }
         else
