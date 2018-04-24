@@ -6,16 +6,15 @@
 //
 
 #include <Eigen/Dense>
-using namespace Eigen;
 
-MatrixXd generateHSmatrix(int L, int nSites)
+Eigen::MatrixXd generateHSmatrix(int L, int nSites)
 {
     // Generate the HS field matrix
     
     int l;
     int i;
     
-    MatrixXd h = MatrixXd::Random(L,nSites);
+    Eigen::MatrixXd h = Eigen::MatrixXd::Random(L,nSites);
     
     for (l = 0; l < L; l++)
     {

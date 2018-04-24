@@ -6,11 +6,11 @@
 //
 
 #include <Eigen/Dense>
-using namespace Eigen;
 
-MatrixXd createHoppingMatrix(int nSites)
+
+Eigen::MatrixXd createHoppingMatrix(int nSites)
 {
-    MatrixXd K = MatrixXd::Zero(nSites, nSites) ;
+    Eigen::MatrixXd K = Eigen::MatrixXd::Zero(nSites, nSites) ;
     // Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
     K(0, 1) = 1;
     K(0, nSites - 1) = 1;
