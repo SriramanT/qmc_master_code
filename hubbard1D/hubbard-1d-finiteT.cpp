@@ -31,7 +31,7 @@
 
 // --- DEFINITIONS ---
 
-#define NSITES 10
+#define NSITES 50
 
 //  Physical parameters
 double dt;                                   //  time subinterval width. error scales as dt^2
@@ -51,7 +51,7 @@ int i_chosen;
 int l_chosen;
 
 //  Toggle prints
-bool printsOn = true;                                               // 0 - NO PRINTS, 1 - PRINTS
+bool printsOn = false;                                               // 0 - NO PRINTS, 1 - PRINTS
 
 //  Things to do with random numbers throughout the code
 const static int seed = 12345;                              //  set a seed
@@ -60,10 +60,11 @@ std::uniform_real_distribution<> dis(0.0, 1.0);             //  set the distribu
 double decisionMaker;                                       //  to accept or not to accept, hence the question.
 
 //  Set Monte Carlo-specific variables
-const static int totalMCSteps = 20;
+const static int totalMCSteps = 5000;
 const static int W = 3000;                                  //  warm-up steps
 const static int autoCorrTime = 500;                        //  auto-correlation time
 const static int M = (totalMCSteps - W)/autoCorrTime;       //  number of measurements
+
 
 // --- MAIN ---
 
@@ -160,7 +161,7 @@ int main()
     Eigen::VectorXd weightsNaive(totalMCSteps);
     Eigen::VectorXd weightsUpdate(totalMCSteps);
 //    Eigen::VectorXd density(M);
-    weightsUpdate(0) = detsProdOld;
+    weightsUpdate(0) = detsProdNew;
     
     //  Inititialize entry of HS field matrix to (0, 0)
     l_chosen = 0;
@@ -176,13 +177,13 @@ int main()
     for (step = 0; step < totalMCSteps; step++)
     {
         //  To check progress of the run
-//        if (printsOn == true)
-//        {
-//            if ((step+1) % (totalMCSteps/10) == 0)
-//            {
-//                std::cout << "\nMC loop: " << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
-//            }
-//        }
+        if (printsOn == true)
+        {
+            if ((step+1) % (totalMCSteps/10) == 0)
+            {
+                std::cout << "\nMC loop: " << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
+            }
+        }
         
         //  For the updates
         uPlus = uSigma(NSITES, GreenPlus, i_chosen);
@@ -239,17 +240,16 @@ int main()
             std::cout << "\n\nacceptance ratio: " << r << " (via Green's function update)" << std::endl;
         }
 
-        //  Save weight of configuration
-        if (step < totalMCSteps - 1)
-        {
-            weightsUpdate(step + 1) = r * weightsUpdate(step) ;
-        }
-
         //  Draw random number to decide whether or not to accept the move
         decisionMaker = dis(gen);
         
         if (decisionMaker <= acceptanceRatio)
         {
+            //  Save weight of configuration
+            if (step < totalMCSteps - 1)
+            {
+                weightsUpdate(step + 1) = r * weightsUpdate(step) ;
+            }
             //update everything
             BpOld[l_chosen] = BpNew[l_chosen];
             BmOld[l_chosen] = BmNew[l_chosen];
@@ -278,6 +278,12 @@ int main()
         }
         else
         {
+            //  Save weight of configuration
+            if (step < totalMCSteps - 1)
+            {
+                weightsUpdate(step + 1) = weightsUpdate(step) ;
+            }
+            
             // revert changes (switch new -> old wrt the above statements)
             BpNew[l_chosen] = BpOld[l_chosen];
             BmNew[l_chosen] = BmOld[l_chosen];
