@@ -60,7 +60,7 @@ std::uniform_real_distribution<> dis(0.0, 1.0);             //  set the distribu
 double decisionMaker;                                       //  to accept or not to accept, hence the question.
 
 //  Set Monte Carlo-specific variables
-const static int totalMCSteps = 5000;
+const static int totalMCSteps = 10;
 const static int W = 3000;                                  //  warm-up steps
 const static int autoCorrTime = 500;                        //  auto-correlation time
 const static int M = (totalMCSteps - W)/autoCorrTime;       //  number of measurements
@@ -74,7 +74,7 @@ int main()
     std::cout << "\n\nAuxiliary field QMC for 1D Hubbard chain\n" << std::endl;
     std::cout << "\nNumber of sites: " << NSITES << std::endl;
     
-    //  Set physical parameters
+    //  Set physical parameters and Trotter parameter (error scales as dt^2)
     dt = 0.1;                                                   //  time subinterval width. error scales as dt^2
     beta = 1.;                                                  //  imaginary time interval or equivalent maximum temperature of the (d+1) classical system
     U = 5;                                                      //  interaction energy
@@ -160,7 +160,6 @@ int main()
     //  Initialize arrays to store measurements
     Eigen::VectorXd weightsNaive(totalMCSteps);
     Eigen::VectorXd weightsUpdate(totalMCSteps);
-//    Eigen::VectorXd density(M);
     weightsUpdate(0) = detsProdNew;
     
     //  Inititialize entry of HS field matrix to (0, 0)
@@ -256,10 +255,6 @@ int main()
             MPlusOld = MPlusNew;
             MMinusOld = MMinusNew;
             detsProdOld = detsProdNew;
-            
-//            // Brute force update
-//            GreenPlus = MPlusNew.inverse();
-//            GreenMinus = MMinusNew.inverse();
 
             // Rank-one update --> O ( 2 * N^2 )
             GreenPlus -= alphaPlus/( 1 + alphaPlus  * ( 1 - GreenPlus(i_chosen, i_chosen) ) ) * kroneckerProduct( uPlus , wPlus.transpose() ).eval();
@@ -326,28 +321,18 @@ int main()
     
     // Save weights of accepted configurations to file
 
-    std::ofstream file("test.txt");
-    if (file.is_open())
+    std::ofstream file1("plots/weightsNaive.txt");
+    if (file1.is_open())
     {
-        file << weightsNaive << '\n';
+        file1 << weightsNaive << '\n';
     }
     
-    std::ofstream file2("test2.txt");
+    std::ofstream file2("plots/weightsUpdate.txt");
     if (file2.is_open())
     {
         file2 << weightsUpdate << '\n';
     }
 
-//    // Save densities to file
-//
-//    std::ofstream file1("testDensities.txt");
-//    if (file1.is_open())
-//    {
-//        file1 << density << '\n';
-//    }
-    
-    
-    
     return 0;
 }
 
