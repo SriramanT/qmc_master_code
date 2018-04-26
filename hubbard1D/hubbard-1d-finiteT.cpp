@@ -75,7 +75,7 @@ int main()
     std::cout << "\nNumber of sites: " << NSITES << std::endl;
     
     //  Set physical parameters
-    dt = 0.2;                                                   //  time subinterval width. error scales as dt^2
+    dt = 0.1;                                                   //  time subinterval width. error scales as dt^2
     beta = 1.;                                                  //  imaginary time interval or equivalent maximum temperature of the (d+1) classical system
     U = 5;                                                      //  interaction energy
     
