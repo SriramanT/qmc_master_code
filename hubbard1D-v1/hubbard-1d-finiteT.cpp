@@ -28,6 +28,7 @@
 #include "auxFunctions.h"
 #include "parameters.h"
 #include "matrices.h"
+#include "prints.h"
 
 // --- DEFINITIONS ---
 
@@ -50,8 +51,8 @@ int step;
 int i_chosen;
 int l_chosen;
 
-//  Toggle prints
-bool printsOn = false;                                               // 0 - NO PRINTS, 1 - PRINTS
+//  Toggle prints for debugging
+bool printsOn = false;                                      // 0 - NO PRINTS, 1 - PRINTS
 
 //  Things to do with random numbers throughout the code
 const static int seed = 12345;                              //  set a seed
@@ -59,32 +60,28 @@ std::mt19937 gen(seed);                                     //  mt19937 algorith
 std::uniform_real_distribution<> dis(0.0, 1.0);             //  set the distribution from which to draw numbers
 double decisionMaker;                                       //  to accept or not to accept, hence the question.
 
-//  Set Monte Carlo-specific variables
-const static int totalMCSteps = 10;
-const static int W = 3000;                                  //  warm-up steps
-const static int autoCorrTime = 500;                        //  auto-correlation time
-const static int M = (totalMCSteps - W)/autoCorrTime;       //  number of measurements
-
 
 // --- MAIN ---
 
 
 int main()
 {
-    std::cout << "\n\nAuxiliary field QMC for 1D Hubbard chain\n" << std::endl;
-    std::cout << "\nNumber of sites: " << NSITES << std::endl;
+    //  Set Monte Carlo-specific variables
+    const static int totalMCSteps = 5000;
     
     //  Set physical parameters and Trotter parameter (error scales as dt^2)
     dt = 0.1;                                                   //  time subinterval width. error scales as dt^2
     beta = 1.;                                                  //  imaginary time interval or equivalent maximum temperature of the (d+1) classical system
     U = 5;                                                      //  interaction energy
-    
-    
-    L = beta/dt;                                                //  number of imaginary time subintervals
     t = 1.;                                                     //  hopping parameter (default to 1, and measure energy in units of hopping parameter)
-    nu = acosh( exp( U * dt / 2 ) );                            //  Hubbard Stratonovich transformation parameter
+    
+    //  Variables that depend on the parameters
+    L = beta/dt;                                                //  number of imaginary time subintervals
+    nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12 ;       //  Hubbard Stratonovich transformation parameter : nu = acosh( exp( U * dt / 2 ) );
+    
+    printWelcome(NSITES);
     printParameters();
-    std::cout << "Number of MC sweeps: " << totalMCSteps / (NSITES*L) << " (" << totalMCSteps << " steps)" << "\n\n";
+    printMC(totalMCSteps, NSITES, L);
     
     // --- INITIALIZATION ---
     Eigen::MatrixXd h;
@@ -99,20 +96,19 @@ int main()
     Eigen::MatrixXd MMinusNew;
     Eigen::MatrixXd GreenPlus;
     Eigen::MatrixXd GreenMinus;
+    Eigen::VectorXd uPlus;
+    Eigen::VectorXd uMinus;
+    Eigen::VectorXd wPlus;
+    Eigen::VectorXd wMinus;
     double detNewPlus;
     double detNewMinus;
     double acceptanceRatio;
-    //  Acceptance ratio computed by update of Green's functions
     double r;
     double alphaPlus;
     double alphaMinus;
     double dPlus;
     double dMinus;
-    Eigen::VectorXd uPlus;
-    Eigen::VectorXd uMinus;
-    Eigen::VectorXd wPlus;
-    Eigen::VectorXd wMinus;
-    
+
     // Initialize the HS field at all time slices in [0, beta] with +1 and -1 randomly
     h = generateHSmatrix(L, NSITES); // HS field h_{l = 1,... L, i = 1, ..., NSITES}
     
@@ -123,14 +119,9 @@ int main()
     const static Eigen::MatrixXd B_preFactor = (t * dt * K).exp();
   
     // Some prints for debugging. Toggle them if you want at the top.
-    if (printsOn == true)
-    {
-        std::cout << "\n K = \n\n" << K << "\n\n";
-        std::cout << "exp (t * dt * K) = \n\n" << B_preFactor << "\n\n";
-        std::cout << "Hubbard Stratonovich Field\n\n h = \n\n" << h << "\n\n";
-    }
+    printStartingMatrices(K, B_preFactor, h, printsOn);
     
-    // Build the B-matrices. We need a copy of each to perform the updates (naively)
+    // Build the B-matrices. We need a copy of each to perform the updates naively
     for (l = 0; l < L; l++)
     {
         BpOld[l] = build_Bmatrix(true, nu, NSITES, h.row(l), B_preFactor);      //  true for spin up
@@ -139,7 +130,7 @@ int main()
         BmNew[l] = BmOld[l];
     }
     
-    //  Build the M-matrices and Green's function (matrix)
+    //  Build the M-matrices and Green's matrix
     for (l = 0; l < L; l++)
     {
         MPlusOld *= BpOld[L - 1 - l];
@@ -148,10 +139,11 @@ int main()
     MPlusOld += Eigen::MatrixXd::Identity(NSITES,NSITES);
     MMinusOld += Eigen::MatrixXd::Identity(NSITES,NSITES);
 
+    //  Initialize the inverses
     GreenPlus = MPlusOld.inverse();
     GreenMinus = MMinusOld.inverse();
     
-    //  Initialize determinants and acceptance ratio
+    //  Initialize determinants
     double detOldPlus = MPlusOld.determinant();
     double detOldMinus = MMinusOld.determinant();
     double detsProdOld = detOldPlus * detOldMinus;
@@ -162,29 +154,24 @@ int main()
     Eigen::VectorXd weightsUpdate(totalMCSteps);
     weightsUpdate(0) = detsProdNew;
     
-    //  Inititialize entry of HS field matrix to (0, 0)
+    //  Inititialize entry of HS field matrix to (0, 0).
+    //  For each imaginary time slice l, we loop over all i's, then we change slice and do the same. And so on.
     l_chosen = 0;
     i_chosen = 0;
-    
-    //  Initialize number of measurements
-    m = 0;
     
     
     // --- MC LOOP ---
     
-
+    std::cout << "\n\nMC loop\n\n";
+    
     for (step = 0; step < totalMCSteps; step++)
     {
-        //  To check progress of the run
-        if (printsOn == true)
+        if ( (step + 1)  % (totalMCSteps/10) == 0 )
         {
-            if ((step+1) % (totalMCSteps/10) == 0)
-            {
-                std::cout << "\nMC loop: " << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
-            }
+            std::cout << "\nStep: " << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
         }
         
-        //  For the updates
+        //  Vectors that are used to construct the rank-one update
         uPlus = uSigma(NSITES, GreenPlus, i_chosen);
         uMinus = uSigma(NSITES, GreenMinus, i_chosen);
         wPlus = wSigma(NSITES, GreenPlus, i_chosen);
@@ -193,7 +180,7 @@ int main()
         //  Save weight of the configuration to check convergence
         weightsNaive(step) = detsProdNew;
         
-        //  Print current Green's matrices
+        //  Print current Green's matrices (obtained by updates)
         if (printsOn == true)
         {
             std::cout << "\n\nGreenPlus\n\n" << GreenPlus << std::endl;
@@ -244,22 +231,23 @@ int main()
         
         if (decisionMaker <= acceptanceRatio)
         {
-            //  Save weight of configuration
+            //  Save weight of configuration (obtained by updates)
             if (step < totalMCSteps - 1)
             {
                 weightsUpdate(step + 1) = r * weightsUpdate(step) ;
             }
-            //update everything
+            //  Update everything
             BpOld[l_chosen] = BpNew[l_chosen];
             BmOld[l_chosen] = BmNew[l_chosen];
             MPlusOld = MPlusNew;
             MMinusOld = MMinusNew;
             detsProdOld = detsProdNew;
 
-            // Rank-one update --> O ( 2 * N^2 )
+            //  Rank-one update --> O ( 2 * N^2 ). kroneckerProduct is the tensor product of two vectors. .eval() is needed because of an Eigen quirk. Check documentation.
             GreenPlus -= alphaPlus/( 1 + alphaPlus  * ( 1 - GreenPlus(i_chosen, i_chosen) ) ) * kroneckerProduct( uPlus , wPlus.transpose() ).eval();
             GreenMinus -= alphaMinus/( 1 + alphaMinus  * ( 1 - GreenMinus(i_chosen, i_chosen) ) ) * kroneckerProduct( uMinus , wMinus.transpose() ).eval();
 
+            //  Compare the updated Green matrices and the ones computed by brute force. They should match
             if (printsOn == true)
             {
                 std::cout << "\n\nO(N^2) update of the Green's function" << std::endl;
@@ -273,7 +261,7 @@ int main()
         }
         else
         {
-            //  Save weight of configuration
+            //  Save weight of configuration (obtained by updates)
             if (step < totalMCSteps - 1)
             {
                 weightsUpdate(step + 1) = weightsUpdate(step) ;
@@ -291,35 +279,48 @@ int main()
         //  loop through (l, i)
         if (i_chosen < NSITES - 1)
         {
-            i_chosen += 1;
-            //l_chosen = l_chosen;
+            i_chosen += 1;  // l_chosen = l_chosen (it doesn't change)
         }
         else
         {
             if (l_chosen < L - 1)
             {
-                // Wrapping
+                //  Wrapping
                 GreenPlus = BpNew[l_chosen] * GreenPlus * BpNew[l_chosen].inverse();
                 GreenMinus = BmNew[l_chosen] * GreenMinus * BmNew[l_chosen].inverse();
-
+                //  New im-time slice
                 l_chosen += 1;
                 i_chosen = 0;
             }
             else
             {
-                // Back to original order
+                // This particular wrapping takes us back to the original order
                 GreenPlus = BpNew[l_chosen] * GreenPlus * BpNew[l_chosen].inverse();
                 GreenMinus = BmNew[l_chosen] * GreenMinus * BmNew[l_chosen].inverse();
-                
+                //  New sweep
                 l_chosen = 0;
                 i_chosen = 0;
             }
         }
-        
+
         
     }
     
-    // Save weights of accepted configurations to file
+    //  Save parameters of the simulation to file
+    
+    std::ofstream file("plots/simulationParameters.txt");
+    if (file.is_open())
+    {
+        file << NSITES << '\n';
+        file << dt << '\n';
+        file << beta << '\n';
+        file << L << '\n';
+        file << t << '\n';
+        file << U << '\n';
+        file << totalMCSteps*1./(NSITES*L) << '\n'; //sweeps
+    }
+    
+    //  Save weights of accepted configurations to file
 
     std::ofstream file1("plots/weightsNaive.txt");
     if (file1.is_open())
