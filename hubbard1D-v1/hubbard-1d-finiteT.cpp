@@ -1,5 +1,5 @@
 //
-//  hubbard-1d-finiteT.cpp
+//  hubbard-1d-finiteT.cpp -> main!
 //  
 //
 //  Created by Francisco Brito on 09/03/2018.
