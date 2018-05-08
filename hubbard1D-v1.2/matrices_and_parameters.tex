@@ -1,0 +1,450 @@
+\documentclass[10pt, twocolumn, twoside]{article}
+\usepackage[T1]{fontenc}
+\usepackage{cuted}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{bbm}
+\geometry{a4paper,total={170mm,257mm},left=17mm,top=20mm,right=17mm}
+\usepackage{setspace}
+\pagenumbering{arabic}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{scrextend}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{ragged2e}
+\usepackage{xcolor}
+\usepackage{dirtytalk}
+\usepackage{algorithm, algorithmic}
+\usepackage{multicol}
+\setcounter{tocdepth}{1}
+
+\title{Main ingredients of the Determinant QMC implementation}
+\author{Francisco Monteiro de Oliveira Brito}
+\date{\today}
+\setlength\columnsep{2em}
+
+\makeatletter
+
+\begin{document}
+
+\begin{strip}
+\vspace*{\dimexpr-\baselineskip-\stripsep\relax}
+\centering
+\maketitle
+\vskip\baselineskip
+\noindent%\makebox[\textwidth]{\rule{1.1\paperwidth}{0.4pt}}
+\vskip\baselineskip
+\justify
+
+\onehalfspacing
+
+\begin{abstract}\paragraph{}
+Determinant QMC is a numerical method to simulate quantum systems. We examine the particular case of the Hubbard model at half filling. The task of efficiently sampling from the quantum mechanical probability distribution stemming from the huge number of possible many-body states is made possible by this technique. In fact, it is reduced to sampling from a classical probability distribution over configurations of Ising spins: equation (\ref{eq:prob}). 
+\end{abstract}
+\end{strip}
+
+\section{Determinant QMC}\paragraph{}
+
+Here we discuss a numerical method to simulate the Hubbard model.
+
+\begin{equation}\label{eq:hubbard}
+\mathcal{H} = \mathcal{H}_K + \mathcal{H}_\mu + \mathcal{H}_V ,
+\end{equation}
+defined as
+
+\begin{equation}\label{eq:def_energies}
+\begin{split}
+\mathcal{H}_K &= -t \sum_{\left\langle i, j \right \rangle, \sigma} ( c_{i,\sigma} c_{j,\sigma}^\dagger + c_{j,\sigma}^\dagger c_{i,\sigma} ) \\
+\mathcal{H}_\mu &= -\mu \sum_i ( n_{i,\uparrow} + n_{i,\downarrow} ) \\
+\mathcal{H}_V &= U \sum_{i} ( n_{i,\uparrow} - \frac{1}{2} ) ( n_{i,\downarrow} - \frac{1}{2} )
+\end{split} ,
+\end{equation}
+
+Determinant QMC allows us to circumvent the sign problem for the half filled Hubbard model. The sign problem is an uncontrolled numerical error due to the antisymmetry of the many-electron wave function, leading to oscillations in the sign of the quantities that we are interested in measuring. These oscillations deem the algorithm exponentially complex in the size of the system, in general, but it possible to overcome this hurdle for a class of models, namely the Hubbard model at half filling. The difficulty lies in computing averages of quantities that are very close to zero, on average, but have a large variance, i.e. $\sigma_X / \left\langle X \right\rangle \gg 1$.
+
+We seek a computable approximation of the projection operator 
+
+\begin{equation}
+\mathcal{P} = \frac{1}{Z} e^{-\beta\mathcal{H} }
+\end{equation} 
+
+It is found by using a discrete Hubbard-Stratonovich transformation. This transformation introduces an auxiliary field (consisting basically of Ising spins), and we use Monte Carlo to sample configurations from the distribution corresponding to this \emph{classical} configuration space.
+
+For now, let us assume half filling $\mu = 0$, so that there is no sign problem. In fact, many interesting phenomena occur at half filling, for example magnetic ordering and the Mott metal-insulator transition.
+
+The operators $\mathcal{H}_K$ and $\mathcal{H}_V$ of equation (\ref{eq:hubbard}) do not commute. This impedes us from factorizing the exponential of their sum $e^{-\beta (\mathcal{H}_K + \mathcal{H}_V)}$ exactly. The Trotter-Suzuki decomposition leads to the sought approximate factorization that is used to approximate the partition function.
+
+Computing the partition function at finite temperature
+
+\begin{equation}
+Z_\beta = \text{Tr} \big( e^{-\beta \mathcal{H} } \big)
+\end{equation}
+is analogous to computing the Green function of a quantum system evolving in imaginary time. The inverse temperature $\beta$ now represents the imaginary time $\tau = it$, and $Z_\beta$ may be simply thought of as the wave function of the analogous quantum system at imaginary time (temperature) $\beta$.
+ 
+This expression is not very amenable to numerical computation since it contains an exponential of a sum of operators $\mathcal{H}_K + \mathcal{H}_V$, which is not factorizable and involves computing an infinite number of commutators containing these two operators.
+
+Dividing the imaginary time interval $[0, \beta ]$ into $L$ equal sub-intervals of width $\Delta \tau = \beta / L$, we obtain
+
+\begin{equation}
+Z = \text{Tr} \bigg( \prod_{l=1}^L e^{-\Delta\tau \mathcal{H} } \bigg) ,
+\end{equation}
+which is now a product of exponentials of operators multiplied by a constant that can be made small by increasing $L$. The Trotter-Suzuki decomposition allows us to rewrite $Z$:
+
+\begin{equation}\label{eq:Z_propagator}
+Z = \text{Tr} \bigg( \prod_{l=1}^L e^{-\Delta\tau \mathcal{H}_K } e^{-\Delta\tau \mathcal{H}_V } \bigg) + \mathcal{O}(\Delta \tau^2) 
+\end{equation}
+
+The kinetic energy term is quadratic in the fermion operators, and is spin-independent and thus may be separated into spin up and spin down components
+
+\begin{equation}
+e^{-\Delta\tau \mathcal{H}_K} = e^{-\Delta\tau \mathcal{H}_{K_\uparrow}} e^{-\Delta\tau \mathcal{H}_{K_\downarrow}} ,
+\end{equation}
+where $\mathcal{H}_{K_\sigma} = -t \bm c_\sigma^\dagger \bm K  \bm c_\sigma$.
+
+The potential energy term, however, is quartic. Surprisingly, it is possible to express it in quadratic form by introducing an extra degree of freedom, the so called \emph{Hubbard-Stratonovich (HS) field} $\bm h \equiv (h_i)_{i=1}^N$, in which each element is essentially an Ising spin. First, note that number operators on different sites commute, so that we have
+
+\begin{equation}
+\begin{split}
+e^{-\Delta\tau \mathcal{H}_V} &= e^{-U \Delta\tau \sum_{i=1}^N (n_{i\uparrow} - 1/2 ) (n_{i\downarrow} - 1/2 )} \\
+&= \prod_i e^{-U \Delta\tau (n_{i\uparrow} - 1/2 ) (n_{i\downarrow} - 1/2 )}
+\end{split}
+\end{equation}
+
+Now we introduce the discrete Hubbard Stratonovich transformation for $U > 0$ that allows us to recast the equation above in terms of a non-interacting quadratic term $(n_{i\uparrow} - n_{i\downarrow} )$.
+
+\begin{equation}\label{eq:discreteHS}
+e^{-U \Delta\tau (n_{i\uparrow} - 1/2 ) (n_{i\downarrow} - 1/2 )} = c_U \sum_{h_i = \pm 1} e^{\nu h_i (n_{i\uparrow} - n_{i\downarrow} )},
+\end{equation}
+where $c_U = \frac{1}{2} e^{-\frac{U\Delta \tau}{4}}$ and $\nu = \text{arcosh} ( e^{\frac{U\Delta\tau}{2}})$.
+
+We have now made progress. At the expense of introducing an extra $N$-dimensional HS-field $\bm h$, we obtained an \emph{exact} representation of the quartic term in terms of quadratic terms.
+
+\begin{equation} 
+ e^{-\Delta\tau \mathcal{H}_V} = \prod_{i=1}^N \bigg( c_U \sum_{h_i = \pm 1} e^{\nu h_i ( n_{i\uparrow} - n_{i\downarrow} )} \bigg),
+\end{equation} 
+which can be manipulated to arrive at a more compact form.
+
+\begin{equation}\label{eq:exp_quartic}
+\begin{split}
+&e^{-\Delta\tau \mathcal{H}_V} =  (c_U)^N \sum_{h_i = \pm 1} e^{\nu h_i ( n_{1\uparrow} - n_{1\downarrow} )} \sum_{h_i = \pm 1} e^{\nu h_i ( n_{2\uparrow} - n_{2\downarrow} )}  \\
+&... \sum_{h_i = \pm 1} e^{\nu h_i ( n_{N\uparrow} - n_{N\downarrow} )} \\
+&= (c_U)^N \sum_{h_i = \pm 1} e^{\sum_{i=1}^N [(\nu h_i ( n_{i\uparrow} - n_{i\downarrow} ) ]} \\
+&\equiv (c_U)^N \text{Tr}_h e^{\sum_{i=1}^N [(\nu h_i ( n_{i\uparrow} - n_{i\downarrow} ) ]} \\
+&= (c_U)^N \text{Tr}_h e^{\sum_{i=1}^N \nu h_i n_{i\uparrow}} e^{-\sum_{i=1}^N \nu h_i n_{i\uparrow}} \\
+&= (c_U)^N \text{Tr}_h ( e^{\mathcal{H}_{V_\uparrow}} e^{\mathcal{H}_{V_\downarrow}} ) ,
+\end{split}
+\end{equation}
+where the spin up and spin down operators $\mathcal{H}_{V_\sigma}$ are defined as follows
+
+\begin{equation}
+\mathcal{H}_{V\sigma} = \sum_{i=1}^N \nu h_i n_{i\sigma} = \sigma \nu \bm c_\sigma^\dagger \bm V(\bm h) \bm c_\sigma,
+\end{equation}
+with $\bm V(\bm h)$ being simply the HS-field put into a diagonal $N\times N$ matrix: $\bm V(\bm h) \equiv \text{diag}(h_1, h_2, ..., h_N)$.
+
+For each imaginary time slice $l$ (where $l \in [1, L]$) we may define a HS-field $\bm h_l$, which in turn specifies $\bm V_l$ and $\mathcal{H}_{V_\sigma}^l$. We may now replace the result of equation (\ref{eq:exp_quartic}) in equation (\ref{eq:Z_propagator}), and exchange the traces to obtain
+
+\begin{equation}\label{eq:Z_quadratic}
+\begin{split}
+&Z_h = (c_U)^{NL} \text{Tr}_{\bm h} \text{Tr} \bigg[ \prod_{l=1}^L \underbrace{\bigg( e^{-\Delta\tau  \mathcal{H}_{K_\uparrow}} e^{\mathcal{H}_{V_\uparrow}^l} \bigg)}_{B_{l, \uparrow}(\bm h_l)} \\
+&\underbrace{\bigg( e^{-\Delta\tau  \mathcal{H}_{K_\downarrow}} e^{\mathcal{H}_{V_\downarrow}^l} \bigg)}_{B_{l, \downarrow}(\bm h_l)} \bigg],
+\end{split}
+\end{equation}
+where all operators are now quadratic in the fermion operators:
+
+\begin{equation}
+\begin{split}
+&\mathcal{H}_{K_\sigma} = - t \bm c_\sigma^\dagger \bm K \bm c_\sigma \\
+&\mathcal{H}_{V_\sigma}^l = \sigma \nu \bm c_\sigma^\dagger \bm V_l (\bm h_l) \bm c_\sigma
+\end{split}
+\end{equation}
+for $\sigma = \pm 1$ and $\bm V_l ( \bm h_l ) = \text{diag} ( h_{l, 1} , h_{l, 2}, ... , h_{l, N} )$.
+
+Furthermore, we have defined the $\bm B$-matrices
+
+\begin{equation}
+\bm B_{l, \sigma} ( \bm h_l ) = e^{t \Delta \tau \bm K} e^{\sigma \nu \bm V_l (\bm h_l)}
+\end{equation}
+
+Note that the argument of the first exponential is positive since $\bm K$ is defined so that its entries are 0's and 1's; otherwise (defining $\bm K$ with 0's and $-1$'s) it would be negative.
+
+The problem of computing the partition has been reduced to computing the trace of a product of exponentials of quadratic forms. Thus, we may still rewrite equation (\ref{eq:Z_quadratic}) by making use of the following identity.
+
+Let $\mathcal{H}_l$ be quadratic forms of the fermion operators:
+
+\begin{equation}
+\mathcal{H}_l = c_i^\dagger (H_l)_{ij} c_j,
+\end{equation}
+where the summation is implied, and where $H_l$ are real matrices. Then, the following identity holds
+
+\begin{equation}\label{eq:quadraticIdentity}
+\text{Tr} \big[ e^{-\mathcal{H}_1 } e^{-\mathcal{H}_2 } ... e^{-\mathcal{H}_L } \big] = \text{det} ( \bm I + e^{-H_L} e^{-H_{L-1}} ... e^{-H_1} )
+\end{equation}
+
+The dimension of the Hilbert space of the Hubbard model is exponential in N (actually $4^N$), where $N$ is the number of lattice sites. The determinant is calculated for a matrix whose size is polynomial in $N$. Thus, the algorithm makes the sampling of the system's probability distribution possible for systems of appreciable size.
+
+Equation (\ref{eq:quadraticIdentity}) allows us to write the partition function (\ref{eq:Z_quadratic}) in computable form
+
+\begin{equation}
+\begin{split}
+Z_{\bm h} &=  \text{Tr}_{\bm h} \bigg[ (c_U)^{NL} \text{det} [ \bm M_\uparrow (\bm h)] \text{det} [  \bm M_\downarrow (\bm h) ] \bigg] \\
+\end{split}
+\end{equation}
+where the fermion matrices $\bm M_\sigma$ are defined in terms of the $\bm B$-matrices for a given spin $\sigma$ and a given HS-field $\bm h$:
+
+\begin{equation}
+\bm M_\sigma (\bm h) = \bm I + \bm B_{L,\sigma} ( h_L) \bm B_{L-1,\sigma} ( h_{L-1}) ... \bm B_{1\sigma} ( h_1)
+\end{equation}
+
+The computable approximation of the distribution operator $\mathcal{P}$ corresponding to this partition function is
+
+\begin{equation}\label{eq:prob}
+P(\bm h) = \frac{A}{Z_h} \det [ \bm M_{\uparrow}(\bm h) ] \det [ \bm M_{\downarrow}(\bm h) ] ,
+\end{equation}
+where $A = (c_U)^{NL}$ is a normalization constant. This is now a distribution function over configurations $\bm h$ since the problem is classical!
+
+For the particular case of no interactions $U = 0$, we have that $\nu = 0$, and $\bm M_\sigma (\bm h)$ are constant matrices, independent of the HS-field. The Trotter-Suzuki approximation then becomes exact and the Hubbard Hamiltonian may be simulated exactly after evaluating $\bm M_\sigma (\bm h)$ a single time. No updates are required.
+
+As a final remark, note that we managed to map a quantum problem to a classical problem in higher dimension. The degrees of freedom of the quantum problem correspond to the $i$ indices  of the $c$-operators. In our formulation, an additional imaginary time slice index $l$ was introduced, leading to a mapping that is not specific to the Hubbard model, but that actually applies very generally for any quantum system. A $d$-dimensional quantum system may be simulated using essentially classical Monte Carlo applied to a $(d+1)$-dimensional system.
+
+\subsection{Monte Carlo sampling of the HS-field}\paragraph{}
+
+The computational problem is now that of sampling configurations of the $\bm h$ field drawn from the distribution $P(\bm h)$ using \emph{Classical} Monte Carlo. The size of the state space has been greatly reduced to $2^{NL}$ (assuming that $L \ll N$).
+
+It remains to choose a dynamics and a sampling scheme. The simplest strategy to change from a configuration $\bm h$ to a new one $\bm h'$ is single spin-flip dynamics. We choose a random point $(l, i)$, and we flip the spin at that \say{site}
+
+\begin{equation}
+h_{l, i}' = - h_{l, i},
+\end{equation}
+keeping all others unchanged.
+
+The most common scheme to ensure that the distribution of the accepted sample is $P(\bm h)$ is the Metropolis-Hastings algorithm.
+
+\begin{algorithm}
+\caption{Auxiliary Field Quantum Monte Carlo}
+\label{afqmcSampling}
+\begin{multicols}{2}
+\begin{algorithmic}[5]
+  \STATE Initialize HS field $\bm h$  \\
+  \STATE Initialize hoppings $\bm K$  \\
+  \STATE  $(h_{l, i}) = (\pm 1)_{l=1, i = 1}^{L, N}$
+  \STATE $(l, i) \leftarrow (1, 1)$
+  \FOR{$\text{step} = 1$ to $S$}
+  \STATE \footnotesize{Propose new configuration by flipping a spin} \\ \normalsize{$h_{l, i}' = - h_{l, i}$} 
+  \STATE \footnotesize{Compute the acceptance ratio $a_{l, i}$} \\
+  \normalsize{$\frac{\text{det}[\bm M_\uparrow (\bm h')]\text{det}[\bm M_\downarrow (\bm h')]}{\text{det}[\bm M_\uparrow (\bm h)]\text{det}[\bm M_\downarrow (\bm h)]}$}
+  \STATE \normalsize{Metropolis step}
+  \STATE \footnotesize{Draw random number $r \in [0,1]$}
+  \IF{$r \le \min(1, a_{l, i})$}
+  \STATE $\bm h = \bm h'$
+  \ELSE
+  \STATE $\bm h = \bm h$
+  \ENDIF
+  \STATE Next site
+  \IF{$i < N$}
+  \STATE $l = l$ , $i = i +1 $
+  \ELSE
+  \IF {$l < L$}
+  \STATE $l = l+1$ , $i = 1 $
+  \ENDIF
+  \IF {$l = L$}
+  \STATE $l = 1$ , $i=1$
+  \ENDIF
+  \ENDIF
+  \ENDFOR
+\end{algorithmic}
+\end{multicols}
+\end{algorithm}
+
+The Metropolis acceptance/rejection scheme leads to a rank-one update of the matrices $\bm M_\sigma (\bm h)$, which affords an efficient evaluation of the acceptance ratio $a_{l, i}$.
+
+Consider two matrices $\bm A_1$, $\bm A_2$ written in the form
+
+\begin{equation}
+\bm A_{1,2} = \bm I + \bm F \bm V_{1,2} ,
+\end{equation}
+where $\bm F$ is some matrix. $\bm V_{1,2}$ are diagonal and non-singular and differ only in the $(1,1)$ entry, so that
+
+\begin{equation}
+\bm V_1^{-1} \bm V_2 = \bm I + \alpha_1 \bm e_1 \bm e_1^T ,
+\end{equation}
+where $\bm e_1$ is a vector corresponding to the first column of the identity matrix $\bm I$, and
+
+\begin{equation*}
+\alpha_1 = \frac{V_2(1,1)}{V_1(1,1)} - 1
+\end{equation*}
+
+Then, $\bm A_2$ is clearly a rank-one update of $\bm A_1$.
+
+\begin{equation*}
+\begin{split}
+\bm A_2 &= \bm I + \bm F \bm V_1 + \bm F \bm V_1 ( \bm V_1^{-1} \bm V_2 - \bm I ) \\
+&= \bm A_1 + \alpha_1 ( \bm A_1 - \bm I ) \bm e_1 \bm e_1^T \\
+&= \bm A_1 [ \bm I + \alpha_1 ( \bm I - \bm A_1^{-1} )\bm e_1 \bm e_1^T ]
+\end{split}
+\end{equation*}
+
+Using the identity $\text{det}[\bm I + \bm x \bm y^T] = 1 + \bm y^T \bm x$ for any two column vectors, we may write the ratio of the determinants of matrices $\bm A_1$ and $\bm A_2$ as
+
+\begin{equation}\label{eq:efRatio}
+r_1 = \frac{\text{det}[\bm A_2]}{\text{det}[\bm A_1]} = 1 + \alpha_1 ( 1 - \bm e_1^T \bm A_1^{-1} \bm e_1 ) ,
+\end{equation}
+which reduces the computation of the ratio $r_1$ to computing the $(1,1)$ entry of $\bm A^{-1}$.
+
+Now we generalize this idea for a sequence of matrices $\bm A_1, \bm A_2, ..., \bm A_i, ..., \bm A_n$ generated by successive rank-one updates: $\bm A_{i+1} = \bm I + \bm F \bm V_{i+1}, \, i = 1, 2, ..., n-1$, with
+
+\begin{equation}
+\bm V_i^{-1} \bm V_{i+1} = \bm I + \alpha_i \bm e_i \bm e_i^T \quad \alpha_i = \frac{\bm V_{i+1}(1,1)}{\bm V_i (1,1)} -1
+\end{equation}
+
+The Sherman-Morrison-Woodbury formula gives an expression for the inverse of $\bm A_2$ as a rank-one update of $\bm A_1^{-1}$.
+
+\begin{equation}
+\begin{split}
+\bm A_2^{-1} &= \bigg[ \bm I - \frac{\alpha_1}{r_1} ( \bm I - \bm A_1^{-1} ) \bm e_1 \bm e_1^T  \bigg] \bm A_1^T \\
+&= \bm A_1^{-1} - \frac{\alpha_1}{r_1} \bm u_1 \bm w_1^T ,
+\end{split}
+\end{equation}
+where
+
+\begin{equation*}
+\bm u_1 = (\bm I - \bm A_1^{-1} ) \bm e_1 \quad \bm w_1 = (\bm A_1^{-1})^T \bm e_1
+\end{equation*}
+
+Using equation (\ref{eq:efRatio}), we find the updates
+
+\begin{equation}
+\begin{split}
+r_i &= \frac{\text{det}[\bm A_{i+1}]}{\text{det}[\bm A_{i}]} = 1 + \alpha_i ( 1 - \bm e_i^T \bm A_i^{-1}  \bm e_i ) , \,\, \text{and} \\
+\bm A_{i+1}^{-1} &= \bm A_i^{-1} - \frac{\alpha_i}{r_i} \bm u_i \bm w_i^T ,
+\end{split}
+\end{equation}
+where $\bm u_i = (\bm I - \bm A_i^{-1} ) \bm e_i$ and $\bm w_i = (\bm A_i^{-1})^T \bm e_i$.
+
+It is possible to generalize this procedure to compute the inverse of $\bm A_k$ as a rank$-(k-1)$ update of $\bm A_1^{-1}$:
+
+\begin{equation}
+\bm A_k^{-1} = \bm A_1^{-1} - \bm U_{k-1} \bm D_k \bm W_{k-1}^T ,
+\end{equation}
+where
+
+\begin{equation}
+\bm U_k = [ \bm u_1 , \bm u_2, ..., \bm u_{k-1} ] \quad \text{and} \quad \bm W = [ \bm w_1, \bm w_2, ..., \bm w_{k-1} ] ,
+\end{equation}
+and $\bm D_k = \text{diag}(\alpha_1 / r_1, \alpha_2 / r_2, ..., \alpha_{k-1} / r_{k-1})$.
+
+How is this efficient update implemented in our case? Naively, at each step we flip a spin
+
+\begin{equation*}
+h_{l, i}' = -h_{l, i}
+\end{equation*}
+and then we must compute all the matrices defined before from scratch. But this can be improved upon.
+
+Consider the first imaginary time slice $l=1$, and site $i = 1$. Flipping the spin $h_{1,1}' = - h_{1, 1}$ leads to the following acceptance ratio
+
+\begin{equation}
+a_{1,1} = d_\uparrow d_\downarrow ,
+\end{equation}
+where, for $\sigma = \pm 1$, we have
+
+\begin{equation}
+\begin{split}
+d_\sigma &= 1 + \alpha_{1, \sigma} ( 1 - \bm e_1^T \bm M_\sigma^{-1} (\bm h) \bm e_1 ) \\
+&= 1 + \alpha_{1, \sigma} ( 1 - G_{1, 1}^\sigma (\bm h) ) ,
+\end{split}
+\end{equation}
+with $\alpha_{1, \sigma} = e^{-2 \sigma \nu h_{1, 1} } - 1$.
+
+Computing the acceptance ratio costs the same as obtaining the $(1,1)$-entry (or, in general the $(i,i)$-entry) of the Green matrix $\bm G_\sigma =\bm M_{\sigma}^{-1}$ at a given time + space $(l, i)$. But we must compute the Green matrix anyway to make measurements. Using the update derived before, we can simply perform rank-one updates on the Green matrix over the course of the simulation, and compute the acceptance ratio and make measurements using its entries.
+
+\begin{equation}
+\bm G_\sigma (\bm h) \leftarrow \bm G_\sigma (\bm h) - \frac{\alpha_{1, \sigma}}{d_{1,\sigma}} \bm u_\sigma \bm w_{\sigma}^T ,
+\end{equation}
+where $\bm u_\sigma = ( \bm I_N - \bm G_\sigma ( \bm h ) ) \bm e_1$ and $\bm w_\sigma = ( \bm G_\sigma (\bm h) )^T \bm e_1$.
+
+This procedure can be continued as we loop through the i-index, keeping the time slice $l$ fixed.
+
+When we change $l$, we are no longer in the conditions required for our derivation of the efficient update to hold. This is because it is no longer the last matrix in the product that differs in the $(i, i)$ entry, but the one appearing before it. However, it turns out that we can recover then, while keeping the $\mathcal{O}(N^3)$ complexity of the algorithm. To do so, we simply "wrap" the $\bm M$-matrices. We may write a $\bm M$-matrix as
+
+\begin{equation}
+\bm M_\sigma = \bm B_{1, \sigma}^{-1} \tilde{\bm M}_\sigma \bm B_{1, \sigma} ,
+\end{equation}
+with $\tilde{\bm M}_\sigma = \bm I_N + \bm B_{1, \sigma} \bm B_{L, \sigma} \bm B_{L-1, \sigma} ... \bm B_{2, \sigma}$.
+
+The determinant of a $\tilde{\bm M}$-matrix is equal to that of a $\bm M$-matrix since $\det(\bm P \bm Q) = \det (\bm P) \det (\bm Q)$, for any two matrices $\bm P$ and $\bm Q$, and $\det (\bm  P^{-1} ) = 1 / \det (\bm P) $. So, the acceptance ratio may be computed in terms of the $\tilde{\bm M}$-matrices, using the update rule we derived.
+
+\begin{equation}
+a_{l, i} = \frac{\det [ \tilde{\bm M_\uparrow} (\bm h') ] \det [ \tilde{\bm M_\downarrow} (\bm h') ]}{\det [ \tilde{\bm M_\uparrow} (\bm h) ] \det [ \tilde{\bm M_\downarrow} (\bm h) ]}
+\end{equation}
+
+The associated Green matrices must be wrapped whenever we change to a new slice $l$. For instance, when we change to slice $l = 2$, we must update the Green matrices in the following manner:
+
+\begin{equation}
+\tilde{ \bm G_\sigma} ( \bm h) \leftarrow \bm B_{1, \sigma}^{-1} (\bm h_1) \tilde{\bm G}^\sigma ( \bm h) \bm B_{1, \sigma} (\bm h_1)
+\end{equation}
+
+Denote the wrapped Green matrix at a given time slice: $\bm G_\sigma^l$. Then, a more general equation for the update at a given time slice l is
+
+\begin{equation}
+ \bm G_\sigma^{(l+1)} ( \bm h) \leftarrow \bm B_{l, \sigma}^{-1} (\bm h_l) \bm G_\sigma^{(l)} ( \bm h) \bm B_{l, \sigma} (\bm h_l)
+\end{equation}
+
+There is a numerical instability in the naive matrix multiplication wrapping, which distorts the correct sampling generally just after a few sweeps. So, a crucial part of the method is to stabilize this instability.
+
+\subsubsection{Making measurements}\paragraph{}
+
+In QMC simulations, physical observables are extracted by measuring them directly over the course of the sampling of the  configuration space. The single-particle (equal time) Green's Function is useful to obtain quantities such as density and kinetic energy. It turns out that it is simply the inverse of the $\bm M$-matrix that we already compute to obtain the acceptance ratio at each step.
+
+\begin{equation}
+\begin{split}
+G_{ij}^\sigma &= \left\langle c_{i\sigma} c_{j\sigma}^\dagger \right\rangle_{\bm h} \\
+&= \bigg( \bm M_\sigma^{-1} (\bm h) \bigg)_{ij} \\
+&= \bigg( [\bm I + \bm B_{L,\sigma} ( h_L ) \bm B_{L-1,\sigma} ( h_{L-1} ) ... \bm B_{1,\sigma} ( h_1 ) ]^{-1} \bigg)_{ij}
+\end{split}
+\end{equation}
+
+The electron density may be obtained from the Green function
+
+\begin{equation}
+\rho_{i\sigma} = \left\langle c_{i\sigma}^\dagger c_{i\sigma} \right\rangle = 1 - \left\langle c_{i\sigma} c_{i\sigma}^\dagger \right\rangle = 1 - G_{ii}^\sigma ,
+\end{equation}
+
+It is natural to think of averaging this over the lattice, and over the spins. This is justified by the fact that the Hubbard Hamiltonian is translationally invariant. Thus, $\rho_{i\sigma}$ should be independent of the spatial site. This statement is strict when exactly solving the model, but it becomes only approximate, i.e. valid only on average in our simulations. Thus, we take the average
+
+\begin{equation}
+\rho = \frac{1}{2N} \sum_\sigma \sum_{i=1}^N \rho_{i\sigma}
+\end{equation}
+in an attempt to reduce statistical errors.
+
+One must pay attention to the symmetry of the model at hand, since a similar model for a disordered system including randomness would not be translationally invariant anymore. Moreover, it is implicit that $\rho_{i\sigma}$ is already averaged over the HS-field configurations that were sampled through the simulation.
+
+The average kinetic energy is similarly obtained.
+
+\begin{equation}
+\begin{split}
+\left\langle \mathcal{H}_K \right\rangle &= - t  \sum_{\left\langle i, j \right\rangle , \sigma} \left\langle ( c_{i\sigma}^\dagger c_{j\sigma} + c_{j\sigma}^\dagger c_{i\sigma} ) \right\rangle \\
+&= t \sum_{\left\langle i, j \right\rangle , \sigma} ( G_{ij}^\sigma + G_{ji}^\sigma ) ,
+\end{split}
+\end{equation}
+where the minus sign is due to the switching of the order of the operators bringing the $c^\dagger$ to the right.
+
+\subsubsection{Correlation functions}\paragraph{}
+
+One of the most important goals of QMC simulations is to inspect the system for order of various types, and to find  associated phase transitions. This is done by computing correlation functions $C (j) $, measuring how correlated two sites separated by a distance $j$ are.
+
+\begin{equation}
+C(j) = \big\langle \mathcal{O}_{i+j} \mathcal{O}_{i}^\dagger \big\rangle - \langle \mathcal{O}_{i+j} \big\rangle\big\langle\mathcal{O}_{i}^\dagger \big\rangle ,
+\end{equation}
+where $\mathcal{O}$ is an operator corresponding to the order parameter of the phase transition. For example, we might be looking for magnetic order, in which case the relevant operators are $\mathcal{O}_i = n_{i\uparrow} - n_{i\downarrow} \, , \, \mathcal{O}_i^\dagger = n_{i\uparrow} - n_{i\downarrow}$, or superconductivity, where we would like to measure correlations in fermion pair formation: $\mathcal{O}_i = c_{i\downarrow} c_{i\uparrow} \, , \, \mathcal{O}_i^\dagger = c_{i\uparrow}^\dagger c_{i\downarrow}^\dagger$.
+
+In general, we expect a high temperature disordered phase, for which correlations decay exponentially $C(j) \propto e^{-j/\xi}$, where $\xi$ is a characteristic length called the correlation length. At some point, there can be a transition to a low temperature phase, where $C(j) \propto m^2$, where $m$ is the order parameter for the transition. Right at the transition, that is at $T = T_c$, there might be singular behavior. In continuous phase transitions, the correlation length diverges $\xi \propto (T-T_c)^{-\nu}$, and the correlations decay slower (in fact algebraically): $C(j) \propto j^{-\eta}$, in an intermediate behavior between exponential decay and a constant. The \emph{critical} exponents $\nu$, and $\eta$ are characteristic of the transition, or more accurately, of the universality class it belongs to.
+
+The behavior of all these quantities on finite lattices does not precisely correspond to the infinite system behavior. The tails of the functions, i.e. the $j\rightarrow \infty$ limit is not well captured. Finite-size scaling is a method to improve on these predictions.
+
+To evaluate correlation functions we use Wick's theorem. Expectations of more than two fermion creation and annihilation operators reduce to products of expectations of pairs of creation and annihilation operators\footnote{Because the Hamiltonian is now quadratic in the fermion operators!}. For example, for pair order:
+
+\begin{equation}
+\big\langle C(j) \big\rangle = \big\langle c_{i+j, \downarrow} c_{i+j, \uparrow} c_{i, \uparrow}^\dagger c_{i, \downarrow}^\dagger \big\rangle = G_{i+j, i}^\uparrow G_{i+j, i}^\downarrow 
+\end{equation}
+
+\end{document}
