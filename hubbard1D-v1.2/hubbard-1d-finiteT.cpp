@@ -32,7 +32,7 @@
 
 // --- DEFINITIONS ---
 
-#define NSITES 50
+#define NSITES 4
 
 //  Physical parameters
 double dt;                                   //  time subinterval width. error scales as dt^2
@@ -69,7 +69,7 @@ double decisionMaker;                                       //  to accept or not
 int main()
 {
     //  Set Monte Carlo-specific variables
-    const static int totalMCSweeps = 100;                   //  same as the number of measurements,
+    const static int totalMCSweeps = 1;                   //  same as the number of measurements,
                                                             //  i.e. we make a measurement every sweep, then find correlations in post-process
     
     //  How often to calculate Green functions afresh
@@ -78,7 +78,7 @@ int main()
     //  Set physical parameters and Trotter parameter (error scales as dt^2)
     dt = 0.125;                                                   //  time subinterval width. error scales as dt^2
     beta = 1.;                                                  //  imaginary time interval or equivalent maximum temperature of the (d+1) classical system
-    U = 5.;                                                     //  interaction energy
+    U = 4.;                                                     //  interaction energy
     t = 1.;                                                     //  hopping parameter (default to 1, and measure energy in units of hopping parameter)
     mu = 0.;                                                   //  chemical potential
     
@@ -147,21 +147,24 @@ int main()
     double detPlus = MPlus.determinant();
     double detMinus = MMinus.determinant();
     double detsProd = detPlus * detMinus;
+    
+    std::cout << GreenPlus << std::endl;
 
     //  Initialize arrays to store measurements
     Eigen::VectorXd weights(totalMCSteps);
     weights(0) = detsProd;
+    std::cout << weights(0) << std::endl;
 
     //  Inititialize entry of HS field matrix to (0, 0).
     //  For each imaginary time slice l, we loop over all i's, then we change slice and do the same. And so on.
     l_chosen = 0;
     i_chosen = 0;
-
-
-    // --- MC LOOP ---
-
-    std::cout << "\n\nMC loop started. Please wait.\n\n";
-
+//
+//
+//    // --- MC LOOP ---
+//
+//    std::cout << "\n\nMC loop started. Please wait.\n\n";
+//
     for (step = 0; step < totalMCSteps; step++)
     {
         if ( (step + 1)  % (totalMCSteps/10) == 0 )
@@ -174,25 +177,25 @@ int main()
         uMinus = uSigma(NSITES, GreenMinus, i_chosen);
         wPlus = wSigma(NSITES, GreenPlus, i_chosen);
         wMinus = wSigma(NSITES, GreenMinus, i_chosen);
-
-        //  Print current Green's matrices (obtained by updates)
-        if (printsOn == true)
-        {
-            std::cout << "\n\nGreenPlus\n\n" << GreenPlus << std::endl;
-            std::cout << "\n\nGreenMinus\n\n" << GreenMinus << std::endl;
-        }
-
-        //  Compute the acceptance ratio
+//
+//        //  Print current Green's matrices (obtained by updates)
+//        if (printsOn == true)
+//        {
+//            std::cout << "\n\nGreenPlus\n\n" << GreenPlus << std::endl;
+//            std::cout << "\n\nGreenMinus\n\n" << GreenMinus << std::endl;
+//        }
+//
+//        //  Compute the acceptance ratio
         alphaPlus = ( exp( -2 * h(l_chosen,i_chosen) * nu ) - 1 );
         alphaMinus = ( exp( 2 * h(l_chosen,i_chosen) * nu ) - 1 );
         dPlus = ( 1 + alphaPlus  * ( 1 - GreenPlus(i_chosen, i_chosen) ) );
         dMinus = ( 1 + alphaMinus  * ( 1 - GreenMinus(i_chosen, i_chosen) ) );
         r = dPlus * dMinus;
-        if (printsOn == true)
-        {
+//        if (printsOn == true)
+//        {
             std::cout << "\n\nacceptance ratio: " << r << " (via Green's function update)" << std::endl;
-        }
-
+//        }
+//
         //  Draw random number to decide whether or not to accept the move
         decisionMaker = dis(gen);
 
@@ -218,7 +221,7 @@ int main()
             {
                 weights(step + 1) = weights(step) ;
             }
-            
+
         }
 
         //  loop through (l, i)
@@ -233,7 +236,7 @@ int main()
                 //  Rebuild B-matrices
                 BPlus[l_chosen] = build_Bmatrix(true, nu, NSITES, h.row(l_chosen), B_preFactor, dt, mu);
                 BMinus[l_chosen] = build_Bmatrix(false, nu, NSITES, h.row(l_chosen), B_preFactor, dt, mu);
-                
+
                 //  Wrapping
                 GreenPlus = BPlus[l_chosen] * GreenPlus * BPlus[l_chosen].inverse();
                 GreenMinus = BMinus[l_chosen] * GreenMinus * BMinus[l_chosen].inverse();
@@ -244,15 +247,15 @@ int main()
             }
             else
             {
-                //  Measurements
-                electronDensity(sweep) = 1 - ( GreenPlus.trace() + GreenMinus.trace() ) / 2 / NSITES;
-                
+//                //  Measurements
+//                electronDensity(sweep) = 1 - ( GreenPlus.trace() + GreenMinus.trace() ) / 2 / NSITES;
+
                 sweep += 1;
-                
+
                 //  Rebuild B-matrices
                 BPlus[l_chosen] = build_Bmatrix(true, nu, NSITES, h.row(l_chosen), B_preFactor, dt, mu);
                 BMinus[l_chosen] = build_Bmatrix(false, nu, NSITES, h.row(l_chosen), B_preFactor, dt, mu);
-                
+
                 if (sweep % freq == 0)
                 {
                     //  Rebuild M-matrices
@@ -265,7 +268,7 @@ int main()
                     }
                     MPlus += Eigen::MatrixXd::Identity(NSITES,NSITES);
                     MMinus += Eigen::MatrixXd::Identity(NSITES,NSITES);
-                    
+
                     //  Compute Green's functions afresh
                     GreenPlus = MPlus.inverse();
                     GreenMinus = MMinus.inverse();
@@ -311,14 +314,14 @@ int main()
     {
         file1 << weights << '\n';
     }
-    
-    //  Save measurements
-    
-    std::ofstream file2("plots/electronDensity.txt");
-    if (file2.is_open())
-    {
-        file2 << electronDensity << '\n';
-    }
+
+//    //  Save measurements
+//
+//    std::ofstream file2("plots/electronDensity.txt");
+//    if (file2.is_open())
+//    {
+//        file2 << electronDensity << '\n';
+//    }
 
     return 0;
 }
