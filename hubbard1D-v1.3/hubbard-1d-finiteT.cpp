@@ -29,60 +29,65 @@
 
 int main()
 {
-    //  TOOGLE DEBUGGING MODE
+    //  TOOGLE DEBUGGING MODE.
     const bool debug = false;
     
-    //  SET PARAMETERS
-    const int N = 4;  //  number of sites
+    //  SET PARAMETERS.
+    const int N = 4;  //  # sites
     const double dt = 0.125;  //  time subinterval width. error scales as dt^2
-    const double beta = 1.;  //  inverse temperature (imaginary time of equivalent maximum temperature of the (d+1) classical system)
-    const int L = beta/dt;  //  number of imaginary time subintervals
+    const double beta = 1.;  //  inverse temperature
+    const int L = beta/dt;  //  # slices
     const double t = 1.;  //  hopping
     const double U = 4.;  //  interaction
-    const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS parameter
+    const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
     const double mu = 0.;  //  chemical potential
     
-    //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES
+    //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
     const int seed = 12345;
     std::mt19937 gen(seed);  //  mt19937 algorithm to generate random numbers
     std::uniform_real_distribution<> dis(0.0, 1.0);
-    double decisionMaker;  //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 1000;  //  same as the number of measurements, i.e. we make a measurement every sweep (NL sweeps), then find correlations in post-processing
+    double decisionMaker;
+        //  to accept or not to accept, hence the question.
+    const int totalMCSweeps = 100;
+        //  number of measurements will be totalMCSweeps * L ,
+        //  i.e. we make a measurement every lattice sweep (N steps), then find correlations in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
-    const int greenAfreshFreq = 1;  //   how often to calculate Green functions afresh (measured in SPATIAL lattice sweeps)
-    int latticeSweep = 0;
+    const int greenAfreshFreq = 4 * L;  //   how often to calculate Green's functions afresh
+        //NOTE:
+        //  measured in SPATIAL lattice sweeps,
+        //  i.e. greenAfreshFreq = L corresponds to 1 sweep.
+        //  Comment the default definition and comment the following lines to test.
+//    const int greenAfreshFreq = 1;  //  corresponds to the naive (from scratch) version.
+//    const int greenAfreshFreq = totalMCSweeps * N;  //  greenAfreshFreq = totalMCSweeps * N corresponds to the updates + wrapping version
     
     
-    // --- INITIALIZATION ---
+    // -- INITIALIZATION ---
     
     
-    //  HOPPING FOR 1D CHAIN W/ PBCs
-    const Eigen::MatrixXd K = genHoppingMatrix(N);
-    //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY
+    //  HOPPING FOR 1D CHAIN W/ PBCs.
+    const Eigen::MatrixXd K = genHoppingMatrix(N, mu);
+    //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     Eigen::MatrixXd h = genHsMatrix(L, N);  //    HS field h_{l = 1,...,L ; i = 1,...,N}
-    //  COMPUTE MATRIX 'PREFACTOR' OF THE B-MATRICES e^{t\delta\tau K}
+    //  COMPUTE MATRIX 'PREFACTOR' OF THE B-MATRICES e^{t\delta\tau K}.
     const Eigen::MatrixXd BpreFactor = (t * dt * K).exp();
     
     initialPrint(N, dt, beta, L, t, U, mu, totalMCSteps, debug, K, BpreFactor, h);
     
-    //  GENERATE THE B-MATRICES
+    //  GENERATE THE B-MATRICES.
     Eigen::MatrixXd Bup[L];
     genBmatrix(Bup, true, nu, N, L, h, BpreFactor);
     Eigen::MatrixXd Bdown[L];
     genBmatrix(Bdown, false, nu, N, L, h, BpreFactor);
 
-    //  SPIN-UP GREEN FUNCTION
+    //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green GreenUp(N);
     GreenUp.computeGreenNaive(Bup, L);
-    Eigen::MatrixXd Mup = GreenUp.getM();
     Eigen::MatrixXd Gup = GreenUp.getG();
-    //  SPIN-DOWN GREEN FUNCTION
     Green GreenDown(N);
     GreenDown.computeGreenNaive(Bdown, L);
-    Eigen::MatrixXd Mdown = GreenDown.getM();
     Eigen::MatrixXd Gdown = GreenDown.getG();
     
-    //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO
+    //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
     Eigen::VectorXd uUp;
     Eigen::VectorXd uDown;
     Eigen::VectorXd wUp;
@@ -93,38 +98,37 @@ int main()
     double dDown;
     double accRatio;
 
-    //  INITIALIZE ARRAY TO STORE THE WEIGHT OF THE ACCEPTED CONFIGURATIONS
+    //  INITIALIZE ARRAY TO STORE THE WEIGHT OF THE ACCEPTED CONFIGURATIONS.
     double weights[totalMCSteps];
-    weights[0] = Mup.determinant() * Mdown.determinant();
-    
-    std::cout << weights[0] << std::endl;
+    weights[0] = GreenUp.getM().determinant() * GreenDown.getM().determinant();
 
-    //  INITIALIZE (l, i) <- (0, 0).
+    //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE, THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
     int l = 0;
     int i = 0;
-
-
+    int latticeSweep = 0;
+    
+    
     // --- MC LOOP ---
 
-
+    
     std::cout << "\n\nMC loop started. Progress:\n\n";
     for (int step = 0; step < totalMCSteps; step++)
     {
-//        //  DISPLAY PROGRESS OF THE RUN
-//        if ( (step + 1)  % (totalMCSteps/8) == 0 )
-//        {
-//            std::cout << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
-//        }
+        //  DISPLAY PROGRESS OF THE RUN.
+        if ( (step + 1)  % (totalMCSteps/8) == 0 )
+        {
+            std::cout << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
+        }
 
-        //  COMPUTE THE ACCEPTANCE RATIO
+        //  COMPUTE THE ACCEPTANCE RATIO.
         alphaUp = ( exp( -2 * h(l, i) * nu ) - 1 );
         alphaDown = ( exp( 2 * h(l, i) * nu ) - 1 );
         dUp = ( 1 + alphaUp  * ( 1 - Gup(i, i) ) );
         dDown = ( 1 + alphaDown  * ( 1 - Gdown(i, i) ) );
         accRatio = dUp * dDown;
 
-        //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP
+        //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP.
         decisionMaker = dis(gen);
 
         if (decisionMaker <= accRatio)
@@ -137,7 +141,7 @@ int main()
             //  FLIP A SPIN
             h(l, i) *= -1;
 
-            //  RANK-ONE UPDATE O(N^2).
+            //  RANK-ONE UPDATE -> O(N^2)
             uUp = uSigma(N, Gup, i);
             uDown = uSigma(N, Gdown, i);
             wUp = wSigma(N, Gup, i);
@@ -155,84 +159,69 @@ int main()
                 weights[step + 1] = weights[step];
             }
         }
-
+        
+        
+        // --- COMPUTE WRAPPED GREEN'S FUNCTIONS. MEASUREMENTS. ---
+        
+        
         if (i < N - 1)
-        {
+        {   //  CONTINUE LOOPING THROUGH THE SPATIAL LATTICE
             i += 1;
         }
         else
-        {
+        {   //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH. MAKE MEASUREMENTS
             latticeSweep += 1;
-
-            //  REBUILD B-MATRICES
+            
+            
+            //  MEASUREMENTS
+            
+            
+            //  make a measurement
+            
+            //  DEAL WITH THE GREEN'S FUNCTIONS.
+            
+                //  REBUILD B-MATRICES.
             Bup[l] = regenB(true, nu, N, h.row(l), BpreFactor);
             Bdown[l] = regenB(false, nu, N, h.row(l), BpreFactor);
 
-            if (l < L - 1)
-            {
-                //  DECIDE WHETHER TO COMPUTE GREEN MATRIX AFRESH OR TO WRAP
-                if (latticeSweep == greenAfreshFreq)
-                {
-                    //  COMPUTE GREEN'S MATRIX AFRESH
-                    
-                    //  SPIN-UP GREEN FUNCTION
-                    Green GreenUp(N);
-                    GreenUp.computeWrappedGreenNaive(Bup, L, l);
-                    Gup = GreenUp.getG();
-                    //  SPIN-DOWN GREEN FUNCTION
-                    Green GreenDown(N);
-                    GreenDown.computeWrappedGreenNaive(Bdown, L, l);
-                    Gdown = GreenDown.getG();
-                    
-//                    std::cout << "\nMup\n" << GreenUp.getM() * Gup;
-//                    std::cout << "\nMdown\n" << GreenDown.getM() * Gdown;
-                    
-                    latticeSweep = 0;
+                //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
+            if (latticeSweep == greenAfreshFreq)
+            {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
+                Green GreenUp(N);
+                Green GreenDown(N);
+                if (l == 0)
+                {   //  THIS PARTICULAR CASE IS WHEN WE GO BACK TO THE ORIGINAL ORDER M = B_{L} B_{L-1} ... B_{0}.
+                    GreenUp.computeGreenNaive(Bup, L);
+                    GreenDown.computeGreenNaive(Bdown, L);
                 }
                 else
-                {
-                    //  WRAPPING
-                    Gup = Bup[l] * Gup * Bup[l].inverse();
-                    Gdown = Bdown[l] * Gdown * Bdown[l].inverse();
+                {   //  THIS ONE USES M = B_l B_{l-1} ... B_{0} B_{L} B_{L-1} TO COMPUTE THE GREEN'S FUNCTIONS.
+                    GreenUp.computeWrappedGreenNaive(Bup, L, l);
+                    GreenDown.computeWrappedGreenNaive(Bdown, L, l);
                 }
+                Gup = GreenUp.getG();
+                Gdown = GreenDown.getG();
+                latticeSweep = 0;
+            }
+            else
+            {   //  WRAPPING.
+                Gup = Bup[l] * Gup * Bup[l].inverse();
+                Gdown = Bdown[l] * Gdown * Bdown[l].inverse();
+            }
+            if (l < L - 1)
+            {
                 l += 1;
                 i = 0;
             }
             else
             {
-                //  DECIDE WHETHER TO COMPUTE GREEN MATRIX AFRESH OR TO WRAP
-                if (latticeSweep == greenAfreshFreq)
-                {
-                    //  COMPUTE GREEN'S MATRIX AFRESH
-                    
-                    //  SPIN-UP GREEN FUNCTION
-                    Green GreenUp(N);
-                    GreenUp.computeGreenNaive(Bup, L);
-                    Gup = GreenUp.getG();
-                    //  SPIN-DOWN GREEN FUNCTION
-                    Green GreenDown(N);
-                    GreenDown.computeGreenNaive(Bdown, L);
-                    Gdown = GreenDown.getG();
-                    
-//                    std::cout << "\nMup\n" << GreenUp.getM() * Gup;
-//                    std::cout << "\nMdown\n" << GreenDown.getM() * Gdown;
-                    
-                    latticeSweep = 0;
-                }
-                else
-                {
-                    //  WRAPPING
-                    Gup = Bup[l] * Gup * Bup[l].inverse();
-                    Gdown = Bdown[l] * Gdown * Bdown[l].inverse();
-                }
                 l = 0;
                 i = 0;
             }
         }
+    }   //  END OF MC LOOP.
 
-    }
-
-    //  SAVE OUTPUT
+    //  SAVE OUTPUT.
     std::ofstream file1("plots/simulationParameters.txt");
     if (file1.is_open())
     {
