@@ -9,28 +9,18 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include "green.h"
+#include "UDV.h"
 
-Green::Green(int nSites)
+Green::Green(int nSites, int nSlices)
 {
+    N = nSites;
+    L = nSlices;
     M = Eigen::MatrixXd::Identity(nSites, nSites);
 }
-    
-void Green::computeGreenNaive(Eigen::MatrixXd* Bs, int L)
-{
-    int slice;
-    int nSites = Bs[0].rows();
-    for (slice = 0; slice < L; slice++)
-    {
-        M *= Bs[L - 1 - slice];
-    }
-    M += Eigen::MatrixXd::Identity(nSites, nSites);
-    G = M.inverse();
-}
 
-void Green::computeWrappedGreenNaive(Eigen::MatrixXd* Bs, int L, int l)
+void Green::computeGreenNaive(Eigen::MatrixXd* Bs, int l)
 {
     int slice;
-    int nSites = Bs[0].rows();
     for (slice = l; slice >= 0; slice--)
     {
         M *= Bs[slice];
@@ -40,13 +30,53 @@ void Green::computeWrappedGreenNaive(Eigen::MatrixXd* Bs, int L, int l)
     {
         M *= Bs[slice];
     }
-    M += Eigen::MatrixXd::Identity(nSites, nSites);
+    M += Eigen::MatrixXd::Identity(N, N);
     G = M.inverse();
+}
+
+void Green::computeStableGreenNaive(Eigen::MatrixXd* Bs, int k)
+{
+    int c, d;
+    Eigen::MatrixXd partialProdBs;
+    Eigen::MatrixXd U = Eigen::MatrixXd::Identity(N, N);
+    Eigen::MatrixXd D = Eigen::MatrixXd::Identity(N, N);
+    Eigen::MatrixXd V = Eigen::MatrixXd::Identity(N, N);
+    
+    //  Compute partial products, UDV's and multiply
+    for (c = 0; c < k; c++)
+    {
+        partialProdBs = Eigen::MatrixXd::Identity(N, N);
+        for (d = 0; d < L/k; d++)
+        {
+            partialProdBs = Bs[c * (L/k) + d] * partialProdBs;
+        }
+        //  Householder QR
+        UDV m1(partialProdBs * U * D);
+        U = m1.QR_and_getU();
+        D = m1.getD();
+        V = m1.getV() * V;
+    }
+    UDV middleMatrix(U.inverse() * V.inverse() + D);
+    U = U * middleMatrix.QR_and_getU();
+    D = middleMatrix.getD();
+    //  Compute inverse of diagonal
+    for (c = 0; c < N; c++)
+    {
+        D(c, c) = 1 / D(c, c);
+    }
+    V = middleMatrix.getV() * V;
+    
+    G = V.inverse() * D * U.inverse(); //    Green's function
 }
 
 Eigen::MatrixXd Green::getG()
 {
     return G;
+}
+
+void Green::resetM()
+{
+    M = Eigen::MatrixXd::Identity(N, N);
 }
 
 Eigen::MatrixXd Green::getM()

@@ -8,10 +8,10 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-Eigen::MatrixXd genHoppingMatrix(int N)
+Eigen::MatrixXd genHoppingMatrix(int N, double mu)
 {
     //  Generate the hopping matrix
-    Eigen::MatrixXd K = Eigen::MatrixXd::Zero(N, N);
+    Eigen::MatrixXd K = mu * Eigen::MatrixXd::Identity(N, N);
     
     // Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
     K(0, 1) = 1;
