@@ -20,7 +20,6 @@
 #include <time.h>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
-#include <unsupported/Eigen/KroneckerProduct>
 #include <fstream>
 
 #include "matrixgen.h"
@@ -33,14 +32,22 @@ int main()
     const bool debug = false;
     
     //  SET PARAMETERS.
-    const int N = 50;  //  # sites
-    const double dt = 0.1;  //  time subinterval width. error scales as dt^2
-    const double beta = 1.;  //  inverse temperature
+    const int N = 4;  //  # sites
+    const double dt = 0.125;  //  time subinterval width. error scales as dt^2
+    const double beta = 8;  //  inverse temperature
     const int L = beta / dt;  //  # slices
     const double t = 1.;  //  hopping
-    const double U = 5.;  //  interaction
+    const double U = 4.;  //  interaction
     const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
-    const double mu = 0.;  //  chemical potential
+    const double mu = 0.4 * U;  //  chemical potential
+    const int greenAfreshFreq = 4 ;  //   how often to calculate Green's functions afresh
+    //NOTE:
+    //  measured in SPATIAL lattice sweeps,
+    //  i.e. greenAfreshFreq = L corresponds to 1 sweep.
+    //    const int greenAfreshFreq = 1;  //  always compute the Green's function from scratch after N steps
+    //    const int greenAfreshFreq = totalMCSweeps * N;  //  updates + wrapping version
+    const int newL = L / 4;  //  newL = # intervals in which the product of B's is divided to stabilize.
+    //  Must be commensurate with L and k < L
     
     //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
     const int seed = 12345;
@@ -48,25 +55,17 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 10;
+    const int totalMCSweeps = 65536; //   65536 to reproduce
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every lattice sweep (N steps), then find correlations in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
-    const int greenAfreshFreq = L + 1 ;  //   how often to calculate Green's functions afresh
-    const int k = 2;  //  k = # intervals. Must be commensurate with L and k < L
-        //NOTE:
-        //  measured in SPATIAL lattice sweeps,
-        //  i.e. greenAfreshFreq = L corresponds to 1 sweep.
-        //  Comment the default definition and comment the following lines to test.
-//    const int greenAfreshFreq = 1;  //  corresponds to computing always computing the Green's function from scratch
-//    const int greenAfreshFreq = totalMCSweeps * N;  //  greenAfreshFreq = totalMCSweeps * N corresponds to the updates + wrapping version
-    
+
     
     // -- INITIALIZATION ---
     
     
     //  HOPPING + CHEM. POTENTIAL MATRIX FOR 1D CHAIN W/ PBCs.
-    const Eigen::MatrixXd K = genHoppingMatrix(N, mu);
+    const Eigen::MatrixXd K = genHoppingMatrix(N);
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     Eigen::MatrixXd h = genHsMatrix(L, N);  //    HS field h_{l = 1,...,L ; i = 1,...,N}
     //  COMPUTE MATRIX 'PREFACTOR' OF THE B-MATRICES e^(t dt K).
@@ -76,16 +75,16 @@ int main()
     
     //  GENERATE THE B-MATRICES.
     Eigen::MatrixXd Bup[L];
-    genBmatrix(Bup, true, nu, N, L, h, BpreFactor);
+    genBmatrix(Bup, true, nu, N, L, h, BpreFactor, dt, mu);
     Eigen::MatrixXd Bdown[L];
-    genBmatrix(Bdown, false, nu, N, L, h, BpreFactor);
+    genBmatrix(Bdown, false, nu, N, L, h, BpreFactor, dt, mu);
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green GreenUp(N, L);
-    GreenUp.computeGreenNaive(Bup, L - 1);  //  start at l = L - 1
+    GreenUp.computeGreenNaive(Bup, L - 1);  //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
     Eigen::MatrixXd Gup = GreenUp.getG();
     Green GreenDown(N, L);
-    GreenDown.computeGreenNaive(Bdown, L - 1);  //  start at l = L - 1
+    GreenDown.computeGreenNaive(Bdown, L - 1);  //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
     Eigen::MatrixXd Gdown = GreenDown.getG();
     
     //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
@@ -100,14 +99,16 @@ int main()
     double accRatio;
 
     //  INITIALIZE ARRAY TO STORE THE WEIGHT OF THE ACCEPTED CONFIGURATIONS.
-    double weights[totalMCSteps];
-    weights[0] = GreenUp.getM().determinant() * GreenDown.getM().determinant();
+    double* weights = new double[totalMCSweeps * L];
+    double weight = GreenUp.getM().determinant() * GreenDown.getM().determinant();
+    weights[0] = weight;
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE, THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
     int l = 0;
     int i = 0;
     int latticeSweepUntilAfresh = 0;
+    int sweep = 0;
     
     
     // --- MC LOOP ---
@@ -132,32 +133,25 @@ int main()
         //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP.
         decisionMaker = dis(gen);
 
-        if (decisionMaker <= accRatio)
+        if (decisionMaker <= abs(accRatio) )
         {
-            //  STORE WEIGHT
-            if (step < totalMCSteps - 1)
-            {
-                weights[step + 1] = accRatio * weights[step];
-            }
+            //  KEEP TRACK OF WEIGHT
+            weight = accRatio * weight;
             //  FLIP A SPIN
             h(l, i) *= -1;
 
             //  RANK-ONE UPDATE -> O(N^2)
-            uUp = uSigma(N, Gup, i);
-            uDown = uSigma(N, Gdown, i);
+            uUp = uSigma(N, Gup, i) * alphaUp / ( 1 + alphaUp  * ( 1 - Gup(i, i) ) );
+            uDown = uSigma(N, Gdown, i) * alphaDown /( 1 + alphaDown * ( 1 - Gdown(i, i) ) ) ;
             wUp = wSigma(N, Gup, i);
             wDown = wSigma(N, Gdown, i);
-            //NOTE:
-            //  kroneckerProduct is the tensor product of two vectors. .eval() is needed because of an Eigen quirk. Check documentation.
-            Gup -= alphaUp/( 1 + alphaUp  * ( 1 - Gup(i, i) ) ) * kroneckerProduct(uUp, wUp.transpose() ).eval();
-            Gdown -= alphaDown/( 1 + alphaDown * ( 1 - Gdown(i, i) ) ) * kroneckerProduct(uDown, wDown.transpose() ).eval();
-        }
-        else
-        {
-            //  STORE WEIGHT
-            if (step < totalMCSteps - 1)
+            for (int x = 0; x < N; x++)
             {
-                weights[step + 1] = weights[step];
+                for (int y = 0; y < N; y++)
+                {
+                    Gup(x, y) -= uUp(x) * wUp(y);
+                    Gdown(x, y) -= uDown(x) * wDown(y);
+                }
             }
         }
         
@@ -170,37 +164,32 @@ int main()
             i += 1;
         }
         else
-        {   //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH. MAKE MEASUREMENTS
-            latticeSweepUntilAfresh += 1;
-            
-            
+        {
             //  MEASUREMENTS
+            sweep += 1;
+            
+                //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
+            weights[sweep] = weight;
             
             
-            //  make a measurement
-            
+            //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH.
+            latticeSweepUntilAfresh += 1;
             //  DEAL WITH THE GREEN'S FUNCTIONS.
             
                 //  REBUILD B-MATRICES.
-            Bup[l] = regenB(true, nu, N, h.row(l), BpreFactor);
-            Bdown[l] = regenB(false, nu, N, h.row(l), BpreFactor);
+            Bup[l] = regenB(true, nu, N, h.row(l), BpreFactor, dt, mu);
+            Bdown[l] = regenB(false, nu, N, h.row(l), BpreFactor, dt, mu);
 
                 //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
             if (latticeSweepUntilAfresh == greenAfreshFreq)
             {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
                 Green GreenUp(N, L);
                 Green GreenDown(N, L);
-                if (l == 0)
-                {   //  THIS PARTICULAR CASE IS WHEN WE GO BACK TO THE ORIGINAL ORDER M = B_{L} B_{L-1} ... B_{0}.
-                    GreenUp.computeGreenNaive(Bup, l);
-                    GreenDown.computeGreenNaive(Bdown, l);
-                    
-                }
-                else
-                {   //  THIS ONE USES M = B_l B_{l-1} ... B_{0} B_{L} B_{L-1} TO COMPUTE THE GREEN'S FUNCTIONS.
-                    GreenUp.computeGreenNaive(Bup, l);
-                    GreenDown.computeGreenNaive(Bdown, l);
-                }
+                GreenUp.computeStableGreenNaive(Bup, l, newL);
+                GreenDown.computeStableGreenNaive(Bdown, l, newL);
+                //  Uncomment to compute the product in the naive, unstable manner
+//                GreenUp.computeGreenNaive(Bup, l);
+//                GreenDown.computeGreenNaive(Bdown, l);
                 Gup = GreenUp.getG();
                 Gdown = GreenDown.getG();
                 latticeSweepUntilAfresh = 0;
@@ -214,6 +203,7 @@ int main()
             {
                 l += 1;
                 i = 0;
+                
             }
             else
             {
@@ -235,15 +225,27 @@ int main()
         file1 << U << '\n';
         file1 << mu << '\n';
         file1 << totalMCSweeps << '\n';
-        file1 << greenAfreshFreq << '\n' ;
+        file1 << greenAfreshFreq << '\n';
+        file1 << newL << '\n';
     }
     std::ofstream file2("plots/weights.txt");
     if (file2.is_open())
     {
-        for (int s = 0; s < totalMCSteps; s++)
+        for (int s = 0; s < totalMCSweeps; s++)
         {
-            file2 << weights[s] << '\n';
+            file2 << weights[s] << '\t' << std::copysign( 1. , weights[s] ) << '\n';
         }
     }
     return 0;
 }
+
+//int main()
+//{
+//    int nSamples = 10
+//    for (int sim = 0; sim < nSamples; sim++)
+//    {
+//
+//    }
+//
+//    return 0
+//}

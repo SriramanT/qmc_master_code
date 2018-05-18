@@ -29,7 +29,7 @@ void UDV::printMatrixToDecompose()
 Eigen::MatrixXd UDV::QR_and_getU()
 {
     Eigen::HouseholderQR<Eigen::MatrixXd> qrPartial(m);
-    R = qrPartial.matrixQR().template triangularView<Eigen::Upper>();
+    R = qrPartial.matrixQR().triangularView<Eigen::Upper>();
     
     return qrPartial.householderQ();
 }

@@ -20,7 +20,4 @@ public:
     Eigen::MatrixXd getV();
 };
 
-Eigen::MatrixXd computeGreen(Eigen::MatrixXd Bs[], int L, int k, int nSites);
-Eigen::MatrixXd computeGreenNaive(Eigen::MatrixXd Bs[], int L, int nSites);
-
 #endif /* UDV_h */

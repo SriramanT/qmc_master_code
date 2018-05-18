@@ -17,10 +17,9 @@ class Green
 public:
     Green(int nSites, int nSlices);  // initialize Green's matrix as Id
     void computeGreenNaive(Eigen::MatrixXd* Bs, int l);
-    void computeStableGreenNaive(Eigen::MatrixXd* Bs, int k);
+    void computeStableGreenNaive(Eigen::MatrixXd* Bs, int l, int k);
     Eigen::MatrixXd getG();
     Eigen::MatrixXd getM();
-    void resetM();
     void printGreen(bool spin);
     void printM(bool spin);
 };

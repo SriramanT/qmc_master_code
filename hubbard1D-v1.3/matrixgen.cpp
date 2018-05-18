@@ -8,18 +8,18 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-Eigen::MatrixXd genHoppingMatrix(int N, double mu)
+Eigen::MatrixXd genHoppingMatrix(int N)
 {
     //  Generate the hopping matrix
-    Eigen::MatrixXd K = mu * Eigen::MatrixXd::Identity(N, N);
+    Eigen::MatrixXd K = Eigen::MatrixXd::Zero(N, N);
     
-    // Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
+    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
     K(0, 1) = 1;
     K(0, N - 1) = 1;
     K(N - 1, 0) = 1;
     K(N - 1, N - 2) = 1;
     
-    // Set the remaining ones
+    //  Set the remaining ones
     int i;
     for (i = 1; i < N - 1; i++)
     {
@@ -53,7 +53,7 @@ Eigen::MatrixXd genHsMatrix(int L, int N)
     return h;
 }
 
-void genBmatrix(Eigen::MatrixXd* Bs, bool spin, double nu, int N, int L, Eigen::MatrixXd h, Eigen::MatrixXd BpreFactor)
+void genBmatrix(Eigen::MatrixXd* Bs, bool spin, double nu, int N, int L, Eigen::MatrixXd h, Eigen::MatrixXd BpreFactor, double dt, double mu)
 {
     //  For a single B matrix do genBmatrix(&Bup[0], true, nu, N, L, h, BpreFactor, dt, mu); (to get the memory address of a given B-matrix)
     int i;
@@ -66,14 +66,14 @@ void genBmatrix(Eigen::MatrixXd* Bs, bool spin, double nu, int N, int L, Eigen::
         {
             for (i = 0; i < N; i++)
             {
-                B(i, i) = nu * h(l, i);
+                B(i, i) = nu * h(l, i) + dt * mu;
             }
         }
         else
         {
             for (i = 0; i < N; i++)
             {
-                B(i, i) = -1 * nu * h(l, i);
+                B(i, i) = -1 * nu * h(l, i) + dt * mu;
             }
         }
         Bs[l] = BpreFactor * B.exp();
@@ -96,16 +96,23 @@ Eigen::VectorXd wSigma(int N, Eigen::MatrixXd Green, int i)
     return Green.transpose() * e_i;
 }
 
-Eigen::MatrixXd regenB(bool spin, double nu, int N, Eigen::RowVectorXd h_l, Eigen::MatrixXd BpreFactor)
+Eigen::MatrixXd regenB(bool spin, double nu, int N, Eigen::RowVectorXd h_l, Eigen::MatrixXd BpreFactor, double dt, double mu)
 {
+    int i;
     Eigen::MatrixXd B = Eigen::MatrixXd::Zero(N, N);
     if (spin == true)
     {
-        B.diagonal() = nu * h_l;
+        for (i = 0; i < N; i++)
+        {
+            B(i, i) = nu * h_l(i) + dt * mu;
+        }
     }
     else
     {
-        B.diagonal() = - nu * h_l;
+        for (i = 0; i < N; i++)
+        {
+            B(i, i) = - nu * h_l(i) + dt * mu;
+        }
     }
     return BpreFactor * B.exp();
 }
