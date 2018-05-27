@@ -4,17 +4,15 @@
 //
 //  Created by Francisco Brito on 08/05/2018.
 //
+//  BEWARE! You must run the method .QR_and_getU() to actually
+//  do the QR decomposition. The method returns U. To get
+//  D, and V, you must run .getD() and .getV().
 
 #include <stdio.h>
 #include <iostream>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 #include "UDV.h"
-
-int a;
-int b;
-int c;
-int d;
 
 UDV::UDV(Eigen::MatrixXd toDecompose)
 {
@@ -28,10 +26,10 @@ void UDV::printMatrixToDecompose()
 
 Eigen::MatrixXd UDV::QR_and_getU()
 {
-    Eigen::HouseholderQR<Eigen::MatrixXd> qrPartial(m);
-    R = qrPartial.matrixQR().triangularView<Eigen::Upper>();
+    Eigen::HouseholderQR<Eigen::MatrixXd> qrHH(m);
+    R = qrHH.matrixQR().triangularView<Eigen::Upper>();
     
-    return qrPartial.householderQ();
+    return qrHH.householderQ();
 }
 
 Eigen::MatrixXd UDV::getD()
@@ -43,6 +41,8 @@ Eigen::MatrixXd UDV::getD()
 
 Eigen::MatrixXd UDV::getV()
 {
+    int a;
+    int b;
     Eigen::MatrixXd V = Eigen::MatrixXd::Identity(m.rows(), m.rows());
     for (a = 0; a < m.rows(); a++)
     {

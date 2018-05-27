@@ -10,7 +10,6 @@
 
 void initialPrint(int N, double dt, double beta, int L, double t, double U, double mu, int totalMCSteps, bool debug, Eigen::MatrixXd K, Eigen::MatrixXd B_preFactor, Eigen::MatrixXd h)
 {
-    std::cout << "\n\nDeterminant QMC for the 1D Hubbard chain\n" << std::endl;
     std::cout << "\nNumber of sites N: " << N << std::endl;
     std::cout << "Trotter breakup parameter dt: " << dt << std::endl;
     std::cout << "Inverse temperature beta: " << beta << std::endl;

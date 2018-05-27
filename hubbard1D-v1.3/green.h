@@ -14,10 +14,18 @@ class Green
     int L;
     Eigen::MatrixXd M;
     Eigen::MatrixXd G;
+    Eigen::MatrixXd U;
+    Eigen::MatrixXd D;
+    Eigen::MatrixXd V;
 public:
     Green(int nSites, int nSlices);  // initialize Green's matrix as Id
     void computeGreenNaive(Eigen::MatrixXd* Bs, int l);
-    void computeStableGreenNaive(Eigen::MatrixXd* Bs, int l, int k);
+    void computeStableGreenNaiveR(Eigen::MatrixXd* Bs, int l, int Lbda);
+    void computeStableGreenNaiveL(Eigen::MatrixXd* Bs, int l, int Lbda);
+    void computeGreenFromVDU(Eigen::MatrixXd VsLast, Eigen::MatrixXd DsLast, Eigen::MatrixXd UsLast);
+    void storeVDU(Eigen::MatrixXd* Bs, int Lbda, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs);
+    void computeStableGreen(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs);
+    void storeUDV(Eigen::MatrixXd* Bs, int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs);
     Eigen::MatrixXd getG();
     Eigen::MatrixXd getM();
     void printGreen(bool spin);

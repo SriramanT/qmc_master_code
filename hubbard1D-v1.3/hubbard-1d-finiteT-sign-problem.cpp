@@ -26,38 +26,59 @@
 #include "prints.h"
 #include "green.h"
 
-//  SET PARAMETERS.
-const int N = 4;  //  # sites
-const double dt = 0.125;  //  time subinterval width. error scales as dt^2
-const double beta = 8;  //  inverse temperature
-const int L = beta / dt;  //  # slices
-const double t = 1.;  //  hopping
-const double U = 4.;  //  interaction
-const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
-const int greenAfreshFreq = 4 ;  //   how often to calculate Green's functions afresh
-//NOTE:
-//  measured in SPATIAL lattice sweeps,
-//  i.e. greenAfreshFreq = L corresponds to 1 sweep.
-//    const int greenAfreshFreq = 1;  //  always compute the Green's function from scratch after N steps
-//    const int greenAfreshFreq = totalMCSweeps * N;  //  updates + wrapping version
-const int newL = L / 4;  //  newL = # intervals in which the product of B's is divided to stabilize.
-//  Must be commensurate with L and k < L
-
-//  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
-const int seed = 12345;
-std::mt19937 gen(seed);  //  mt19937 algorithm to generate random numbers
-std::uniform_real_distribution<> dis(0.0, 1.0);
-double decisionMaker;
-//  to accept or not to accept, hence the question.
-const int totalMCSweeps = 1000; //   65536 to reproduce
-//  number of measurements will be totalMCSweeps * L ,
-//  i.e. we make a measurement every lattice sweep (N steps), then find correlations in post-processing
-const int totalMCSteps = totalMCSweeps * N * L;
-
-
-double* simulation(double mu_U)    //  chemical potential divided by U
+double simulation(double mu_U)
 {
+    //  TOOGLE DEBUGGING MODE AND MANUAL PARAMETER ENTERING MODE
+    const bool debug = false;
+    const bool manual = false;
+    
+    //  SET PARAMETERS INTERNALLY.
+    int N = 4;  //  # sites
+    double dt = 0.125;  //  time subinterval width. error scales as dt^2
+    double beta = 8.;  //  inverse temperature
+    double t = 1.;  //  hopping
+    double U = 4.;  //  interaction
+    int greenAfreshFreq = 4 ;  //   how often to calculate Green's functions afresh
+    //NOTE:
+    //  measured in SPATIAL lattice sweeps,
+    //  i.e. greenAfreshFreq = L corresponds to 1 sweep.
+    //    const int greenAfreshFreq = 1;  //  always compute the Green's function from scratch after N steps
+    //    const int greenAfreshFreq = totalMCSweeps * N;  //  (or greater) updates + wrapping version.
+    //   never compute from scratch
+    std::cout << "\n\nDeterminant QMC for the 1D Hubbard chain\n" << std::endl;
+    if (manual == true)
+    {
+        std::cout << "Enter number of sites: " << std::endl;
+        std::cin >> N;
+        std::cout << "Enter Trotter error: " << std::endl;
+        std::cin >> dt;
+        std::cout << "Enter inverse temperature: " << std::endl;
+        std::cin >> beta;
+        std::cout << "Enter hopping parameter: " << std::endl;
+        std::cin >> t;
+        std::cout << "Enter interaction parameter: " << std::endl;
+        std::cin >> U;
+        std::cout << "Enter ratio of chemical potential to interaction: " << std::endl;
+        std::cin >> mu_U;
+        std::cout << "Enter frequency of computation of Green's function afresh: " << std::endl;
+        std::cin >> greenAfreshFreq;
+    }
     const double mu = mu_U * U;  //  chemical potential
+    const int L = beta / dt;  //  # slices
+    const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
+    const int Lbda = L / greenAfreshFreq;  //  Lbda = # intervals in which the product of B's is divided to stabilize.
+    
+    //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
+    const int seed = 1;
+    std::mt19937 gen(seed);  //  mt19937 algorithm to generate random numbers
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+    double decisionMaker;
+    //  to accept or not to accept, hence the question.
+    const int totalMCSweeps = 2048 ;
+    //  number of measurements will be totalMCSweeps * L ,
+    //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
+    const int totalMCSteps = totalMCSweeps * N * L;
+    
     
     // -- INITIALIZATION ---
     
@@ -69,17 +90,32 @@ double* simulation(double mu_U)    //  chemical potential divided by U
     //  COMPUTE MATRIX 'PREFACTOR' OF THE B-MATRICES e^(t dt K).
     const Eigen::MatrixXd BpreFactor = (t * dt * K).exp();
     
+    initialPrint(N, dt, beta, L, t, U, mu, totalMCSteps, debug, K, BpreFactor, h);
+    
     //  GENERATE THE B-MATRICES.
-    Eigen::MatrixXd* Bup = new Eigen::MatrixXd[L];
-    genBmatrix(Bup, true, nu, N, L, h, BpreFactor, dt, mu);
-    Eigen::MatrixXd* Bdown = new Eigen::MatrixXd[L];
-    genBmatrix(Bdown, false, nu, N, L, h, BpreFactor, dt, mu);
-
+    Eigen::MatrixXd Bup[L];
+    genBmatrix(Bup, true, nu, N, L, h, BpreFactor, dt, mu);  //   this line inserts the B-matrices in the array above
+    Eigen::MatrixXd Bdown[L];
+    genBmatrix(Bdown, false, nu, N, L, h, BpreFactor, dt, mu);  //   this line inserts the B-matrices in the array above
+    
+//    //  ALLOCATE MEMORY TO STORE THE PARTIAL PRODUCTS INVOLVED IN
+//    //  SPEEDING UP THE LOW TEMPERATURE STABILIZATION.
+//
+//    Eigen::MatrixXd UsUp[Lbda];
+//    Eigen::MatrixXd DsUp[Lbda];
+//    Eigen::MatrixXd VsUp[Lbda];
+//    Eigen::MatrixXd UsDown[Lbda];
+//    Eigen::MatrixXd DsDown[Lbda];
+//    Eigen::MatrixXd VsDown[Lbda];
+    
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green GreenUp(N, L);
+    //    GreenUp.storeVDU(Bup, Lbda, UsUp, DsUp, VsUp);
     GreenUp.computeGreenNaive(Bup, L - 1);  //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
     Eigen::MatrixXd Gup = GreenUp.getG();
+    
     Green GreenDown(N, L);
+    //    GreenDown.storeVDU(Bup, Lbda, UsDown, DsDown, VsDown);
     GreenDown.computeGreenNaive(Bdown, L - 1);  //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
     Eigen::MatrixXd Gdown = GreenDown.getG();
     
@@ -93,57 +129,69 @@ double* simulation(double mu_U)    //  chemical potential divided by U
     double dUp;
     double dDown;
     double accRatio;
-
+    
     //  INITIALIZE ARRAY TO STORE THE WEIGHT OF THE ACCEPTED CONFIGURATIONS.
-    double* signs = new double[totalMCSweeps * L];
+//    double* weights = new double[totalMCSweeps * L];
+//    double* electronDensity = new double[totalMCSweeps * L];
+//    double* doubleOc = new double[totalMCSweeps * L];
     double weight = GreenUp.getM().determinant() * GreenDown.getM().determinant();
-    signs[0] = std::copysign(1., weight);
-
+    double meanSign = std::copysign( 1. , weight );
+    
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE, THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
     int l = 0;
     int i = 0;
     int latticeSweepUntilAfresh = 0;
-    int sweep = 0;
+//    int sweep = 0;
+    int step;
     
     
     // --- MC LOOP ---
-
     
-    for (int step = 0; step < totalMCSteps; step++)
+    
+    std::cout << "\n\nMC loop started. Progress:\n\n";
+    for (step = 0; step < totalMCSteps; step++)
     {
-
+        //  DISPLAY PROGRESS OF THE RUN.
+        if ( (step + 1)  % (totalMCSteps/8) == 0 )
+        {
+            std::cout << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
+        }
+        
         //  COMPUTE THE ACCEPTANCE RATIO.
         alphaUp = ( exp( -2 * h(l, i) * nu ) - 1 );
         alphaDown = ( exp( 2 * h(l, i) * nu ) - 1 );
         dUp = ( 1 + alphaUp  * ( 1 - Gup(i, i) ) );
         dDown = ( 1 + alphaDown  * ( 1 - Gdown(i, i) ) );
-        accRatio = dUp * dDown;
-
+        //        accRatio = dUp * dDown / ( 1 + dUp * dDown );  // Heat Bath
+        accRatio = dUp * dDown; //  Regular Metropolis
+        
         //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP.
         decisionMaker = dis(gen);
-
+        
         if (decisionMaker <= abs(accRatio) )
         {
             //  KEEP TRACK OF WEIGHT
-            weight = accRatio * weight;
+            weight = dUp * dDown * weight;
             //  FLIP A SPIN
             h(l, i) *= -1;
-
+            
             //  RANK-ONE UPDATE -> O(N^2)
-            uUp = uSigma(N, Gup, i) * alphaUp / ( 1 + alphaUp  * ( 1 - Gup(i, i) ) );
-            uDown = uSigma(N, Gdown, i) * alphaDown /( 1 + alphaDown * ( 1 - Gdown(i, i) ) ) ;
+            uUp = uSigma(N, Gup, i);
+            uDown = uSigma(N, Gdown, i);
             wUp = wSigma(N, Gup, i);
             wDown = wSigma(N, Gdown, i);
             for (int x = 0; x < N; x++)
             {
                 for (int y = 0; y < N; y++)
                 {
-                    Gup(x, y) -= uUp(x) * wUp(y);
-                    Gdown(x, y) -= uDown(x) * wDown(y);
+                    Gup(x, y) -= alphaUp / dUp * uUp(x) * wUp(y);
+                    Gdown(x, y) -= alphaDown / dDown * uDown(x) * wDown(y);
                 }
             }
         }
+        
+        meanSign += ( std::copysign(1., weight) - meanSign ) / ( step + 2 );
         
         
         // --- COMPUTE WRAPPED GREEN'S FUNCTIONS. MEASUREMENTS. ---
@@ -155,31 +203,47 @@ double* simulation(double mu_U)    //  chemical potential divided by U
         }
         else
         {
-            //  MEASUREMENTS
-            sweep += 1;
-            
-                //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
-            signs[sweep] = std::copysign(1., weight);
-            
-            
             //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH.
             latticeSweepUntilAfresh += 1;
+            
+            
+            //  MEASUREMENTS
+            
+            
+//            //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
+//            weights[sweep] = weight;
+//            //  STORE ELECTRON DENSITY, AND DOUBLE OCCUPANCY
+//            electronDensity[sweep] = 0.;
+//            doubleOc[sweep] = 0.;
+//            for (int x = 0; x < N; x++)
+//            {
+//                electronDensity[sweep] -= ( Gup(x, x) + Gdown(x, x) );
+//                doubleOc[sweep] = doubleOc[sweep] - Gup(x, x) - Gdown(x, x) + Gup(x, x) * Gdown(x, x);
+//            }
+//            electronDensity[sweep] /= N;
+//            electronDensity[sweep] += 2;
+//            doubleOc[sweep] /= N;
+//            doubleOc[sweep] += 1;
+//
+//            //  MOVE SWEEP COUNTER
+//            sweep += 1;
+            
             //  DEAL WITH THE GREEN'S FUNCTIONS.
             
-                //  REBUILD B-MATRICES.
+            //  REBUILD B-MATRICES.
             Bup[l] = regenB(true, nu, N, h.row(l), BpreFactor, dt, mu);
             Bdown[l] = regenB(false, nu, N, h.row(l), BpreFactor, dt, mu);
-
-                //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
+            
+            //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
             if (latticeSweepUntilAfresh == greenAfreshFreq)
             {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
                 Green GreenUp(N, L);
                 Green GreenDown(N, L);
-                GreenUp.computeStableGreenNaive(Bup, l, newL);
-                GreenDown.computeStableGreenNaive(Bdown, l, newL);
+                GreenUp.computeStableGreenNaiveR(Bup, l, Lbda);
+                GreenDown.computeStableGreenNaiveR(Bdown, l, Lbda);
                 //  Uncomment to compute the product in the naive, unstable manner
-//                GreenUp.computeGreenNaive(Bup, l);
-//                GreenDown.computeGreenNaive(Bdown, l);
+                //                GreenUp.computeGreenNaive(Bup, l);
+                //                GreenDown.computeGreenNaive(Bdown, l);
                 Gup = GreenUp.getG();
                 Gdown = GreenDown.getG();
                 latticeSweepUntilAfresh = 0;
@@ -189,11 +253,11 @@ double* simulation(double mu_U)    //  chemical potential divided by U
                 Gup = Bup[l] * Gup * Bup[l].inverse();
                 Gdown = Bdown[l] * Gdown * Bdown[l].inverse();
             }
+            
             if (l < L - 1)
             {
                 l += 1;
                 i = 0;
-                
             }
             else
             {
@@ -202,35 +266,30 @@ double* simulation(double mu_U)    //  chemical potential divided by U
             }
         }
     }   //  END OF MC LOOP.
-
-    return signs;
+    
+    return meanSign;
+    
 }
 
 int main()
 {
-    int nSamples = 10;
-    double meanSign[nSamples];
-    double* signs;
+    int nSamples = 20;
+    double startInterval = - 1.;
+    double endInterval = 1.;
+    double length = endInterval - startInterval;
+    double meanSigns[nSamples + 1];
     for (int sim = 0; sim <= nSamples; sim++)
     {
-        std::cout << 2 * (1. * sim) / nSamples - 1. << std::endl;
-        signs = simulation( 2 * (1. * sim) / nSamples - 1.);
-        meanSign[sim] = signs[0];
-        for (int sweep = 1; sweep < totalMCSweeps * L; sweep++)
-        {
-            meanSign[sim] += ( signs[sweep] - meanSign[sim] ) / ( sweep + 1 )  ;
-        }
-        std::cout << meanSign[sim] << std::endl;
+        meanSigns[sim] = simulation( startInterval + length / nSamples * sim );
+        std::cout << meanSigns[sim] << std::endl;
     }
-    
-    std::ofstream file("plots/meanSignVsChemPot.txt");
+    std::ofstream file("plots/signMu.txt");
     if (file.is_open())
     {
-        for (int s = 0; s < nSamples; s++)
+        for (int s = 0; s <= nSamples; s++)
         {
-            file << 2 * (1. * s) / nSamples - 1. << '\t' << meanSign[s] << '\n';
+            file << startInterval + length / nSamples * s << '\t' << meanSigns[s] << '\n';
         }
     }
-    
     return 0;
 }
