@@ -21,6 +21,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <fstream>
+#include <iomanip>
 
 #include "matrixgen.h"
 #include "prints.h"
@@ -32,10 +33,10 @@ int main()
     const bool debug = false;
     
     //  SET DEFAULT PARAMETERS.
-    const int N = 2;  //  # sites
+    const int N = 4;  //  # sites
     const double dt = 0.125;  //  Trotter error, or time subinterval width. error scales as dt^2
     const double beta = 6.;  //  inverse temperature
-    const double t = 2.;  //  hopping parameter. For 2 sites w/ PBCs use t = 2, corresponding to t = 1.
+    const double t = 1.;  //  hopping parameter. For 2 sites w/ PBCs use t = 2, corresponding to t = 1.
     const double U = 4.;  //  on-site interaction
     const double mu_U = 0.6;   //  chemical potential divided by interaction
     const int greenAfreshFreq = 1 ;  //   how often to calculate Green's functions afresh (in # im-time slices)
@@ -51,7 +52,7 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 2048;
+    const int totalMCSweeps = 100;
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
@@ -108,10 +109,12 @@ int main()
     double* weights = new double[totalMCSweeps];
     double* electronDensities = new double[totalMCSweeps];
     double* doubleOcs = new double[totalMCSweeps];
-    Eigen::MatrixXd magCorrs(N, N);
+    Eigen::MatrixXd magCorrs[totalMCSweeps];
+    magCorrs[0] = Eigen::MatrixXd::Zero(N, N);
     double weight = GreenUp.getM().determinant() * GreenDown.getM().determinant();
     double electronDensity;
     double doubleOc;
+    Eigen::MatrixXd magCorr(N, N);
     electronDensities[0] = 0.; doubleOcs[0] = 0.;
     double meanSign = std::copysign( 1. , weight );
 
@@ -187,18 +190,13 @@ int main()
             {
                 electronDensity -= ( Gup(x, x) + Gdown(x, x) );
                 doubleOc = doubleOc - Gup(x, x) - Gdown(x, x) + Gup(x, x) * Gdown(x, x);
-                magCorrs(x, x) = 3 * ( Gup(x, x) + Gdown(x, x) ) - 6 * Gup(x, x) * Gdown(x, x)
+                magCorr(x, x) = 3 * ( Gup(x, x) + Gdown(x, x) ) - 6 * Gup(x, x) * Gdown(x, x);
                 for (int y = 0; y < x; y++)
                 {
-                    magCorrs(x, y) = - Gup(x, y) * ( 2 * Gdown(y, x) + Gup(y, x) )
+                    magCorr(x, y) = - Gup(x, y) * ( 2 * Gdown(y, x) + Gup(y, x) )
                     - Gdown(x, y) * ( 2 * Gup(y, x) + Gdown(y, x) )
                     + ( Gup(x, x) - Gdown(x, x) ) * ( Gup(y, y) - Gdown(y, y) );
-                }
-                for (int y = x + 1; y < N; y++)
-                {
-                    magCorrs(x, y) = - Gup(x, y) * ( 2 * Gdown(y, x) + Gup(y, x) )
-                    - Gdown(x, y) * ( 2 * Gup(y, x) + Gdown(y, x) )
-                    + ( Gup(x, x) - Gdown(x, x) ) * ( Gup(y, y) - Gdown(y, y) );
+                    magCorr(y, x) = magCorr(x, y);
                 }
             }
             electronDensity /= N; electronDensity += 2;
@@ -206,7 +204,7 @@ int main()
             
             electronDensities[sweep] += ( electronDensity - electronDensities[sweep] ) / ( l + 1 ) ;
             doubleOcs[sweep] +=  ( doubleOc - doubleOcs[sweep] ) / ( l + 1 ) ;
-
+            magCorrs[sweep] += (magCorr - magCorrs[sweep] ) / ( l + 1 );
             
             //  DEAL WITH THE GREEN'S FUNCTIONS.
             
@@ -267,6 +265,7 @@ int main()
                     //  MOVE SWEEP COUNTER
                     sweep += 1;
                     electronDensities[sweep] = 0.; doubleOcs[sweep] = 0.;
+                    magCorrs[sweep] = Eigen::MatrixXd::Zero(N, N);
                 }
                 l = 0; i = 0;
             }
@@ -290,19 +289,39 @@ int main()
         file1 << "greenAfreshFreq\t" << greenAfreshFreq << '\n';
         file1 << "Lbda\t" << Lbda << '\n';
     }
+    file1.close();
+    file1.clear();
     //  STORE MEASUREMENTS
-    std::ofstream file2("plots/measurements.txt");
-    if (file2.is_open())
+    std::ofstream file2("plots/measurementsScalars.txt");
+    if ( file2.is_open() )
     {
-        file2 << "weights" << "\t\t\t" << "sign" << "\t\t\t" << "<n>"
-        << "\t\t\t" << "<n+ n->" << '\n';
+        file2 << std::left << std::setw(25) << "Configuration weight";
+        file2 << std::left << std::setw(25) << "Weight sign";
+        file2 << std::left << std::setw(25) << "Electron density <n>";
+        file2 << std::left << std::setw(25) << "Double occupancy <n+ n->" << '\n';
         for (int s = 0; s < totalMCSweeps; s++)
         {
-            file2 << weights[s] << "\t\t\t" << std::copysign( 1. , weights[s] )
-            << "\t\t\t" << electronDensities[s] << "\t\t\t" << doubleOcs[s] << '\n';
+            file2 << std::left << std::setw(25) << weights[s];
+            file2 << std::left << std::setw(25) << std::copysign( 1. , weights[s] );
+            file2 << std::left << std::setw(25) << std::setprecision(10) << electronDensities[s];
+            file2 << std::left << std::setw(25) << std::setprecision(10) << doubleOcs[s] << '\n';
         }
     }
-    
+    file2.close();
+    file2.clear();
+    std::ofstream file3("plots/measurementsCorrelations.txt");
+    if ( file3.is_open() )
+    {
+        file3 << "Spin-spin correlation function <S_i S_j>" << '\n';
+        file3 << std::left;
+        for (int s = 0; s < totalMCSweeps; s++)
+        {
+            file3 << std::setprecision(10) << magCorrs[s] << std::endl << std::endl;
+        }
+        file3 << '\n';
+    }
+    file3.close();
+    file3.clear();
     return 0;
 }
 
