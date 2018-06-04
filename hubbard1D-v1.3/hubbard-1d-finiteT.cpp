@@ -28,36 +28,17 @@
 
 int main()
 {
-    //  TOOGLE DEBUGGING MODE AND MANUAL PARAMETER ENTERING MODE
+    //  TOOGLE DEBUGGING MODE.
     const bool debug = false;
-    const bool manual = false;
     
     //  SET DEFAULT PARAMETERS.
-    int N = 2;  //  # sites
-    double dt = 0.125;  //  time subinterval width. error scales as dt^2
-    double beta = 6.;  //  inverse temperature
-    double t = 2.;  //  hopping matrix. For 2 sites w/ PBCs use t = 2.
-    double U = 4.;  //  on-site interaction
-    double mu_U = 0.6;   //  chemical potential divided by interaction
-    int greenAfreshFreq = 4 ;  //   how often to calculate Green's functions afresh (in # im-time slices)
-    
-    if (manual == true)
-    {
-        std::cout << "Enter number of sites: " << std::endl;
-        std::cin >> N;
-        std::cout << "Enter Trotter error: " << std::endl;
-        std::cin >> dt;
-        std::cout << "Enter inverse temperature: " << std::endl;
-        std::cin >> beta;
-        std::cout << "Enter hopping parameter: " << std::endl;
-        std::cin >> t;
-        std::cout << "Enter interaction parameter: " << std::endl;
-        std::cin >> U;
-        std::cout << "Enter ratio of chemical potential to interaction: " << std::endl;
-        std::cin >> mu_U;
-        std::cout << "Enter frequency of computation of Green's function afresh: " << std::endl;
-        std::cin >> greenAfreshFreq;
-    }
+    const int N = 2;  //  # sites
+    const double dt = 0.125;  //  Trotter error, or time subinterval width. error scales as dt^2
+    const double beta = 6.;  //  inverse temperature
+    const double t = 2.;  //  hopping parameter. For 2 sites w/ PBCs use t = 2, corresponding to t = 1.
+    const double U = 4.;  //  on-site interaction
+    const double mu_U = 0.6;   //  chemical potential divided by interaction
+    const int greenAfreshFreq = 1 ;  //   how often to calculate Green's functions afresh (in # im-time slices)
     const double mu = mu_U * U;  //  chemical potential
     const int L = beta / dt;  //  # slices
     const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
@@ -70,7 +51,7 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 2048 ;
+    const int totalMCSweeps = 2048;
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
@@ -115,15 +96,23 @@ int main()
     GreenDown.computeGreenFromVDU(VsDown[Lbda - 1], DsDown[Lbda - 1], UsDown[Lbda - 1]);
     Eigen::MatrixXd Gdown = GreenDown.getG();
     
+    //  ALLOCATE MEMORY FOR THE UNEQUAL TIME GREEN'S FUNCTIIONS
+    Eigen::MatrixXd uneqGup[L - 1]; //  uneqGup[0] is uneqGup(l = 1, 0), uneqGup[1] is uneqGup(l = 2, 0)...
+    Eigen::MatrixXd uneqGdown[L - 1];
+    
     //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
     Eigen::VectorXd uUp; Eigen::VectorXd uDown; Eigen::VectorXd wUp; Eigen::VectorXd wDown;
     double alphaUp; double alphaDown; double dUp; double dDown; double accRatio;
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
-    double* weights = new double[totalMCSweeps * L];
-    double* electronDensity = new double[totalMCSweeps * L];
-    double* doubleOc = new double[totalMCSweeps * L];
+    double* weights = new double[totalMCSweeps];
+    double* electronDensities = new double[totalMCSweeps];
+    double* doubleOcs = new double[totalMCSweeps];
+    Eigen::MatrixXd magCorrs(N, N);
     double weight = GreenUp.getM().determinant() * GreenDown.getM().determinant();
+    double electronDensity;
+    double doubleOc;
+    electronDensities[0] = 0.; doubleOcs[0] = 0.;
     double meanSign = std::copysign( 1. , weight );
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
@@ -192,20 +181,32 @@ int main()
             //  --- MEASUREMENTS ---
             
             
-            //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
-            weights[sweep] = weight;
             //  STORE ELECTRON DENSITY, AND DOUBLE OCCUPANCY
-            electronDensity[sweep] = 0.; doubleOc[sweep] = 0.;
+            electronDensity = 0.; doubleOc = 0.;
             for (int x = 0; x < N; x++)
             {
-                electronDensity[sweep] -= ( Gup(x, x) + Gdown(x, x) );
-                doubleOc[sweep] = doubleOc[sweep] - Gup(x, x) - Gdown(x, x) + Gup(x, x) * Gdown(x, x);
+                electronDensity -= ( Gup(x, x) + Gdown(x, x) );
+                doubleOc = doubleOc - Gup(x, x) - Gdown(x, x) + Gup(x, x) * Gdown(x, x);
+                magCorrs(x, x) = 3 * ( Gup(x, x) + Gdown(x, x) ) - 6 * Gup(x, x) * Gdown(x, x)
+                for (int y = 0; y < x; y++)
+                {
+                    magCorrs(x, y) = - Gup(x, y) * ( 2 * Gdown(y, x) + Gup(y, x) )
+                    - Gdown(x, y) * ( 2 * Gup(y, x) + Gdown(y, x) )
+                    + ( Gup(x, x) - Gdown(x, x) ) * ( Gup(y, y) - Gdown(y, y) );
+                }
+                for (int y = x + 1; y < N; y++)
+                {
+                    magCorrs(x, y) = - Gup(x, y) * ( 2 * Gdown(y, x) + Gup(y, x) )
+                    - Gdown(x, y) * ( 2 * Gup(y, x) + Gdown(y, x) )
+                    + ( Gup(x, x) - Gdown(x, x) ) * ( Gup(y, y) - Gdown(y, y) );
+                }
             }
-            electronDensity[sweep] /= N; electronDensity[sweep] += 2;
-            doubleOc[sweep] /= N; doubleOc[sweep] += 1;
+            electronDensity /= N; electronDensity += 2;
+            doubleOc /= N; doubleOc += 1;
+            
+            electronDensities[sweep] += ( electronDensity - electronDensities[sweep] ) / ( l + 1 ) ;
+            doubleOcs[sweep] +=  ( doubleOc - doubleOcs[sweep] ) / ( l + 1 ) ;
 
-            //  MOVE SWEEP COUNTER
-            sweep += 1;
             
             //  DEAL WITH THE GREEN'S FUNCTIONS.
             
@@ -230,6 +231,9 @@ int main()
                     GreenDown.storeUDV(Bdown, l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
                     GreenUp.computeStableGreen(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
                     GreenDown.computeStableGreen(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
+                    uneqGup[l] = GreenUp.getUneqGreen(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
+                    uneqGdown[l] = GreenDown.getUneqGreen(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
+//                    std::cout << uneqGup[l] << std::endl << std::endl;
                 }
                 else
                 {
@@ -243,7 +247,11 @@ int main()
             }
             else
             {   //  WRAPPING.
-                Gup = Bup[l] * Gup * Bup[l].inverse(); Gdown = Bdown[l] * Gdown * Bdown[l].inverse();
+                uneqGup[l] = Bup[l] * Gup;
+//                std::cout << uneqGup[l] << std::endl << std::endl;
+                uneqGdown[l] = Bdown[l] * Gdown;
+                Gup = uneqGup[l] * Bup[l].inverse(); Gdown = uneqGdown[l] * Bdown[l].inverse();
+                
             }
 
             if (l < L - 1)
@@ -252,6 +260,14 @@ int main()
             }
             else
             {
+                //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
+                weights[sweep] = weight;
+                if (sweep != totalMCSweeps)
+                {
+                    //  MOVE SWEEP COUNTER
+                    sweep += 1;
+                    electronDensities[sweep] = 0.; doubleOcs[sweep] = 0.;
+                }
                 l = 0; i = 0;
             }
         }
@@ -274,35 +290,18 @@ int main()
         file1 << "greenAfreshFreq\t" << greenAfreshFreq << '\n';
         file1 << "Lbda\t" << Lbda << '\n';
     }
-    //  THIS IS INEFFICIENT AND NEEDS IMPROVING
-    std::ofstream file2("plots/weights.txt");
+    //  STORE MEASUREMENTS
+    std::ofstream file2("plots/measurements.txt");
     if (file2.is_open())
     {
-        file2 << "weights" << "\t\t\t" << "sign" << '\n';
-        for (int s = 0; s < totalMCSweeps * L; s++)
+        file2 << "weights" << "\t\t\t" << "sign" << "\t\t\t" << "<n>"
+        << "\t\t\t" << "<n+ n->" << '\n';
+        for (int s = 0; s < totalMCSweeps; s++)
         {
-            file2 << weights[s] << "\t\t" << std::copysign( 1. , weights[s] ) << '\n';
+            file2 << weights[s] << "\t\t\t" << std::copysign( 1. , weights[s] )
+            << "\t\t\t" << electronDensities[s] << "\t\t\t" << doubleOcs[s] << '\n';
         }
     }
-    std::ofstream file3("plots/electronDensity.txt");
-    if (file3.is_open())
-    {
-        file3 << "electronDensity" << '\n';
-        for (int s = 0; s < totalMCSweeps * L; s++)
-        {
-            file3 << electronDensity[s] << '\n';
-        }
-    }
-    std::ofstream file4("plots/doubleOc.txt");
-    if (file4.is_open())
-    {
-        file4 << "doubleOccupancy" << '\n';
-        for (int s = 0; s < totalMCSweeps * L; s++)
-        {
-            file4 << doubleOc[s] << '\n';
-        }
-    }
-    
     
     return 0;
 }

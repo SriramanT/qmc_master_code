@@ -295,6 +295,17 @@ void Green::computeStableGreen(int l, int Lbda, int greenAfreshFreq, Eigen::Matr
     //  U_L.inv V.inv D.inv U.inv U_R.inv
 }
 
+Eigen::MatrixXd Green::getUneqGreen(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
+{
+    //  NOTE THAT THE ARGUMENT l will never be zero. At l = 0, we get the equal-time Green's function
+    int lbda = (l + 1) / greenAfreshFreq - 1;
+    UDV udvIllConditionedSum( ( Ds[Lbda - lbda - 1].inverse() ).colwise().reverse() * Us[Lbda - lbda - 1].inverse() * Us[Lbda - lbda - 2].inverse()
+                             + ( Vs[Lbda - lbda - 1] ).colwise().reverse() * Vs[Lbda - lbda - 2] * Ds[Lbda - lbda - 2]  );
+    U = udvIllConditionedSum.QR_and_getU();
+    D = udvIllConditionedSum.getD();
+    V = udvIllConditionedSum.getV();
+    return Us[Lbda - lbda - 2].inverse() * V.inverse() * D.inverse() * U.inverse() * ( Vs[Lbda - lbda - 1] ).colwise().reverse();
+}
 
 
 Eigen::MatrixXd Green::getG()

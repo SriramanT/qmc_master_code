@@ -117,3 +117,6 @@ Eigen::MatrixXd regenB(bool spin, double nu, int N, Eigen::RowVectorXd h_l, Eige
     return BpreFactor * B.exp();
 }
 
+
+
+

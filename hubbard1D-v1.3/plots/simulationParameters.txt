@@ -6,5 +6,5 @@ t	2
 U	4
 mu	2.4
 totalMCSweeps	2048
-greenAfreshFreq	4
-Lbda	12
+greenAfreshFreq	1
+Lbda	48
