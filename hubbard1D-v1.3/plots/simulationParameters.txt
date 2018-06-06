@@ -1,10 +1,10 @@
-N	4
+N	2
 dt	0.125
 beta	6
 L	48
-t	1
+t	2
 U	4
 mu	2.4
 totalMCSweeps	100
-greenAfreshFreq	1
-Lbda	48
+greenAfreshFreq	4
+Lbda	12

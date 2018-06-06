@@ -295,7 +295,7 @@ void Green::computeStableGreen(int l, int Lbda, int greenAfreshFreq, Eigen::Matr
     //  U_L.inv V.inv D.inv U.inv U_R.inv
 }
 
-Eigen::MatrixXd Green::getUneqGreen(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
+Eigen::MatrixXd Green::getUneqGreenForward(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
 {
     //  NOTE THAT THE ARGUMENT l will never be zero. At l = 0, we get the equal-time Green's function
     int lbda = (l + 1) / greenAfreshFreq - 1;
@@ -307,6 +307,12 @@ Eigen::MatrixXd Green::getUneqGreen(int l, int Lbda, int greenAfreshFreq, Eigen:
     return Us[Lbda - lbda - 2].inverse() * V.inverse() * D.inverse() * U.inverse() * ( Vs[Lbda - lbda - 1] ).colwise().reverse();
 }
 
+Eigen::MatrixXd Green::getUneqGreenBackward(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
+{
+    //  NOTE THAT THE ARGUMENT l will never be zero. At l = 0, we get the equal-time Green's function
+    int lbda = (l + 1) / greenAfreshFreq - 1;
+    return - Vs[Lbda - lbda - 1].inverse() * Ds[Lbda - lbda - 1].inverse() * Us[Lbda - lbda - 1].inverse() * ( Eigen::MatrixXd::Identity(N, N) - G );
+}
 
 Eigen::MatrixXd Green::getG()
 {
