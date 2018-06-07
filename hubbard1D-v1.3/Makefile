@@ -5,7 +5,6 @@ hubbard-1d-finiteT: hubbard-1d-finiteT.o matrixgen.o prints.o green.o UDV.o VDU.
 	$(CXX) $(CXXFLAGS) -o hubbard-1d-finiteT hubbard-1d-finiteT.o matrixgen.o prints.o green.o UDV.o VDU.o
 
 hubbard-1d-finiteT.o: hubbard-1d-finiteT.cpp matrixgen.cpp prints.cpp green.cpp matrixgen.h prints.h green.h
-	$(CXX) $(CXXFLAGS) -c hubbard-1d-finiteT.cpp
 
 #hubbard-1d-finiteT-sign-problem: hubbard-1d-finiteT-sign-problem.o matrixgen.o prints.o green.o UDV.o VDU.o
 #	$(CXX) $(CXXFLAGS) -o hubbard-1d-finiteT-sign-problem hubbard-1d-finiteT-sign-problem.o matrixgen.o prints.o green.o UDV.o VDU.o

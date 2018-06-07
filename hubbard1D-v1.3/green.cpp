@@ -295,28 +295,49 @@ void Green::computeStableGreen(int l, int Lbda, int greenAfreshFreq, Eigen::Matr
     //  U_L.inv V.inv D.inv U.inv U_R.inv
 }
 
-Eigen::MatrixXd Green::getUneqGreenForward(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
+void Green::computeBlockOfGreens(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
 {
-    //  NOTE THAT THE ARGUMENT l will never be zero. At l = 0, we get the equal-time Green's function
     int lbda = (l + 1) / greenAfreshFreq - 1;
-    UDV udvIllConditionedSum( ( Ds[Lbda - lbda - 1].inverse() ).colwise().reverse() * Us[Lbda - lbda - 1].inverse() * Us[Lbda - lbda - 2].inverse()
-                             + ( Vs[Lbda - lbda - 1] ).colwise().reverse() * Vs[Lbda - lbda - 2] * Ds[Lbda - lbda - 2]  );
-    U = udvIllConditionedSum.QR_and_getU();
-    D = udvIllConditionedSum.getD();
-    V = udvIllConditionedSum.getV();
-    return Us[Lbda - lbda - 2].inverse() * V.inverse() * D.inverse() * U.inverse() * ( Vs[Lbda - lbda - 1] ).colwise().reverse();
-}
-
-Eigen::MatrixXd Green::getUneqGreenBackward(int l, int Lbda, int greenAfreshFreq, Eigen::MatrixXd* Us, Eigen::MatrixXd* Ds, Eigen::MatrixXd* Vs)
-{
-    //  NOTE THAT THE ARGUMENT l will never be zero. At l = 0, we get the equal-time Green's function
-    int lbda = (l + 1) / greenAfreshFreq - 1;
-    return - Vs[Lbda - lbda - 1].inverse() * Ds[Lbda - lbda - 1].inverse() * Us[Lbda - lbda - 1].inverse() * ( Eigen::MatrixXd::Identity(N, N) - G );
+    Eigen::MatrixXd tempMatrix(2 * N, 2 * N);
+    tempMatrix.block(0, 0, N, N) = ( Vs[Lbda - lbda - 1] * Vs[Lbda - lbda - 2] ).inverse();
+    tempMatrix.block(0, N, N, N) = Ds[Lbda - lbda - 2];
+    tempMatrix.block(N, 0, N, N) = - Ds[Lbda - lbda - 1];
+    tempMatrix.block(N, N, N, N) = ( Us[Lbda - lbda - 2] * Us[Lbda - lbda - 1] ).inverse();
+    UDV decomposition(tempMatrix);
+    U = decomposition.QR_and_getU();
+    D = decomposition.getD();
+    V = decomposition.getV();
+    Eigen::MatrixXd RightMatrix(2 * N, 2 * N);
+    RightMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 2].inverse();
+    RightMatrix.block(0, N, N, N) = Eigen::MatrixXd::Zero(N, N);
+    RightMatrix.block(N, 0, N, N) = Eigen::MatrixXd::Zero(N, N);
+    RightMatrix.block(N, N, N, N) = Us[Lbda - lbda - 1].inverse();
+    RightMatrix = U.inverse() * RightMatrix;
+    Eigen::MatrixXd LeftMatrix(2 * N, 2 * N);
+    LeftMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 1].inverse();
+    LeftMatrix.block(0, N, N, N) = Eigen::MatrixXd::Zero(N, N);
+    LeftMatrix.block(N, 0, N, N) = Eigen::MatrixXd::Zero(N, N);
+    LeftMatrix.block(N, N, N, N) = Us[Lbda - lbda - 2].inverse();
+    LeftMatrix *= V.inverse();
+    tempMatrix = LeftMatrix * D.inverse() * RightMatrix;
+    G = tempMatrix.block(N, N, N, N);
+    Gforward = tempMatrix.block(N, 0, N, N);
+    Gbackward = tempMatrix.block(0, N, N, N);
 }
 
 Eigen::MatrixXd Green::getG()
 {
     return G;
+}
+
+Eigen::MatrixXd Green::getGforward()
+{
+    return Gforward;
+}
+
+Eigen::MatrixXd Green::getGbackward()
+{
+    return Gbackward;
 }
 
 Eigen::MatrixXd Green::getM()

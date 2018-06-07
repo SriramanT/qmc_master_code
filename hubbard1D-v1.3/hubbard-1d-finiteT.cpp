@@ -27,8 +27,6 @@
 #include "prints.h"
 #include "green.h"
 
-//  NOTES
-//  Put equal-time Green into the uneq array.
 
 int main()
 {
@@ -39,7 +37,7 @@ int main()
     const int N = 2;  //  # sites
     const double dt = 0.125;  //  Trotter error, or time subinterval width. error scales as dt^2
     const double beta = 6.;  //  inverse temperature
-    const double t = 2.;  //  hopping parameter. For 2 sites w/ PBCs use t = 2, corresponding to t = 1.
+    const double t = 1.;  //  hopping parameter. For 2 sites w/ PBCs use t = 2, corresponding to t = 1.
     const double U = 4.;  //  on-site interaction
     const double mu_U = 0.6;   //  chemical potential divided by interaction
     const int greenAfreshFreq = 4 ;  //   how often to calculate Green's functions afresh (in # im-time slices)
@@ -55,7 +53,7 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 100;
+    const int totalMCSweeps = 1;
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
@@ -103,29 +101,24 @@ int main()
     Eigen::MatrixXd Gdown = GreenDown.getG();
     
     //  ALLOCATE MEMORY FOR THE UNEQUAL TIME GREEN'S FUNCTIIONS
-//    Eigen::Matrix<double, N, N> uneqGupForward[L];
-//    Eigen::Matrix<double, N, N> uneqGdownForward[L];
-//    Eigen::Matrix<double, N, N> uneqGupBackward[L];
-//    Eigen::Matrix<double, N, N> uneqGdownBackward[L];
-//    uneqGupForward[0] = Gup;
-//    uneqGdownForward[0] = Gdown;
-//    uneqGupBackward[0] = Gup;
-//    uneqGdownBackward[0] = Gdown;
-//    uneqGupBackward[0] -= Eigen::MatrixXd::Identity(N, N);
-//    uneqGdownBackward[0] -= Eigen::MatrixXd::Identity(N, N);
+    Eigen::Matrix<double, N, N> * uneqGupForward = new Eigen::Matrix<double, N, N>[L];
+    Eigen::Matrix<double, N, N> * uneqGdownForward = new Eigen::Matrix<double, N, N>[L];
+    Eigen::Matrix<double, N, N> * uneqGupBackward = new Eigen::Matrix<double, N, N>[L];
+    Eigen::Matrix<double, N, N> * uneqGdownBackward = new Eigen::Matrix<double, N, N>[L];
+    uneqGupForward[0] = Gup;
+    uneqGdownForward[0] = Gdown;
+    uneqGupBackward[0] = Gup - Eigen::MatrixXd::Identity(N, N);
+    uneqGdownBackward[0] = Gdown - Eigen::MatrixXd::Identity(N, N);
     
     //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
     Eigen::VectorXd uUp; Eigen::VectorXd uDown; Eigen::VectorXd wUp; Eigen::VectorXd wDown;
     double alphaUp; double alphaDown; double dUp; double dDown; double accRatio;
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
-//    double* weights = new double[totalMCSweeps];
-//    double* electronDensities = new double[totalMCSweeps];
-//    double* doubleOcs = new double[totalMCSweeps];
-    double weights[totalMCSweeps];
-    double electronDensities[totalMCSweeps];
-    double doubleOcs[totalMCSweeps];
-    Eigen::MatrixXd magCorrs[totalMCSweeps];
+    double * weights = new double[totalMCSweeps];
+    double * electronDensities = new double[totalMCSweeps];
+    double * doubleOcs = new double[totalMCSweeps];
+    Eigen::MatrixXd * magCorrs = new Eigen::MatrixXd[totalMCSweeps];
     magCorrs[0] = Eigen::MatrixXd::Zero(N, N);
     double weight = GreenUp.getM().determinant() * GreenDown.getM().determinant();
     double electronDensity;
@@ -142,7 +135,7 @@ int main()
     
     // --- MC LOOP ---
 
-    
+
     std::cout << "\n\nMC loop started. Progress:\n\n";
     for (step = 0; step < totalMCSteps; step++)
     {
@@ -170,7 +163,7 @@ int main()
             //  UPDATE Bs
             Bup[l].col(i) *= ( alphaUp + 1 );
             Bdown[l].col(i) *= ( alphaDown + 1 );
-            
+
             //  RANK-ONE UPDATE -> O(N^2)
             uUp = uSigma(N, Gup, i); uDown = uSigma(N, Gdown, i); wUp = wSigma(N, Gup, i); wDown = wSigma(N, Gdown, i);
             for (int x = 0; x < N; x++)
@@ -182,14 +175,14 @@ int main()
                 }
             }
         }
-        
+
         //  KEEP TRACK OF THE SIGN (RUNNING AVERAGE).
         meanSign += ( std::copysign(1., weight) - meanSign ) / ( step + 2 );
-    
-        
+
+
         // --- COMPUTE WRAPPED GREEN'S FUNCTIONS. ---
-        
-        
+
+
         if (i < N - 1)
         {   //  CONTINUE LOOPING THROUGH THE SPATIAL LATTICE
             i += 1;
@@ -198,12 +191,12 @@ int main()
         {
             //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH.
             latticeSweepUntilAfresh += 1;
-            
-            
+
+
             //  --- MEASUREMENTS ---
-            
-            
-            //  STORE ELECTRON DENSITY, AND DOUBLE OCCUPANCY
+
+
+            //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
             electronDensity = 0.; doubleOc = 0.;
             for (int x = 0; x < N; x++)
             {
@@ -220,16 +213,14 @@ int main()
             }
             electronDensity /= N; electronDensity += 2;
             doubleOc /= N; doubleOc += 1;
-            
+
             electronDensities[sweep] += ( electronDensity - electronDensities[sweep] ) / ( l + 1 ) ;
             doubleOcs[sweep] +=  ( doubleOc - doubleOcs[sweep] ) / ( l + 1 ) ;
             magCorrs[sweep] += (magCorr - magCorrs[sweep] ) / ( l + 1 );
+
             
             //  DEAL WITH THE GREEN'S FUNCTIONS.
             
-//                //  REBUILD B-MATRICES (not needed now because the B's are being updated)
-//            Bup[l] = regenB(true, nu, N, h.row(l), BpreFactor, dt, mu);
-//            Bdown[l] = regenB(false, nu, N, h.row(l), BpreFactor, dt, mu);
 
                 //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
             if (latticeSweepUntilAfresh == greenAfreshFreq)
@@ -246,32 +237,22 @@ int main()
                 {
                     GreenUp.storeUDV(Bup, l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
                     GreenDown.storeUDV(Bdown, l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
-                    GreenUp.computeStableGreen(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
-                    GreenDown.computeStableGreen(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
+                    //  Using the BlockOfGreens Method, we can obtain time-displaced Green's as well
+//                    GreenUp.computeStableGreen(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
+//                    GreenDown.computeStableGreen(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
+                    GreenUp.computeBlockOfGreens(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
+                    GreenDown.computeBlockOfGreens(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
                     Gup = GreenUp.getG(); Gdown = GreenDown.getG();
-//                    uneqGupForward[l] = GreenUp.getUneqGreenForward(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
-//                    uneqGdownForward[l] = GreenDown.getUneqGreenForward(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
-////                    //  There is a problem here.
-//                    uneqGupBackward[l] = GreenUp.getUneqGreenBackward(l, Lbda, greenAfreshFreq, UsUp, DsUp, VsUp);
-//                    uneqGdownBackward[l] = GreenDown.getUneqGreenBackward(l, Lbda, greenAfreshFreq, UsDown, DsDown, VsDown);
-//                    std::cout << uneqGupForward[l] << std::endl << std::endl;
+                    uneqGupForward[l] = GreenUp.getGforward(); uneqGdownForward[l] = GreenDown.getGforward();
+                    uneqGupBackward[l] = GreenUp.getGbackward(); uneqGdownBackward[l] = GreenDown.getGbackward();
                 }
                 else
                 {
-                    //  l == L - 1 always lands here, by construction
-                    //  because Lbda is commensurate with L.
                     GreenUp.storeVDU(Bup, Lbda, UsUp, DsUp, VsUp);
                     GreenDown.storeVDU(Bdown, Lbda, UsDown, DsDown, VsDown);
                     GreenUp.computeGreenFromVDU(VsUp[Lbda - 1], DsUp[Lbda - 1], UsUp[Lbda - 1]);
                     GreenDown.computeGreenFromVDU(VsDown[Lbda - 1], DsDown[Lbda - 1], UsDown[Lbda - 1]);
                     Gup = GreenUp.getG(); Gdown = GreenDown.getG();
-                    //  RESET UNEQUAL TIME GREEN'S FUNCTIONS
-//                    uneqGupForward[0] = Gup;
-//                    uneqGdownForward[0] = Gdown;
-//                    uneqGupBackward[0] = Gup;
-//                    uneqGdownBackward[0] = Gdown;
-//                    uneqGupBackward[0] -= Eigen::MatrixXd::Identity(N, N);
-//                    uneqGdownBackward[0] -= Eigen::MatrixXd::Identity(N, N);
                 }
                 latticeSweepUntilAfresh = 0;
             }
@@ -279,14 +260,10 @@ int main()
             {   //  WRAPPING.
                 BupInv = Bup[l].inverse();
                 BdownInv = Bdown[l].inverse();
-//                uneqGupForward[l + 1] = Bup[l] * uneqGupForward[l];
-//                uneqGdownForward[l + 1] = Bdown[l] * uneqGdownForward[l];
-//                uneqGupBackward[l + 1] = uneqGupBackward[l] * BupInv ;
-//                uneqGdownBackward[l + 1] = uneqGdownBackward[l] * BdownInv ;
                 Gup = Bup[l] * Gup * BupInv; Gdown = Bdown[l] * Gdown * BdownInv;
-                
+                uneqGupForward[l + 1] = Bup[l] * uneqGupForward[l]; uneqGdownForward[l + 1] = Bdown[l] * uneqGdownForward[l];
+                uneqGupBackward[l + 1] = uneqGupBackward[l] * BupInv; uneqGdownBackward[l + 1] = uneqGdownBackward[l] * BdownInv;
             }
-
             if (l < L - 1)
             {
                 l += 1; i = 0;
@@ -295,7 +272,7 @@ int main()
             {
                 //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
                 weights[sweep] = weight;
-                if (sweep != totalMCSweeps)
+                if (sweep != ( totalMCSweeps - 1 ) )
                 {
                     //  MOVE SWEEP COUNTER
                     sweep += 1;
@@ -306,54 +283,58 @@ int main()
             }
         }
     }   //  END OF MC LOOP.
-    
+
     std::cout << "Average Sign: " << meanSign << std::endl;
 
-//    //  SAVE OUTPUT.
-//    std::ofstream file1("plots/simulationParameters.txt");
-//    if (file1.is_open())
-//    {
-//        file1 << "N\t" << N << '\n';
-//        file1 << "dt\t" << dt << '\n';
-//        file1 << "beta\t" << beta << '\n';
-//        file1 << "L\t" << L << '\n';
-//        file1 << "t\t" << t << '\n';
-//        file1 << "U\t" << U << '\n';
-//        file1 << "mu\t" << mu << '\n';
-//        file1 << "totalMCSweeps\t" << totalMCSweeps << '\n';
-//        file1 << "greenAfreshFreq\t" << greenAfreshFreq << '\n';
-//        file1 << "Lbda\t" << Lbda << '\n';
-//    }
-//    file1.close();
-//    //  STORE MEASUREMENTS
-//    std::ofstream file2("plots/measurementsScalars.txt");
-//    if ( file2.is_open() )
-//    {
-//        file2 << std::left << std::setw(25) << "Configuration weight";
-//        file2 << std::left << std::setw(25) << "Weight sign";
-//        file2 << std::left << std::setw(25) << "Electron density <n>";
-//        file2 << std::left << std::setw(25) << "Double occupancy <n+ n->" << '\n';
-//        for (int s = 0; s < totalMCSweeps; s++)
-//        {
-//            file2 << std::left << std::setw(25) << weights[s];
-//            file2 << std::left << std::setw(25) << std::copysign( 1. , weights[s] );
-//            file2 << std::left << std::setw(25) << std::setprecision(10) << electronDensities[s];
-//            file2 << std::left << std::setw(25) << std::setprecision(10) << doubleOcs[s] << '\n';
-//        }
-//    }
-//    file2.close();
-//    std::ofstream file3("plots/measurementsCorrelations.txt");
-//    if ( file3.is_open() )
-//    {
-//        file3 << "Spin-spin correlation function <S_i S_j>" << '\n';
-//        file3 << std::left;
-//        for (int s = 0; s < totalMCSweeps; s++)
-//        {
-//            file3 << std::setprecision(10) << magCorrs[s] << std::endl << std::endl;
-//        }
-//        file3 << '\n';
-//    }
-//    file3.close();
+    //  SAVE OUTPUT.
+    std::ofstream file1("plots/simulationParameters.txt");
+    if (file1.is_open())
+    {
+        file1 << "N\t" << N << '\n';
+        file1 << "dt\t" << dt << '\n';
+        file1 << "beta\t" << beta << '\n';
+        file1 << "L\t" << L << '\n';
+        file1 << "t\t" << t << '\n';
+        file1 << "U\t" << U << '\n';
+        file1 << "mu\t" << mu << '\n';
+        file1 << "totalMCSweeps\t" << totalMCSweeps << '\n';
+        file1 << "greenAfreshFreq\t" << greenAfreshFreq << '\n';
+        file1 << "Lbda\t" << Lbda << '\n';
+    }
+    file1.close();
+    //  STORE MEASUREMENTS
+    std::ofstream file2("plots/measurementsScalars.txt");
+    if ( file2.is_open() )
+    {
+        file2 << std::left << std::setw(25) << "Configuration weight";
+        file2 << std::left << std::setw(25) << "Weight sign";
+        file2 << std::left << std::setw(25) << "Electron density <n>";
+        file2 << std::left << std::setw(25) << "Double occupancy <n+ n->" << '\n';
+        for (int s = 0; s < totalMCSweeps; s++)
+        {
+            file2 << std::left << std::setw(25) << weights[s];
+            file2 << std::left << std::setw(25) << std::copysign( 1. , weights[s] );
+            file2 << std::left << std::setw(25) << std::setprecision(10) << electronDensities[s];
+            file2 << std::left << std::setw(25) << std::setprecision(10) << doubleOcs[s] << '\n';
+        }
+    }
+    file2.close();
+    std::ofstream file3("plots/measurementsCorrelations.txt");
+    if ( file3.is_open() )
+    {
+        file3 << "Spin-spin correlation function <S_i S_j>" << '\n';
+        file3 << std::left;
+        for (int s = 0; s < totalMCSweeps; s++)
+        {
+            file3 << std::setprecision(10) << magCorrs[s] << std::endl << std::endl;
+        }
+        file3 << '\n';
+    }
+    file3.close();
+    
+    delete[] weights; delete[] electronDensities; delete[] magCorrs; delete[] doubleOcs;
+    delete[] uneqGupForward; delete[] uneqGdownForward; delete[] uneqGupBackward; delete[] uneqGdownBackward;
+    
     return 0;
 }
 

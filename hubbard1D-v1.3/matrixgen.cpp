@@ -14,17 +14,17 @@ Eigen::MatrixXd genHoppingMatrix(int N)
     Eigen::MatrixXd K = Eigen::MatrixXd::Zero(N, N);
     
     //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
-    K(0, 1) = 1;
-    K(0, N - 1) = 1;
-    K(N - 1, 0) = 1;
-    K(N - 1, N - 2) = 1;
+    K(0, 1) += 1;
+    K(0, N - 1) += 1;
+    K(N - 1, 0) += 1;
+    K(N - 1, N - 2) += 1;
     
     //  Set the remaining ones
     int i;
     for (i = 1; i < N - 1; i++)
     {
-        K(i, i - 1) = 1;
-        K(i, i + 1) = 1;
+        K(i, i - 1) += 1;
+        K(i, i + 1) += 1;
     }
     
     return K;
