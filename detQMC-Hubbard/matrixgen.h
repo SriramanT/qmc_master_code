@@ -13,11 +13,11 @@ class Hoppings
 {
     Eigen::Matrix<double, N, N> K;
 public:
-    Eigen::Matrix<double, N, N> OneDimensionalChain();
+    Eigen::Matrix<double, N, N> OneDimensionalChainPBC();
 };
 
 template <int N>
-Eigen::Matrix<double, N, N> Hoppings<N>::OneDimensionalChain()
+Eigen::Matrix<double, N, N> Hoppings<N>::OneDimensionalChainPBC()
 {
     int i, j;
     for (j = 0 ; j < N; j++)
@@ -62,7 +62,7 @@ Eigen::Matrix<double, L, N> HSfield<L, N>::genHsMatrix()
     //  Generate the HS field matrix
     int l;
     int i;
-    h = Eigen::MatrixXd::Random(L,N);
+    h = Eigen::Matrix<double, L, N>::Random(L,N);
     for (l = 0; l < L; l++)
     {
         for (i = 0; i < N; i++)
@@ -80,7 +80,48 @@ Eigen::Matrix<double, L, N> HSfield<L, N>::genHsMatrix()
     return h;
 }
 
-void genBmatrix(Eigen::MatrixXd* Bs, bool spin, double nu, int N, int L, Eigen::MatrixXd h, Eigen::MatrixXd BpreFactor, double dt, double mu); // pass an array of Bs
+template<int N, int L>
+class OneParticlePropagators
+{
+    Eigen::Matrix<double, N, N> B[L];
+public:
+    void fillArr(bool spin, double nu, double dt, double mu, Eigen::Matrix<double, L, N> h, Eigen::Matrix<double, N, N> BpreFactor);
+    Eigen::Matrix<double, N, N> getB(int slice);
+};
+
+template<int N, int L>
+void OneParticlePropagators<N, L>::fillArr(bool spin, double nu, double dt, double mu, Eigen::Matrix<double, L, N> h, Eigen::Matrix<double, N, N> BpreFactor)
+{
+    int i;
+    int l;
+    for (l = 0; l < L; l++)
+    {
+        B[l] = Eigen::Matrix<double, N, N>::Zero();
+
+        if (spin == true)
+        {
+            for (i = 0; i < N; i++)
+            {
+                B[l](i, i) = nu * h(l, i) + dt * mu;
+            }
+        }
+        else
+        {
+            for (i = 0; i < N; i++)
+            {
+                B[l](i, i) = -1 * nu * h(l, i) + dt * mu;
+            }
+        }
+        B[l] = BpreFactor * ( B[l] ).exp();
+    }
+}
+
+template<int N, int L>
+Eigen::Matrix<double, N, N> OneParticlePropagators<N, L>::getB(int slice)
+{
+    return B[slice];
+}
+
 Eigen::VectorXd uSigma(int N, Eigen::MatrixXd Green, int i);
 Eigen::VectorXd wSigma(int N, Eigen::MatrixXd Green, int i);
 

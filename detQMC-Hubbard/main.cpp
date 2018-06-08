@@ -65,35 +65,36 @@ int main()
     
     
     //  HOPPING MATRIX FOR ARBITRARY GEOMETRY
-    //  E.G.: FOR 1D CHAIN W/ PBCs: .OneDimensionalChain()
     Hoppings< N > Geometry;
-    MatrixNN K = Geometry.OneDimensionalChain();
+    MatrixNN K = Geometry.OneDimensionalChainPBC();
     
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     HSfield< L , N > Configuration;
-    MatrixLN h = Configuration.genHsMatrix();  //    HS field h_{l = 1,...,L ; i = 1,...,N}
+    MatrixLN h = Configuration.genHsMatrix();
+    
     //  COMPUTE MATRIX 'PREFACTOR' OF THE B-MATRICES B = e^(t dt K).
     const Eigen::MatrixXd BpreFactor = (t * dt * K).exp();
 
     initialPrint(N, dt, beta, L, t, U, mu, totalMCSteps, debug, K, BpreFactor, h);
-//
-//    //  GENERATE THE B-MATRICES.
-//    Eigen::MatrixXd Bup[L];
-//    Eigen::MatrixXd BupInv;
-//    genBmatrix(Bup, true, nu, N, L, h, BpreFactor, dt, mu);  //   this line inserts the B-matrices in the array above
-//    Eigen::MatrixXd Bdown[L];
-//    Eigen::MatrixXd BdownInv;
-//    genBmatrix(Bdown, false, nu, N, L, h, BpreFactor, dt, mu);  //   this line inserts the B-matrices in the array above
-//
-//    //  ALLOCATE MEMORY TO STORE THE PARTIAL PRODUCTS INVOLVED IN
-//    //  SPEEDING UP THE LOW TEMPERATURE STABILIZATION.
-//
-//    Eigen::MatrixXd UsUp[Lbda]; Eigen::MatrixXd DsUp[Lbda]; Eigen::MatrixXd VsUp[Lbda];
-//    Eigen::MatrixXd UsDown[Lbda]; Eigen::MatrixXd DsDown[Lbda]; Eigen::MatrixXd VsDown[Lbda];
-//
-//    //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
-//    Green GreenUp(N, L);
-//    GreenUp.storeVDU(Bup, Lbda, UsUp, DsUp, VsUp);
+
+    //  GENERATE THE B-MATRICES.
+    OneParticlePropagators< N, L > SpinUpSector; OneParticlePropagators< N, L > SpinDownSector;
+    SpinUpSector.fillArr(true, nu, dt, mu, h, BpreFactor); SpinDownSector.fillArr(false, nu, dt, mu, h, BpreFactor);
+    MatrixNN Bup[L]; MatrixNN Bdown[L];
+    for (int slice = 0; slice < L; slice++)
+    {
+        Bup[slice] = SpinUpSector.getB(slice); Bdown[slice] = SpinDownSector.getB(slice);
+    }
+
+    //  ALLOCATE MEMORY TO STORE THE PARTIAL PRODUCTS INVOLVED IN
+    //  SPEEDING UP THE LOW TEMPERATURE STABILIZATION.
+
+    MatrixNN UsUp[Lbda]; MatrixNN DsUp[Lbda]; MatrixNN VsUp[Lbda];
+    MatrixNN UsDown[Lbda]; MatrixNN DsDown[Lbda]; MatrixNN VsDown[Lbda];
+
+    //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
+    Green< N, L> GreenUp;
+    GreenUp.storeVDU(Bup, Lbda, UsUp, DsUp, VsUp);
 //    //  Uncomment to compute the Green's function naively instead of using the stored VDU
 ////    GreenUp.computeGreenNaive(Bup, L - 1);  //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
 //    GreenUp.computeGreenFromVDU(VsUp[Lbda - 1], DsUp[Lbda - 1], UsUp[Lbda - 1]);
@@ -133,24 +134,24 @@ int main()
 //    electronDensities[0] = 0.; doubleOcs[0] = 0.;
 //    double meanSign = std::copysign( 1. , weight );
 //
-//    //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
-//    //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE, THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
-//    int l = 0; int i = 0;
-//    int latticeSweepUntilAfresh = 0; int sweep = 0; int step;
-//
-//
-//    // --- MC LOOP ---
-//
-//
-//    std::cout << "\n\nMC loop started. Progress:\n\n";
-//    for (step = 0; step < totalMCSteps; step++)
-//    {
-//        //  DISPLAY PROGRESS OF THE RUN.
-//        if ( (step + 1)  % (totalMCSteps/8) == 0 )
-//        {
-//            std::cout << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
-//        }
-//
+    //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
+    //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE, THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
+    int l = 0; int i = 0;
+    int latticeSweepUntilAfresh = 0; int sweep = 0; int step;
+
+
+    // --- MC LOOP ---
+
+
+    std::cout << "\n\nMC loop started. Progress:\n\n";
+    for (step = 0; step < totalMCSteps; step++)
+    {
+        //  DISPLAY PROGRESS OF THE RUN.
+        if ( (step + 1)  % (totalMCSteps/8) == 0 )
+        {
+            std::cout << (step + 1)*1. / totalMCSteps * 100 << " %" << std::endl;
+        }
+
 //        //  COMPUTE THE ACCEPTANCE RATIO.
 //        alphaUp = ( exp( -2 * h(l, i) * nu ) - 1 ); alphaDown = ( exp( 2 * h(l, i) * nu ) - 1 );
 //        dUp = ( 1 + alphaUp  * ( 1 - Gup(i, i) ) ); dDown = ( 1 + alphaDown  * ( 1 - Gdown(i, i) ) );
@@ -288,7 +289,7 @@ int main()
 //                l = 0; i = 0;
 //            }
 //        }
-//    }   //  END OF MC LOOP.
+    }   //  END OF MC LOOP.
 //
 //    std::cout << "Average Sign: " << meanSign << std::endl;
 //
