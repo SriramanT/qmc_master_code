@@ -8,7 +8,7 @@
 //  using auxiliary field (or determinant) Quantum Monte Carlo.
 //  The used notation is based on the lecture notes "Numerical Methods for Quantum Monte Carlo
 //  Simulations of the Hubbard Model by Zhaojun Bai, Wenbin Chen, Richard Scalettar, and
-//  Ichitaro Yamazaki (2006)
+//  Ichitaro Yamazaki (2009)
 //
 
 #include <stdio.h>
@@ -53,7 +53,7 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 1;
+    const int totalMCSweeps = 100;
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
@@ -61,7 +61,7 @@ int main()
     
     // -- INITIALIZATION ---
     
-    
+     
     //  HOPPING MATRIX FOR 1D CHAIN W/ PBCs.
     const Eigen::MatrixXd K = genHoppingMatrix(N);
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
