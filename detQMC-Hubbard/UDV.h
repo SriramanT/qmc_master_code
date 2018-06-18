@@ -12,6 +12,7 @@ class UDV
 {
     Eigen::MatrixXd m;
     Eigen::MatrixXd R;
+    Eigen::MatrixXd P;
 public:
     UDV(Eigen::MatrixXd toDecompose);
     void printMatrixToDecompose();

@@ -26,9 +26,10 @@ void UDV::printMatrixToDecompose()
 
 Eigen::MatrixXd UDV::QR_and_getU()
 {
+//    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qrHH(m);
     Eigen::HouseholderQR<Eigen::MatrixXd> qrHH(m);
     R = qrHH.matrixQR().triangularView<Eigen::Upper>();
-    
+//    P = qrHH.colsPermutation();
     return qrHH.householderQ();
 }
 
@@ -51,6 +52,7 @@ Eigen::MatrixXd UDV::getV()
             V(a, b) = R(a, b) / R(a, a);
         }
     }
+//    V = V * P;
     return V;
 }
 

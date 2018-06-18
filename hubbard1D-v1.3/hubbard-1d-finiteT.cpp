@@ -53,7 +53,7 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 100;
+    const int totalMCSweeps = 1;
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;
@@ -92,6 +92,7 @@ int main()
 //    GreenUp.computeGreenNaive(Bup, L - 1);  //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
     GreenUp.computeGreenFromVDU(VsUp[Lbda - 1], DsUp[Lbda - 1], UsUp[Lbda - 1]);
     Eigen::MatrixXd Gup = GreenUp.getG();
+    std::cout << Gup << std::endl;
 
     Green GreenDown(N, L);
     GreenDown.storeVDU(Bdown, Lbda, UsDown, DsDown, VsDown);
