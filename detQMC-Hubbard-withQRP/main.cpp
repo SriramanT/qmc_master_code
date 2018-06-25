@@ -58,7 +58,11 @@ int main()
     
     
     //  HOPPING MATRIX FOR ARBITRARY GEOMETRY
-    Geometry< N > K; K.oneDimensionalChainPBC();
+    Geometry< N > K;
+    //  1D HUBBARD CHAIN
+    K.oneDimensionalChainPBC();
+    //  NANORIBBON
+//    int width = 5;    K.nanoribbon(width);
     
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     Configuration< L , N > h; h.genHsMatrix();
@@ -162,7 +166,7 @@ int main()
 
             //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
             weights[sweep * L + l] = weight;
-            
+
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
             electronDensity = 0.; doubleOc = 0.;
             for (int x = 0; x < N; x++)
@@ -247,22 +251,22 @@ int main()
                 //  Uncomment to compute the product in the naive, unstable manner
 //                Gup.computeGreenNaive(Bup.list(), l); Gdown.computeGreenNaive(Bdown.list(), l);
                 //  Uncomment to compute the product in the stabilized, but slightly inefficient way
-                Gup.computeStableGreenNaiveR(Bup.list(), l); Gdown.computeStableGreenNaiveR(Bdown.list(), l);
+//                Gup.computeStableGreenNaiveR(Bup.list(), l); Gdown.computeStableGreenNaiveR(Bdown.list(), l);
                 //  Most efficient solution (storing decompositions)
-//                if (l != ( L - 1 ) )
-//                {
-//                    Gup.storeUDV(Bup.list(), l, greenAfreshFreq); Gdown.storeUDV(Bdown.list(), l, greenAfreshFreq);
-//                    //  This is the standard way described in "Stable simulations of models of interacting electrons"
-////                    Gup.computeStableGreen(l, greenAfreshFreq); Gdown.computeStableGreen(l, greenAfreshFreq);
+                if (l != ( L - 1 ) )
+                {
+                    Gup.storeUDV(Bup.list(), l, greenAfreshFreq); Gdown.storeUDV(Bdown.list(), l, greenAfreshFreq);
+                    //  This is the standard way described in "Stable simulations of models of interacting electrons"
+                    Gup.computeStableGreen(l, greenAfreshFreq); Gdown.computeStableGreen(l, greenAfreshFreq);
 //                    //  Using the BlockOfGreens Method, we can obtain time-displaced Green's as well
 //                    Gup.computeBlockOfGreens(l, greenAfreshFreq); Gdown.computeBlockOfGreens(l, greenAfreshFreq);
-//                }
-//                else
-//                {
-//                    Gup.storeVDU( Bup.list() ); Gdown.storeVDU( Bdown.list() );
-//                    Gup.computeGreenFromVDU(); Gdown.computeGreenFromVDU();
+                }
+                else
+                {
+                    Gup.storeVDU( Bup.list() ); Gdown.storeVDU( Bdown.list() );
+                    Gup.computeGreenFromVDU(); Gdown.computeGreenFromVDU();
 //                    Gup.initializeUneqs(); Gdown.initializeUneqs();
-//                }
+                }
                 latticeSweepUntilAfresh = 0;
             }
             else

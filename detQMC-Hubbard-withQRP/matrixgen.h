@@ -14,6 +14,7 @@ class Geometry
     Eigen::Matrix<double, N, N> HoppingMatrix;
 public:
     void oneDimensionalChainPBC();
+    void nanoribbon(int Nx); //  Nx = width of the ribbon
     Eigen::Matrix<double, N, N> matrix();
 };
 
@@ -30,6 +31,97 @@ void Geometry<N>::oneDimensionalChainPBC()
     for (int i = 1; i < N - 1; i++)
     {
         HoppingMatrix(i, i - 1) += 1; HoppingMatrix(i, i + 1) += 1;
+    }
+}
+
+template <int N>
+void Geometry<N>::nanoribbon(int Ny)
+{   //  Nx = width of the ribbon
+    HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
+    int Nx = N / Ny / 2;
+    for (int x = 0; x < Nx; x++)
+    {
+        for (int y = 0; y < Ny; y++)
+        {
+            //  SUBLATTICE A
+            if (y == Ny - 1)
+            {
+                if (x == 0)
+                {
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                }
+                else
+                {
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                }
+            }
+            else
+            {
+                if (x == 0)
+                {
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
+                }
+                else
+                {
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
+                }
+            }
+            //  SUBLATTICE B
+            if (y == 0)
+            {
+                if (x == Nx - 1)
+                {
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    HoppingMatrix(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                }
+                else
+                {
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                }
+            }
+            else
+            {
+                if (x == Nx - 1)
+                {
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
+                    HoppingMatrix(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
+                }
+                else
+                {
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
+                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    HoppingMatrix(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
+                }
+            }
+        }
     }
 }
 
