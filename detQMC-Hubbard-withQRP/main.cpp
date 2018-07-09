@@ -60,9 +60,9 @@ int main()
     //  HOPPING MATRIX FOR ARBITRARY GEOMETRY
     Geometry< N > K;
     //  1D HUBBARD CHAIN
-    K.oneDimensionalChainPBC();
+//    K.oneDimensionalChainPBC();
     //  NANORIBBON
-//    int width = 5;    K.nanoribbon(width);
+    int width = 2;    K.nanoribbon(width);
     
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     Configuration< L , N > h; h.genHsMatrix();
