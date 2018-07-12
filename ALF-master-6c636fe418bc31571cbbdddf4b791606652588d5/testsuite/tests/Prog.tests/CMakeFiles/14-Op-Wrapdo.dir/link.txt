@@ -1,0 +1,1 @@
+/usr/local/bin/gfortran    CMakeFiles/14-Op-Wrapdo.dir/14-Op-Wrapdo.f90.o  -o 14-Op-Wrapdo ../../Prog.tests/../../Prog/Operator.o ../../Prog.tests/../../Libraries/Modules/modules_90.a ../../Prog.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 

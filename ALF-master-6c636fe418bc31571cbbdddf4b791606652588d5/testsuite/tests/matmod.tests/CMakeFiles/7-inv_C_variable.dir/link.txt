@@ -1,0 +1,1 @@
+/usr/local/bin/gfortran    CMakeFiles/7-inv_C_variable.dir/7-inv_C_variable.f90.o  -o 7-inv_C_variable ../../matmod.tests/../../Libraries/Modules/modules_90.a ../../matmod.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 

@@ -1,62 +1,53 @@
-#include <stdio.h>
+//
+//  main.cpp
+//  
+//
+//  Created by Francisco Brito on 08/06/2018.
+//
+//  This program simulates the Hubbard model for an arbitrary geometry lattice
+//  using auxiliary field (or determinant) Quantum Monte Carlo: in particular, the BSS algorithm.
+//  The used notation is based on the lecture notes "Numerical Methods for Quantum Monte Carlo
+//  Simulations of the Hubbard Model by Zhaojun Bai, Wenbin Chen, Richard Scalettar, and
+//  Ichitaro Yamazaki (2009)
+//
+
 #include <iostream>
-#include <cstdlib>
-#include <typeinfo>
 #include <cmath>
 #include <random>
-#include <time.h>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <fstream>
+#include <iomanip>
+#include <string>
 
-#include "QDT.h"
-#include "SVD.h"
-#include "TDQ.h"
+#include "matrixgen.h"
 
-//  Try out the possibilities in Bai2010
 
-int main()
+int main(int argc, char **argv)
 {
-    const int N = 4;
-    Eigen::Matrix<double, N, N> A = Eigen::Matrix<double, N, N>::Random();
-    Eigen::Matrix<double, N, N> B = Eigen::Matrix<double, N, N>::Random();
-    std::cout << A << std::endl << std::endl;
-    std::cout << B << std::endl << std::endl;
+//    //  SET SIMULATION PARAMETERS.
+//    const int N = 2;  //  # sites
+//
+    try
+    {
+        const int N = std::stoi(argv[1]);
+        // -- INITIALIZATION ---
+        
+        //  HOPPING MATRIX FOR ARBITRARY GEOMETRY
+        Geometry< N > K;
+        //  1D HUBBARD CHAIN
+        K.oneDimensionalChainPBC();
+        
+        std::cout << K.matrix() << std::endl ;
+    }
+    catch (std::invalid_argument const &ex)
+    {
+        std::cerr << "Invalid number " << argv[1] << '\n';
+    }
     
-//    QDT< N > dec1;
-//    Eigen::Matrix<double, N, N> q1 = dec1.QR_and_getQ(A);
-//    Eigen::Matrix<double, N, N> d1 = dec1.getD();
-//    Eigen::Matrix<double, N, N> t1 = dec1.getT();
-//    QDT< N > dec2;
-//    Eigen::Matrix<double, N, N> q2 = dec2.QR_and_getQ(B * q1  * d1);
-//    Eigen::Matrix<double, N, N> d2 = dec2.getD();
-//    Eigen::Matrix<double, N, N> t2 = dec2.getT();
-//    std::cout << q2 * d2 * (t2 * t1) << std::endl << std::endl;
-//    std::cout << B * A << std::endl << std::endl;
-    
-//    SVD< N > dec1;
-//    dec1.doSVD(A);
-//    Eigen::Matrix<double, N, N> u1 = dec1.getU();
-//    Eigen::Matrix<double, N, N> s1 = dec1.getS();
-//    Eigen::Matrix<double, N, N> v1 = dec1.getV();
-//    SVD< N > dec2;
-//    dec2.doSVD(B * u1 * s1);
-//    Eigen::Matrix<double, N, N> u2 = dec2.getU();
-//    Eigen::Matrix<double, N, N> s2 = dec2.getS();
-//    Eigen::Matrix<double, N, N> v2 = dec2.getV();
-//    std::cout << u2 * s2 * (v2 * v1) << std::endl << std::endl;
-//    std::cout << B * A << std::endl << std::endl;
-    
-    TDQ< N > dec1;
-    Eigen::Matrix<double, N, N> q1 = dec1.QR_and_getQ(A);
-    Eigen::Matrix<double, N, N> d1 = dec1.getD();
-    Eigen::Matrix<double, N, N> t1 = dec1.getT();
-    TDQ< N > dec2;
-    Eigen::Matrix<double, N, N> q2 = dec2.QR_and_getQ(d1 * q1 * B);
-    Eigen::Matrix<double, N, N> d2 = dec2.getD();
-    Eigen::Matrix<double, N, N> t2 = dec2.getT();
-    std::cout << t1 * t2 * d2 * q2 << std::endl << std::endl;
-    std::cout << A * B << std::endl << std::endl;
+
+
     
     return 0;
 }
+

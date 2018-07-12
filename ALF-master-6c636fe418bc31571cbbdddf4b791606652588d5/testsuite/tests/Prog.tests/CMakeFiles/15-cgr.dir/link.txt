@@ -1,0 +1,1 @@
+/usr/local/bin/gfortran    CMakeFiles/15-cgr.dir/15-cgr.f90.o  -o 15-cgr ../../Prog.tests/../../Prog/cgr1.o ../../Prog.tests/../../Prog/UDV_WRAP.o ../../Prog.tests/../../Prog/QDRP_decompose.o ../../Prog.tests/../../Libraries/Modules/modules_90.a ../../Prog.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 

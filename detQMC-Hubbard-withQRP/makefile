@@ -1,7 +1,7 @@
 CXX = g++
-CXXFLAGS = -Wall -g -std=c++11 -I.
+CXXFLAGS = -Wall -g -O2 -std=c++17 -I./includes
 
 main: main.o
 	$(CXX) $(CXXFLAGS) -o main main.o
 
-main.o: main.cpp matrixgen.h green.h QDT.h TDQ.h
+main.o: main.cpp ./includes/matrixgen.h ./includes/green.h ./includes/QDT.h ./includes/TDQ.h
