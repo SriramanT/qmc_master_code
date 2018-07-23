@@ -1,0 +1,10 @@
+N	10
+dt	0.125
+beta	30
+L	240
+t	1
+U	4
+mu	0
+totalMCSweeps	100
+greenAfreshFreq	2
+Lbda	120

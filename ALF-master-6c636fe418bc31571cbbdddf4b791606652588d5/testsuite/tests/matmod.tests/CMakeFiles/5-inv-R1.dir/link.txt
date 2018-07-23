@@ -1,1 +1,0 @@
-/usr/local/bin/gfortran    CMakeFiles/5-inv-R1.dir/5-inv-R1.f90.o  -o 5-inv-R1 ../../matmod.tests/../../Libraries/Modules/modules_90.a ../../matmod.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 

@@ -1,1 +1,0 @@
-/usr/local/bin/gfortran    CMakeFiles/1-diag-real-matrix.dir/1-diag-real-matrix.f90.o  -o 1-diag-real-matrix ../../matmod.tests/../../Libraries/Modules/modules_90.a ../../matmod.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 

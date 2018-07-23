@@ -1,2 +1,0 @@
-Configuration weight     Weight sign              Electron density <n>     Double occupancy <n+ n-> 
-37558.1                  1                        1.498340301              0.4991359568             

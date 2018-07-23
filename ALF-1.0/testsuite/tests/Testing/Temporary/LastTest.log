@@ -1,0 +1,551 @@
+Start testing: Jun 25 09:03 WEST
+----------------------------------------------------------
+1/30 Testing: 1-diag-real-matrix
+1/30 Test: 1-diag-real-matrix
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/1-diag-real-matrix"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"1-diag-real-matrix" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"1-diag-real-matrix" end time: Jun 25 09:03 WEST
+"1-diag-real-matrix" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/30 Testing: 2-inv-r0
+2/30 Test: 2-inv-r0
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/2-inv-r0"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"2-inv-r0" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"2-inv-r0" end time: Jun 25 09:03 WEST
+"2-inv-r0" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/30 Testing: 3-inv-R-variable
+3/30 Test: 3-inv-R-variable
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/3-inv-R-variable"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"3-inv-R-variable" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"3-inv-R-variable" end time: Jun 25 09:03 WEST
+"3-inv-R-variable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/30 Testing: 4-inv-R-variable-1
+4/30 Test: 4-inv-R-variable-1
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/4-inv-R-variable-1"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"4-inv-R-variable-1" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"4-inv-R-variable-1" end time: Jun 25 09:03 WEST
+"4-inv-R-variable-1" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/30 Testing: 5-inv-R1
+5/30 Test: 5-inv-R1
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/5-inv-R1"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"5-inv-R1" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"5-inv-R1" end time: Jun 25 09:03 WEST
+"5-inv-R1" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/30 Testing: 6-inv_C
+6/30 Test: 6-inv_C
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/6-inv_C"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"6-inv_C" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"6-inv_C" end time: Jun 25 09:03 WEST
+"6-inv_C" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/30 Testing: 7-inv_C_variable
+7/30 Test: 7-inv_C_variable
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/7-inv_C_variable"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"7-inv_C_variable" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"7-inv_C_variable" end time: Jun 25 09:03 WEST
+"7-inv_C_variable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/30 Testing: 8-inv-C1
+8/30 Test: 8-inv-C1
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/8-inv-C1"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"8-inv-C1" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"8-inv-C1" end time: Jun 25 09:03 WEST
+"8-inv-C1" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/30 Testing: 9-inv-C1_test2
+9/30 Test: 9-inv-C1_test2
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/9-inv-C1_test2"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"9-inv-C1_test2" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"9-inv-C1_test2" end time: Jun 25 09:03 WEST
+"9-inv-C1_test2" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/30 Testing: 10-initd_C
+10/30 Test: 10-initd_C
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/10-initd_C"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"10-initd_C" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"10-initd_C" end time: Jun 25 09:03 WEST
+"10-initd_C" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/30 Testing: 11-UDV-C
+11/30 Test: 11-UDV-C
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/11-UDV-C"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"11-UDV-C" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ Accuracy, ortho:    2.2204460492503131E-016
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"11-UDV-C" end time: Jun 25 09:03 WEST
+"11-UDV-C" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/30 Testing: 12-UDV-R
+12/30 Test: 12-UDV-R
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests/12-UDV-R"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/matmod.tests
+"12-UDV-R" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ Accuracy:    1.1102230246251565E-016
+ UDV1 orth U:    6.6613381477509392E-016
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"12-UDV-R" end time: Jun 25 09:03 WEST
+"12-UDV-R" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/30 Testing: 1-copy-sel-rows
+13/30 Test: 1-copy-sel-rows
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/1-copy-sel-rows"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"1-copy-sel-rows" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"1-copy-sel-rows" end time: Jun 25 09:03 WEST
+"1-copy-sel-rows" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/30 Testing: 2-copy-sel-columns
+14/30 Test: 2-copy-sel-columns
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/2-copy-sel-columns"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"2-copy-sel-columns" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"2-copy-sel-columns" end time: Jun 25 09:03 WEST
+"2-copy-sel-columns" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/30 Testing: 3-opmult
+15/30 Test: 3-opmult
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/3-opmult"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"3-opmult" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"3-opmult" end time: Jun 25 09:03 WEST
+"3-opmult" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/30 Testing: 4-opmultct
+16/30 Test: 4-opmultct
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/4-opmultct"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"4-opmultct" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"4-opmultct" end time: Jun 25 09:03 WEST
+"4-opmultct" time elapsed: 00:00:00
+----------------------------------------------------------
+
+17/30 Testing: 5-FillExpOps
+17/30 Test: 5-FillExpOps
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/5-FillExpOps"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"5-FillExpOps" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"5-FillExpOps" end time: Jun 25 09:03 WEST
+"5-FillExpOps" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/30 Testing: 6-opexpmult-1
+18/30 Test: 6-opexpmult-1
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/6-opexpmult-1"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"6-opexpmult-1" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"6-opexpmult-1" end time: Jun 25 09:03 WEST
+"6-opexpmult-1" time elapsed: 00:00:00
+----------------------------------------------------------
+
+19/30 Testing: 6-opexpmult-2
+19/30 Test: 6-opexpmult-2
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/6-opexpmult-2"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"6-opexpmult-2" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"6-opexpmult-2" end time: Jun 25 09:03 WEST
+"6-opexpmult-2" time elapsed: 00:00:00
+----------------------------------------------------------
+
+20/30 Testing: 7-opexpmultct-1
+20/30 Test: 7-opexpmultct-1
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/7-opexpmultct-1"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"7-opexpmultct-1" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"7-opexpmultct-1" end time: Jun 25 09:03 WEST
+"7-opexpmultct-1" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/30 Testing: 7-opexpmultct-2
+21/30 Test: 7-opexpmultct-2
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/7-opexpmultct-2"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"7-opexpmultct-2" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"7-opexpmultct-2" end time: Jun 25 09:03 WEST
+"7-opexpmultct-2" time elapsed: 00:00:00
+----------------------------------------------------------
+
+22/30 Testing: 9-Op-Phase
+22/30 Test: 9-Op-Phase
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/9-Op-Phase"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"9-Op-Phase" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"9-Op-Phase" end time: Jun 25 09:03 WEST
+"9-Op-Phase" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/30 Testing: 10-Op-mmultL
+23/30 Test: 10-Op-mmultL
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/10-Op-mmultL"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"10-Op-mmultL" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"10-Op-mmultL" end time: Jun 25 09:03 WEST
+"10-Op-mmultL" time elapsed: 00:00:00
+----------------------------------------------------------
+
+24/30 Testing: 11-Op-mmultR
+24/30 Test: 11-Op-mmultR
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/11-Op-mmultR"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"11-Op-mmultR" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"11-Op-mmultR" end time: Jun 25 09:03 WEST
+"11-Op-mmultR" time elapsed: 00:00:00
+----------------------------------------------------------
+
+25/30 Testing: 13-Op-Wrapup
+25/30 Test: 13-Op-Wrapup
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/13-Op-Wrapup"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"13-Op-Wrapup" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ opn:            3 N_type           1
+ ERROR in real part   1.8186864882243165E-015   1.9032875428922109E-015
+STOP 2
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"13-Op-Wrapup" end time: Jun 25 09:03 WEST
+"13-Op-Wrapup" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/30 Testing: 14-Op-Wrapdo
+26/30 Test: 14-Op-Wrapdo
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/14-Op-Wrapdo"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"14-Op-Wrapdo" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"14-Op-Wrapdo" end time: Jun 25 09:03 WEST
+"14-Op-Wrapdo" time elapsed: 00:00:00
+----------------------------------------------------------
+
+27/30 Testing: 15-cgr
+27/30 Test: 15-cgr
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/15-cgr"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"15-cgr" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ success
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"15-cgr" end time: Jun 25 09:03 WEST
+"15-cgr" time elapsed: 00:00:00
+----------------------------------------------------------
+
+28/30 Testing: 16-get-blocks
+28/30 Test: 16-get-blocks
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/16-get-blocks"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"16-get-blocks" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"16-get-blocks" end time: Jun 25 09:03 WEST
+"16-get-blocks" time elapsed: 00:00:00
+----------------------------------------------------------
+
+29/30 Testing: 17-solve-extended-system
+29/30 Test: 17-solve-extended-system
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/17-solve-extended-system"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"17-solve-extended-system" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+ LQ =            3  (i,j) =            1           1
+ (  90841.538733175257     ,  0.0000000000000000     ) (  42041.999974225859     ,  0.0000000000000000     ) (  48799.538758949398     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            1           2
+ (  90841.538733175257     ,  0.0000000000000000     ) (  42041.999974225859     ,  0.0000000000000000     ) (  48799.538758949398     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            1           3
+ (  90841.538733175257     ,  0.0000000000000000     ) (  42041.999974225859     ,  0.0000000000000000     ) (  48799.538758949398     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            1           4
+ ( -114845.36066185986     ,  0.0000000000000000     ) ( -53675.999967231190     ,  0.0000000000000000     ) ( -61169.360694628667     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            1           5
+ ( -205702.73367337714     ,  0.0000000000000000     ) ( -95759.999941408765     ,  0.0000000000000000     ) ( -109942.73373196837     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            1           6
+ ( -296560.10668489436     ,  0.0000000000000000     ) ( -137843.99991558763     ,  0.0000000000000000     ) ( -158716.10676930673     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            2           1
+ ( -1488091.8777910005     ,  0.0000000000000000     ) ( -682079.99956614769     ,  0.0000000000000000     ) ( -806011.87822485284     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            2           2
+ ( -1488091.8777910005     ,  0.0000000000000000     ) ( -682079.99956614769     ,  0.0000000000000000     ) ( -806011.87822485284     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            2           3
+ ( -1488091.8777910005     ,  0.0000000000000000     ) ( -682079.99956614769     ,  0.0000000000000000     ) ( -806011.87822485284     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            2           4
+ (  1876838.7594195749     ,  0.0000000000000000     ) (  866879.99944840628     ,  0.0000000000000000     ) (  1009958.7599711686     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            2           5
+ (  3365291.7882247968     ,  0.0000000000000000     ) (  1549799.9990137583     ,  0.0000000000000000     ) (  1815491.7892110385     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            2           6
+ (  4853744.8170300163     ,  0.0000000000000000     ) (  2232719.9985791086     ,  0.0000000000000000     ) (  2621024.8184509077     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            3           1
+ (  7567934.2814187603     ,  0.0000000000000000     ) (  3439799.9977505682     ,  0.0000000000000000     ) (  4128134.2836681921     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            3           2
+ (  7567934.2814187603     ,  0.0000000000000000     ) (  3439799.9977505682     ,  0.0000000000000000     ) (  4128134.2836681921     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            3           3
+ (  7567934.2814187603     ,  0.0000000000000000     ) (  3439799.9977505682     ,  0.0000000000000000     ) (  4128134.2836681921     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            3           4
+ ( -9538477.6425565407     ,  0.0000000000000000     ) ( -4367159.9971401440     ,  0.0000000000000000     ) ( -5171317.6454163967     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            3           5
+ ( -17108823.577893768     ,  0.0000000000000000     ) ( -7811999.9948865939     ,  0.0000000000000000     ) ( -9296823.5830071736     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            3           6
+ ( -24679169.513230983     ,  0.0000000000000000     ) ( -11256839.992633037     ,  0.0000000000000000     ) ( -13422329.520597946     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            4           1
+ ( -16427970.418701358     ,  0.0000000000000000     ) ( -7413839.9950464023     ,  0.0000000000000000     ) ( -9014130.4236549549     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            4           2
+ ( -16427970.418701358     ,  0.0000000000000000     ) ( -7413839.9950464023     ,  0.0000000000000000     ) ( -9014130.4236549549     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            4           3
+ ( -16427970.418701358     ,  0.0000000000000000     ) ( -7413839.9950464023     ,  0.0000000000000000     ) ( -9014130.4236549549     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            4           4
+ (  20709481.540561654     ,  0.0000000000000000     ) (  9419759.9937022161     ,  0.0000000000000000     ) (  11289721.546859438     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            4           5
+ (  37144018.472826622     ,  0.0000000000000000     ) (  16846199.988739554     ,  0.0000000000000000     ) (  20297818.484087069     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            4           6
+ (  53578555.405091584     ,  0.0000000000000000     ) (  24272639.983776890     ,  0.0000000000000000     ) (  29305915.421314694     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            5           1
+ (  15974121.632838577     ,  0.0000000000000000     ) (  7165619.9951295303     ,  0.0000000000000000     ) (  8808501.6377090476     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            5           2
+ (  15974121.632838577     ,  0.0000000000000000     ) (  7165619.9951295303     ,  0.0000000000000000     ) (  8808501.6377090476     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            5           3
+ (  15974121.632838577     ,  0.0000000000000000     ) (  7165619.9951295303     ,  0.0000000000000000     ) (  8808501.6377090476     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            5           4
+ ( -20150294.174175482     ,  0.0000000000000000     ) ( -9119879.9938079473     ,  0.0000000000000000     ) ( -11030414.180367535     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            5           5
+ ( -36132152.539762989     ,  0.0000000000000000     ) ( -16299359.988928577     ,  0.0000000000000000     ) ( -19832792.550834410     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            5           6
+ ( -52114010.905350462     ,  0.0000000000000000     ) ( -23478839.984049197     ,  0.0000000000000000     ) ( -28635170.921301264     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            6           1
+ ( -5726925.6486663800     ,  0.0000000000000000     ) ( -2555783.9982384285     ,  0.0000000000000000     ) ( -3171141.6504279515     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            6           2
+ ( -5726925.6486663800     ,  0.0000000000000000     ) ( -2555783.9982384285     ,  0.0000000000000000     ) ( -3171141.6504279515     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            6           3
+ ( -5726925.6486663800     ,  0.0000000000000000     ) ( -2555783.9982384285     ,  0.0000000000000000     ) ( -3171141.6504279515     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            6           4
+ (  7230406.5778965317     ,  0.0000000000000000     ) (  3259871.9977604472     ,  0.0000000000000000     ) (  3970534.5801360845     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            6           5
+ (  12960605.424412584     ,  0.0000000000000000     ) (  5821199.9959956612     ,  0.0000000000000000     ) (  7139405.4284169227     ,  0.0000000000000000     )
+ LQ =            3  (i,j) =            6           6
+ (  18690804.270928629     ,  0.0000000000000000     ) (  8382527.9942308664     ,  0.0000000000000000     ) (  10308276.276697762     ,  0.0000000000000000     )
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"17-solve-extended-system" end time: Jun 25 09:03 WEST
+"17-solve-extended-system" time elapsed: 00:00:00
+----------------------------------------------------------
+
+30/30 Testing: 20-qdrp
+30/30 Test: 20-qdrp
+Command: "/Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests/20-qdrp"
+Directory: /Users/franciscobrito/Downloads/ALF-master-6c636fe418bc31571cbbdddf4b791606652588d5/testsuite/tests/Prog.tests
+"20-qdrp" start time: Jun 25 09:03 WEST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"20-qdrp" end time: Jun 25 09:03 WEST
+"20-qdrp" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Jun 25 09:03 WEST

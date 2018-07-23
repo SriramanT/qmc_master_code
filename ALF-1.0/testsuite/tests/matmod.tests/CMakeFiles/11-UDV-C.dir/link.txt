@@ -1,0 +1,1 @@
+/usr/local/bin/gfortran    CMakeFiles/11-UDV-C.dir/11-UDV-C.f90.o  -o 11-UDV-C ../../matmod.tests/../../Libraries/Modules/modules_90.a ../../matmod.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 

@@ -1,0 +1,1 @@
+/usr/local/bin/gfortran    CMakeFiles/1-copy-sel-rows.dir/1-copy-sel-rows.f90.o  -o 1-copy-sel-rows ../../Prog.tests/../../Prog/Operator.o ../../Prog.tests/../../Libraries/Modules/modules_90.a ../../Prog.tests/../../Libraries/libqrref/libqrref.a -framework Accelerate -framework Accelerate 
