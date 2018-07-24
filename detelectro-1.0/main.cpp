@@ -31,7 +31,7 @@ int main(int argc, char **argv)
         return -1;
     }
     //  SET SIMULATION PARAMETERS.
-    const int N = 64;  //  # sites
+    const int N = 2;  //  # sites
     const int dtInv = 8;    //  Inverse Trotter error
     const int beta = 15;  //  inverse temperature
     const int t = 1;  //  hopping parameter. set to 1 by default.
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     //  HOPPING MATRIX
     Geometry< N > K;
     //  1D CHAIN PBC
-//    K.oneDimensionalChainPBC(t, dt, mu);
+    K.oneDimensionalChainPBC(t, dt, mu);
     //  1D CHAIN OBC
 //    K.oneDimensionalChainOBC(t, dt, mu);
     //  SQUARE LATTICE PBC

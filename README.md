@@ -18,6 +18,30 @@ In short, our aim is to carry out a theoretical study (with particular emphasis 
 
 ## Getting started
 
+To run the code I implemented simply open the following directory:
+
+
+cd detelectro-1.0
+
+
+and compile the code using
+
+
+make
+
+
+Then, you can run the actual code by running the command
+
+
+./main 4. 0. 1028 100
+
+
+where the first argument is the on-site interaction U, the second is the chemical potential mu, the third is the total number of sweeps of the space-time lattice, and the last one is the number of warm-up steps.
+
+The results of the simulation will be saved in a directory named _plots_.
+
+In that directory there are python scripts that use *matplotlib* to plot the results.
+
 ### ALF-1.0, QUEST-1.3.0
 
 Standard software used in the literature for benchmarking and comparison purposes.
