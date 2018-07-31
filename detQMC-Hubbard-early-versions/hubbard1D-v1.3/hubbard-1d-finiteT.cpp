@@ -34,12 +34,12 @@ int main()
     const bool debug = false;
     
     //  SET DEFAULT PARAMETERS.
-    const int N = 2;  //  # sites
+    const int N = 4;  //  # sites
     const double dt = 0.125;  //  Trotter error, or time subinterval width. error scales as dt^2
     const double beta = 6.;  //  inverse temperature
     const double t = 1.;  //  hopping parameter. For 2 sites w/ PBCs use t = 2, corresponding to t = 1.
     const double U = 4.;  //  on-site interaction
-    const double mu_U = 0.6;   //  chemical potential divided by interaction
+    const double mu_U = 0.4;   //  chemical potential divided by interaction
     const int greenAfreshFreq = 4 ;  //   how often to calculate Green's functions afresh (in # im-time slices)
     const double mu = mu_U * U;  //  chemical potential
     const int L = beta / dt;  //  # slices
@@ -53,7 +53,7 @@ int main()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     double decisionMaker;
         //  to accept or not to accept, hence the question.
-    const int totalMCSweeps = 1;
+    const int totalMCSweeps = 100;
         //  number of measurements will be totalMCSweeps * L ,
         //  i.e. we make a measurement every slice, then find correlations, etc. in post-processing
     const int totalMCSteps = totalMCSweeps * N * L;

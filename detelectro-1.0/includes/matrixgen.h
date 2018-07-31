@@ -1,6 +1,6 @@
 //
 //  matrixgen.h
-//  
+//
 //
 //  Created by Francisco Brito on 09/05/2018.
 //
@@ -57,7 +57,7 @@ void Geometry<N>::oneDimensionalChainPBC(int t, double dt, double mu)
     exp_k2(N - 1, N - 1) = cosh( t * dt / 2 );
     exp_k2(0, N - 1) = sinh( t * dt / 2 );
     exp_k2(N - 1, 0) = sinh( t * dt / 2 );
-    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * exp_k2 * exp_k1 * exp_k2;
+    B = exp( dt * mu ) * exp_k2 * exp_k1 * exp_k2;
 }
 
 template<int N>
@@ -95,13 +95,13 @@ void Geometry<N>::oneDimensionalChainOBC(int t, double dt, double mu)
     exp_k1(1, 0) = sinh( t * dt );
     exp_k2(0, 0) = 1;
     exp_k2(N - 1, N - 1) = 1;
-    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * exp_k2 * exp_k1 * exp_k2;
+    B = exp(dt * mu) * exp_k2 * exp_k1 * exp_k2;
 }
 
 template<int N>
-void Geometry<N>::twoDimensionalRectanglePBC(int Nx, int t, double dt, double mu)
+void Geometry<N>::twoDimensionalRectanglePBC(int Ny, int t, double dt, double mu)
 {
-    int Ny = N / Nx;
+    int Nx = N / Ny;
     //  Compute the exponential
     Eigen::MatrixXd exp_k1x = Eigen::MatrixXd::Zero(Nx, Nx);
     Eigen::MatrixXd exp_k2x = Eigen::MatrixXd::Zero(Nx, Nx);
@@ -124,7 +124,7 @@ void Geometry<N>::twoDimensionalRectanglePBC(int Nx, int t, double dt, double mu
     exp_k2x(Nx - 1, Nx - 1) = cosh( t * dt / 2 );
     exp_k2x(0, Nx - 1) = sinh( t * dt / 2 );
     exp_k2x(Nx - 1, 0) = sinh( t * dt / 2 );
-    
+
     Eigen::MatrixXd exp_k1y = Eigen::MatrixXd::Zero(Ny, Ny);
     Eigen::MatrixXd exp_k2y = Eigen::MatrixXd::Zero(Ny, Ny);
     for (int i = 1; i < Ny / 2; i++)
@@ -146,17 +146,17 @@ void Geometry<N>::twoDimensionalRectanglePBC(int Nx, int t, double dt, double mu
     exp_k2y(Ny - 1, Ny - 1) = cosh( t * dt / 2 );
     exp_k2y(0, Ny - 1) = sinh( t * dt / 2 );
     exp_k2y(Ny - 1, 0) = sinh( t * dt / 2 );
-    
+
     exp_k1x = exp_k2x * exp_k1x * exp_k2x;
     exp_k1y = exp_k2y * exp_k1y * exp_k2y;
-    
-    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * Eigen::kroneckerProduct(exp_k1y , exp_k1x);
+
+    B = exp(dt * mu) * Eigen::kroneckerProduct(exp_k1y , exp_k1x);
 }
 
 template<int N>
-void Geometry<N>::twoDimensionalRectangleOBC(int Nx, int t, double dt, double mu)
+void Geometry<N>::twoDimensionalRectangleOBC(int Ny, int t, double dt, double mu)
 {
-    int Ny = N / Nx;
+    int Nx = N / Ny;
     //  Compute the exponential
     Eigen::MatrixXd exp_k1x = Eigen::MatrixXd::Zero(Nx, Nx);
     Eigen::MatrixXd exp_k2x = Eigen::MatrixXd::Zero(Nx, Nx);
@@ -177,7 +177,7 @@ void Geometry<N>::twoDimensionalRectangleOBC(int Nx, int t, double dt, double mu
     exp_k1x(1, 0) = sinh( t * dt );
     exp_k2x(0, 0) = 1;
     exp_k2x(Nx - 1, Nx - 1) = 1;
-    
+
     Eigen::MatrixXd exp_k1y = Eigen::MatrixXd::Zero(Ny, Ny);
     Eigen::MatrixXd exp_k2y = Eigen::MatrixXd::Zero(Ny, Ny);
     for (int i = 1; i < Ny / 2; i++)
@@ -197,11 +197,11 @@ void Geometry<N>::twoDimensionalRectangleOBC(int Nx, int t, double dt, double mu
     exp_k1y(1, 0) = sinh( t * dt );
     exp_k2y(0, 0) = 1;
     exp_k2y(Ny - 1, Ny - 1) = 1;
-    
+
     exp_k1x = exp_k2x * exp_k1x * exp_k2x;
     exp_k1y = exp_k2y * exp_k1y * exp_k2y;
-    
-    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * Eigen::kroneckerProduct(exp_k1y , exp_k1x);
+
+    B = exp(dt * mu) * Eigen::kroneckerProduct(exp_k1y , exp_k1x);
 }
 
 template<int N>
@@ -294,7 +294,7 @@ void Geometry<N>::nanoribbon(int Ny, int t, double dt, double mu)
         }
     }
     //  Compute the exponential
-    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * (t * dt * HoppingMatrix).exp();
+    B = exp(dt * mu) * (t * dt * HoppingMatrix).exp();
 }
 
 template<int N>

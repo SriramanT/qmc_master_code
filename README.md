@@ -21,7 +21,7 @@ In short, our aim is to carry out a theoretical study (with particular emphasis 
 To run the code I implemented simply open the following directory:
 
 
-cd detelectro-1.0
+cd detelectro-1.0/src
 
 
 and compile the code using
@@ -37,6 +37,8 @@ Then, you can run the actual code by running the command
 
 
 where the first argument is the on-site interaction U, the second is the chemical potential mu, the third is the total number of sweeps of the space-time lattice, and the last one is the number of warm-up steps.
+
+To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must edit the makefile. Simply open it in any text editor and change the desired parameters.
 
 The results of the simulation will be saved in a directory named _plots_.
 
