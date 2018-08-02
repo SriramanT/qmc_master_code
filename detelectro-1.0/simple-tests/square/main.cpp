@@ -196,7 +196,7 @@ int main(int argc, char **argv)
         if (decisionMaker <= accRatio )
         {
             //  KEEP TRACK OF WEIGHT
-            LOGweight += log( abs( dUp ) ) + log( abs ( dDown ) );
+            LOGweight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
             sign *= std::copysign(1, dUp * dDown );
             //  FLIP A SPIN
             h.flip(l, i);

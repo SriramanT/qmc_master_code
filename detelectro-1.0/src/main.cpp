@@ -196,7 +196,7 @@ int main(int argc, char **argv)
         if (decisionMaker <= accRatio )
         {
             //  KEEP TRACK OF WEIGHT
-            weight += log( abs( dUp ) ) + log( abs ( dDown ) );
+            weight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
             //  FLIP A SPIN
             h.flip(l, i);
             //  UPDATE Bs

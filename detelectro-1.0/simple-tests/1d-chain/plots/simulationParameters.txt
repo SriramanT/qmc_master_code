@@ -4,7 +4,7 @@ BETA	6
 L	384
 t	1
 U	4
-mu	2.4
+mu	0
 totalMCSweeps	2048
 GREEN_AFRESH_FREQ	4
 Lbda	96

@@ -30,7 +30,7 @@ CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta) -DHOPPING=$(hoppi
 
 include_dir = ../../includes
 
-CXXFLAGS = -Wall -g -O2 -std=c++17 -I$(include_dir)
+CXXFLAGS = -Wall -g -O3 -std=c++11 -I$(include_dir)
 
 main: main.o
 	$(CXX) $(CXXFLAGS) -o main main.o

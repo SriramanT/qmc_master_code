@@ -43,13 +43,12 @@
 
 #include <iostream>
 #include <cmath>
-#include <stdlib.h>
 #include <random>
-#include <Eigen/Dense>
-#include <unsupported/Eigen/MatrixFunctions>
-#include <unsupported/Eigen/KroneckerProduct>
 #include <fstream>
 #include <iomanip>
+#include "Eigen/Dense"
+#include "unsupported/Eigen/MatrixFunctions"
+#include "unsupported/Eigen/KroneckerProduct"
 #include "matrixgen.h"
 #include "green.h"
 
@@ -189,14 +188,14 @@ int main(int argc, char **argv)
         alphaUp = ( exp( -2 * h.get(l, i) * nu ) - 1 ); alphaDown = ( exp( 2 * h.get(l, i) * nu ) - 1 );
         dUp = ( 1 + alphaUp  * ( 1 - Gup->get(i, i) ) ); dDown = ( 1 + alphaDown  * ( 1 - Gdown->get(i, i) ) );
         //  SAMPLING: METROPOLIS OR HEAT BATH
-        accRatio = abs( dUp * dDown ); // accRatio = dUp * dDown / ( 1 + dUp * dDown );
+        accRatio = fabs( dUp * dDown ); // accRatio = dUp * dDown / ( 1 + dUp * dDown );
         //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP.
         decisionMaker = dis(gen);
 
         if (decisionMaker <= accRatio )
         {
             //  KEEP TRACK OF WEIGHT
-            LOGweight += log( abs( dUp ) ) + log( abs ( dDown ) );
+            LOGweight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
             sign *= std::copysign(1, dUp * dDown );
             //  FLIP A SPIN
             h.flip(l, i);
