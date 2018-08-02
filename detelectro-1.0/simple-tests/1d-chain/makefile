@@ -18,7 +18,7 @@
 
 nsites = 2
 dt_inv = 64
-beta = 6
+beta = 2
 hopping = 1
 green_afresh_freq = 4
 geom = 1

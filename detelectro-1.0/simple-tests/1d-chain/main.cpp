@@ -2,23 +2,25 @@
 //  main.cpp
 //
 //
-//  Created by Francisco Brito on 08/06/2018.
+//  Created by Francisco Brito on 02/08/2018.
 //
 //  This program simulates the Hubbard model for an arbitrary geometry lattice
 //  using auxiliary field (or determinant) Quantum Monte Carlo: in particular, the BSS algorithm.
 //  The used notation is based on the lecture notes "Numerical Methods for Quantum Monte Carlo
 //  Simulations of the Hubbard Model by Zhaojun Bai, Wenbin Chen, Richard Scalettar, and
 //  Ichitaro Yamazaki (2009)
-//
+
 
 //  DEFAULT SIMULATION PARAMETERS FOR MINIMAL EXAMPLE.
+//  Compare with J. E. Hirsch - Phys Rev B 28 7, 1983
+//  For U = 4, we get <n_up n_dw > -> 0.1384 (exact)
 
 #ifndef NSITES
-#define NSITES 64 //  # sites
+#define NSITES 2 //  # sites
 #endif
 
 #ifndef DT_INV
-#define DT_INV 10 //  Inverse Trotter error
+#define DT_INV 64 //  Inverse Trotter error
 #endif
 
 #ifndef BETA
@@ -38,7 +40,7 @@
 #endif
 
 #ifndef NY
-#define NY 4    //   geometry parameter to define width of the simulated sample
+#define NY 0    //   geometry parameter to define width of the simulated sample
 #endif
 
 #include <iostream>
@@ -66,13 +68,17 @@ int main(int argc, char **argv)
 
     double dt = 1. / DT_INV;  //  Trotter error, or time subinterval width. error scales as dt^2
     const int L = BETA * DT_INV;  //  # slices
-    const int Lbda = L / GREEN_AFRESH_FREQ;  //  Lbda = # intervals in which the product of B's is divided to stabilize.
-    double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
+    //  Lbda = # intervals in which the product of B's is divided to stabilize.
+    const int Lbda = L / GREEN_AFRESH_FREQ;
+    //  HS transformation parameter (to order dtau^2)
+    double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;
 
     //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
     const int seed = 1;
     std::mt19937 gen(seed);  //  mt19937 algorithm to generate random numbers
     std::uniform_real_distribution<> dis(0.0, 1.0);
+    //  this last line results in a different random number sequence
+    //  for different compilers and even different versions of the same compiler.
     double decisionMaker; int totalMCSteps = totalMCSweeps * NSITES * L;
 
 
@@ -131,7 +137,8 @@ int main(int argc, char **argv)
     Configuration< L , NSITES > h; h.genHsMatrix();
 
     //  GENERATE THE B-MATRICES.
-    OneParticlePropagators< NSITES, L > Bup; OneParticlePropagators< NSITES, L > Bdown;
+    OneParticlePropagators< NSITES, L > Bup;
+    OneParticlePropagators< NSITES, L > Bdown;
     Bup.fillMatrices( true, nu, h.matrix(), K.BpreFactor() );
     Bdown.fillMatrices( false, nu, h.matrix(), K.BpreFactor() );
 
@@ -234,7 +241,8 @@ int main(int argc, char **argv)
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
                 doubleOc += - Gup->get(x, x) - Gdown->get(x, x) + Gup->get(x, x)
                 * Gdown->get(x, x);
-                magCorr(x, x) = 3 * ( Gup->get(x, x) + Gdown->get(x, x) ) - 6 * Gup->get(x, x) * Gdown->get(x, x);
+                magCorr(x, x) = 3 * ( Gup->get(x, x) + Gdown->get(x, x) )
+                - 6 * Gup->get(x, x) * Gdown->get(x, x);
                 // if (l == 0)
                 // {
                 //     uneqMagCorrs[sweep](x, x) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(x, x) )

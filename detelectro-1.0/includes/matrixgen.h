@@ -17,7 +17,9 @@ public:
     void oneDimensionalChainOBC(int t, double dt, double mu);
     void twoDimensionalRectanglePBC(int Nx, int t, double dt, double mu);
     void twoDimensionalRectangleOBC(int Nx, int t, double dt, double mu);
+//    void honeycomb(int t, double dt, double mu); //  Nx = width of the ribbon
     void nanoribbon(int Nx, int t, double dt, double mu); //  Nx = width of the ribbon
+//    void nanodot(int t, double dt, double mu); //  Nx = width of the dot
     Eigen::Matrix<double, N, N> BpreFactor();
 };
 
