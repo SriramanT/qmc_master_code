@@ -189,7 +189,7 @@ int main(int argc, char **argv)
         alphaUp = ( exp( -2 * h.get(l, i) * nu ) - 1 ); alphaDown = ( exp( 2 * h.get(l, i) * nu ) - 1 );
         dUp = ( 1 + alphaUp  * ( 1 - Gup->get(i, i) ) ); dDown = ( 1 + alphaDown  * ( 1 - Gdown->get(i, i) ) );
         //  SAMPLING: METROPOLIS OR HEAT BATH
-        accRatio = abs( dUp * dDown ); // accRatio = dUp * dDown / ( 1 + dUp * dDown );
+        accRatio = fabs( dUp * dDown ); // accRatio = dUp * dDown / ( 1 + dUp * dDown );
         //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP.
         decisionMaker = dis(gen);
 
