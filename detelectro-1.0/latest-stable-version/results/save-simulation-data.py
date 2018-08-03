@@ -31,8 +31,8 @@ signs = np.loadtxt('../temp-data/Local-av-sign.txt', skiprows = 1)
 
 observables = np.loadtxt('../temp-data/MeasurementsScalars.txt', skiprows = 1)
 
-electronDensity = observables[:, 0]
-doubleOc = observables[:, 1]
+electronDensity = observables[0]
+doubleOc = observables[1]
 
 magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.txt', skiprows = 1)
 
@@ -73,9 +73,9 @@ np.savetxt(directory2 + '/Local-av-sign.txt', (signs))
 
 np.savetxt(directory2 + '/simulationParameters.txt', (simulationParameters))
 
-np.savetxt(directory2 + '/electronDensity.txt', (electronDensity))
+np.savetxt(directory2 + '/electronDensity.txt', ([electronDensity]))
 
-np.savetxt(directory2 + '/doubleOccupancy.txt', (doubleOc))
+np.savetxt(directory2 + '/doubleOccupancy.txt', ([doubleOc]))
 
 np.savetxt(directory2 + '/EqTimeSzCorrelations.txt', (magCorrMeas))
 

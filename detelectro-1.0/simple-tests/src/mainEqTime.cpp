@@ -138,19 +138,21 @@ int main(int argc, char **argv)
     h->genHsMatrix();
 
     //  GENERATE THE B-MATRICES.
-    OneParticlePropagators< NSITES, L > Bup;
-    OneParticlePropagators< NSITES, L > Bdown;
-    Bup.fillMatrices( true, nu, h->matrix(), K.BpreFactor() );
-    Bdown.fillMatrices( false, nu, h->matrix(), K.BpreFactor() );
+    OneParticlePropagators< NSITES, L > * Bup =
+      new OneParticlePropagators< NSITES, L >;
+    OneParticlePropagators< NSITES, L > * Bdown=
+      new OneParticlePropagators< NSITES, L >;
+    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor() );
+    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor() );
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green< NSITES, L, Lbda> * Gup = new Green< NSITES, L, Lbda>;
     Green< NSITES, L, Lbda> * Gdown = new Green< NSITES, L, Lbda>;
     //  Uncomment to compute the Green's function naively instead of using the stored VDU
     //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
-    // Gup->computeGreenNaive(Bup.list(), L - 1);
-    // Gdown->computeGreenNaive(Bdown.list(), L - 1);
-    Gup->storeVDU( Bup.list() ); Gdown->storeVDU( Bdown.list() );
+    // Gup->computeGreenNaive(Bup->list(), L - 1);
+    // Gdown->computeGreenNaive(Bdown->list(), L - 1);
+    Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
 
     //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
@@ -216,7 +218,7 @@ int main(int argc, char **argv)
             //  FLIP A SPIN
             h->flip(l, i);
             //  UPDATE Bs
-            Bup.update(l, i, alphaUp); Bdown.update(l, i, alphaDown);
+            Bup->update(l, i, alphaUp); Bdown->update(l, i, alphaDown);
             //  RANK-ONE UPDATE -> O(N^2)
             Gup->update(alphaUp, dUp, i); Gdown->update(alphaDown, dDown, i);
         }
@@ -250,8 +252,8 @@ int main(int argc, char **argv)
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
                 doubleOc += - Gup->get(x, x) - Gdown->get(x, x) + Gup->get(x, x)
                 * Gdown->get(x, x);
-                magCorr(x, x) = 3 * ( Gup->get(x, x) + Gdown->get(x, x) )
-                - 6 * Gup->get(x, x) * Gdown->get(x, x);
+                magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
+                - 2 * Gup->get(x, x) * Gdown->get(x, x);
                 for (int y = x + 1; y < NSITES; y++)
                 {
                     magCorr(x, y) =
@@ -282,17 +284,17 @@ int main(int argc, char **argv)
             if (latticeSweepUntilAfresh == GREEN_AFRESH_FREQ)
             {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
                 //  Uncomment to compute the product in the naive, unstable manner
-                // Gup->computeGreenNaive(Bup.list(), l);
-                // Gdown->computeGreenNaive(Bdown.list(), l);
+                // Gup->computeGreenNaive(Bup->list(), l);
+                // Gdown->computeGreenNaive(Bdown->list(), l);
                 //  Uncomment to compute the product in the stabilized,
                 //  but slightly inefficient way
-                // Gup->computeStableGreenNaiveR(Bup.list(), l);
-                // Gdown->computeStableGreenNaiveR(Bdown.list(), l);
+                // Gup->computeStableGreenNaiveR(Bup->list(), l);
+                // Gdown->computeStableGreenNaiveR(Bdown->list(), l);
                 //  Most efficient solution (storing decompositions)
                 if (l != ( L - 1 ) )
                 {
-                    Gup->storeUDV(Bup.list(), l, GREEN_AFRESH_FREQ);
-                    Gdown->storeUDV(Bdown.list(), l, GREEN_AFRESH_FREQ);
+                    Gup->storeUDV(Bup->list(), l, GREEN_AFRESH_FREQ);
+                    Gdown->storeUDV(Bdown->list(), l, GREEN_AFRESH_FREQ);
                     //  This is the standard way described in
                     //  "Stable simulations of models of interacting electrons"
                     Gup->computeStableGreen(l, GREEN_AFRESH_FREQ);
@@ -300,14 +302,14 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    Gup->storeVDU( Bup.list() ); Gdown->storeVDU( Bdown.list() );
+                    Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
                     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
                 }
                 latticeSweepUntilAfresh = 0;
             }
             else
             {   //  WRAPPING.
-                Gup->wrap( Bup.matrix(l) ); Gdown->wrap( Bdown.matrix(l) );
+                Gup->wrap( Bup->matrix(l) ); Gdown->wrap( Bdown->matrix(l) );
             }
             if (l < L - 1)
             {
@@ -381,9 +383,9 @@ int main(int argc, char **argv)
     }
     file1.close(); file2.close(); file3.close(); file4.close();
 
-    delete[] weights; delete[] doubleOcs; delete[] electronDensities;
-    delete[] magCorrs;
-    delete Gup; delete Gdown; delete h;
+    delete[] weights; delete[] signs;
+    delete[] doubleOcs; delete[] electronDensities; delete[] magCorrs;
+    delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
 
     return 0;
 }

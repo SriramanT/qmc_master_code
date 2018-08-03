@@ -134,22 +134,25 @@ int main(int argc, char **argv)
     }
 
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
-    Configuration< L , NSITES > h; h.genHsMatrix();
+    Configuration< L , NSITES > * h = new Configuration< L , NSITES >;
+    h->genHsMatrix();
 
     //  GENERATE THE B-MATRICES.
-    OneParticlePropagators< NSITES, L > Bup;
-    OneParticlePropagators< NSITES, L > Bdown;
-    Bup.fillMatrices( true, nu, h.matrix(), K.BpreFactor() );
-    Bdown.fillMatrices( false, nu, h.matrix(), K.BpreFactor() );
+    OneParticlePropagators< NSITES, L > * Bup =
+      new OneParticlePropagators< NSITES, L >;
+    OneParticlePropagators< NSITES, L > * Bdown=
+      new OneParticlePropagators< NSITES, L >;
+    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor() );
+    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor() );
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green< NSITES, L, Lbda> * Gup = new Green< NSITES, L, Lbda>;
     Green< NSITES, L, Lbda> * Gdown = new Green< NSITES, L, Lbda>;
     //  Uncomment to compute the Green's function naively instead of using the stored VDU
     //  start at l = L - 1, i.e. G = (1 + B_{L-1} B_{L-2} ... B_{0})^(-1)
-    // Gup->computeGreenNaive(Bup.list(), L - 1);
-    // Gdown->computeGreenNaive(Bdown.list(), L - 1);
-    Gup->storeVDU( Bup.list() ); Gdown->storeVDU( Bdown.list() );
+    // Gup->computeGreenNaive(Bup->list(), L - 1);
+    // Gdown->computeGreenNaive(Bdown->list(), L - 1);
+    Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
     Gup->initializeUneqs(); Gdown->initializeUneqs();
 
@@ -200,8 +203,8 @@ int main(int argc, char **argv)
         }
 
         //  COMPUTE THE ACCEPTANCE RATIO.
-        alphaUp = ( exp( -2 * h.get(l, i) * nu ) - 1 );
-        alphaDown = ( exp( 2 * h.get(l, i) * nu ) - 1 );
+        alphaUp = ( exp( -2 * h->get(l, i) * nu ) - 1 );
+        alphaDown = ( exp( 2 * h->get(l, i) * nu ) - 1 );
         dUp = ( 1 + alphaUp  * ( 1 - Gup->get(i, i) ) );
         dDown = ( 1 + alphaDown  * ( 1 - Gdown->get(i, i) ) );
         //  SAMPLING: METROPOLIS OR HEAT BATH
@@ -217,9 +220,9 @@ int main(int argc, char **argv)
             LOGweight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
             sign *= std::copysign(1, dUp * dDown );
             //  FLIP A SPIN
-            h.flip(l, i);
+            h->flip(l, i);
             //  UPDATE Bs
-            Bup.update(l, i, alphaUp); Bdown.update(l, i, alphaDown);
+            Bup->update(l, i, alphaUp); Bdown->update(l, i, alphaDown);
             //  RANK-ONE UPDATE -> O(N^2)
             Gup->update(alphaUp, dUp, i); Gdown->update(alphaDown, dDown, i);
         }
@@ -253,8 +256,8 @@ int main(int argc, char **argv)
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
                 doubleOc += - Gup->get(x, x) - Gdown->get(x, x) + Gup->get(x, x)
                 * Gdown->get(x, x);
-                magCorr(x, x) = 3 * ( Gup->get(x, x) + Gdown->get(x, x) )
-                - 6 * Gup->get(x, x) * Gdown->get(x, x);
+                magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
+                - 2 * Gup->get(x, x) * Gdown->get(x, x);
                 if (l == 0)
                 {
                     uneqMagCorrs[sweep](x, x) +=
@@ -357,17 +360,17 @@ int main(int argc, char **argv)
             if (latticeSweepUntilAfresh == GREEN_AFRESH_FREQ)
             {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
                 //  Uncomment to compute the product in the naive, unstable manner
-                // Gup->computeGreenNaive(Bup.list(), l);
-                // Gdown->computeGreenNaive(Bdown.list(), l);
+                // Gup->computeGreenNaive(Bup->list(), l);
+                // Gdown->computeGreenNaive(Bdown->list(), l);
                 //  Uncomment to compute the product in the stabilized,
                 //  but slightly inefficient way
-                // Gup->computeStableGreenNaiveR(Bup.list(), l);
-                // Gdown->computeStableGreenNaiveR(Bdown.list(), l);
+                // Gup->computeStableGreenNaiveR(Bup->list(), l);
+                // Gdown->computeStableGreenNaiveR(Bdown->list(), l);
                 //  Most efficient solution (storing decompositions)
                 if (l != ( L - 1 ) )
                 {
-                    Gup->storeUDV(Bup.list(), l, GREEN_AFRESH_FREQ);
-                    Gdown->storeUDV(Bdown.list(), l, GREEN_AFRESH_FREQ);
+                    Gup->storeUDV(Bup->list(), l, GREEN_AFRESH_FREQ);
+                    Gdown->storeUDV(Bdown->list(), l, GREEN_AFRESH_FREQ);
                     //  This is the standard way described in
                     //  "Stable simulations of models of interacting electrons"
                       // Gup->computeStableGreen(l, GREEN_AFRESH_FREQ);
@@ -379,7 +382,7 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    Gup->storeVDU( Bup.list() ); Gdown->storeVDU( Bdown.list() );
+                    Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
                     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
                     Gup->initializeUneqs(); Gdown->initializeUneqs();
                 }
@@ -387,7 +390,7 @@ int main(int argc, char **argv)
             }
             else
             {   //  WRAPPING.
-                Gup->wrap( Bup.matrix(l) ); Gdown->wrap( Bdown.matrix(l) );
+                Gup->wrap( Bup->matrix(l) ); Gdown->wrap( Bdown->matrix(l) );
             }
             if (l < L - 1)
             {
@@ -466,9 +469,9 @@ int main(int argc, char **argv)
     }
     file1.close(); file2.close(); file3.close(); file4.close(); file5.close();
 
-    delete[] weights; delete[] doubleOcs; delete[] electronDensities;
-    delete[] magCorrs; delete[] uneqMagCorrs;
-    delete Gup; delete Gdown;
+    delete[] weights; delete[] signs; delete[] doubleOcs;
+    delete[] electronDensities; delete[] magCorrs; delete[] uneqMagCorrs;
+    delete Gup; delete Gdown; delete h;
 
     return 0;
 }
