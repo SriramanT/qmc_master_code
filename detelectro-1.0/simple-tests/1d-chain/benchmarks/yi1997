@@ -6,6 +6,8 @@ make clean
 
 make nsites=60 dt_inv=16 beta=15
 
+ulimit -s 16834
+
 ./simulation 4 0 10000
 
 cd ./1d-chain
