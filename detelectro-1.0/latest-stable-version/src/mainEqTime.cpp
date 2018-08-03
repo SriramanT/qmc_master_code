@@ -262,8 +262,8 @@ int main(int argc, char **argv)
                       - ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->get(y, y) )
                       + ( 1 - Gup->get(x, x) ) * ( 1 - Gup->get(y, y) )
                       + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->get(y, y) )
-                      + ( 1 - Gup->get(y, x) ) * Gup->get(x, y)
-                      + ( 1 - Gdown->get(y, x) ) * Gdown->get(x, y);
+                      - Gup->get(y, x) * Gup->get(x, y)
+                      - Gdown->get(y, x) * Gdown->get(x, y);
                     magCorr(y, x) = magCorr(x, y);
                 }
             }

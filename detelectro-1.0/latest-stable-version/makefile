@@ -43,7 +43,7 @@ simulation: $(object)
 	@echo "Arguments of simulation: U, mu, number of sweeps, number of warm-up sweeps,\
 	number of auto-correlation sweeps"
 
-main.o: eq_or_uneq $(include_dir)/matrixgen.h $(include_dir)/green.h $(include_dir)/QDT.h\
+$(object):$(eq_or_uneq) $(include_dir)/matrixgen.h $(include_dir)/green.h $(include_dir)/QDT.h\
 	 $(include_dir)/TDQ.h
 
 clean:
