@@ -8,6 +8,6 @@ make nsites=60 dt_inv=16 beta=15
 
 ./simulation 4 0 10000
 
-cd 1d-chain
+cd ./1d-chain
 
 python save-simulation-data.py
