@@ -134,7 +134,8 @@ int main(int argc, char **argv)
     }
 
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
-    Configuration< L , NSITES > * h; h->genHsMatrix();
+    Configuration< L , NSITES > * h = new Configuration< L , NSITES >;
+    h->genHsMatrix();
 
     //  GENERATE THE B-MATRICES.
     OneParticlePropagators< NSITES, L > Bup;
