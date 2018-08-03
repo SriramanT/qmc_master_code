@@ -134,13 +134,13 @@ int main(int argc, char **argv)
     }
 
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
-    Configuration< L , NSITES > h; h.genHsMatrix();
+    Configuration< L , NSITES > * h; h->genHsMatrix();
 
     //  GENERATE THE B-MATRICES.
     OneParticlePropagators< NSITES, L > Bup;
     OneParticlePropagators< NSITES, L > Bdown;
-    Bup.fillMatrices( true, nu, h.matrix(), K.BpreFactor() );
-    Bdown.fillMatrices( false, nu, h.matrix(), K.BpreFactor() );
+    Bup.fillMatrices( true, nu, h->matrix(), K.BpreFactor() );
+    Bdown.fillMatrices( false, nu, h->matrix(), K.BpreFactor() );
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green< NSITES, L, Lbda> * Gup = new Green< NSITES, L, Lbda>;
@@ -196,8 +196,8 @@ int main(int argc, char **argv)
         }
 
         //  COMPUTE THE ACCEPTANCE RATIO.
-        alphaUp = ( exp( -2 * h.get(l, i) * nu ) - 1 );
-        alphaDown = ( exp( 2 * h.get(l, i) * nu ) - 1 );
+        alphaUp = ( exp( -2 * h->get(l, i) * nu ) - 1 );
+        alphaDown = ( exp( 2 * h->get(l, i) * nu ) - 1 );
         dUp = ( 1 + alphaUp  * ( 1 - Gup->get(i, i) ) );
         dDown = ( 1 + alphaDown  * ( 1 - Gdown->get(i, i) ) );
         //  SAMPLING: METROPOLIS OR HEAT BATH
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
             LOGweight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
             sign *= std::copysign(1, dUp * dDown );
             //  FLIP A SPIN
-            h.flip(l, i);
+            h->flip(l, i);
             //  UPDATE Bs
             Bup.update(l, i, alphaUp); Bdown.update(l, i, alphaDown);
             //  RANK-ONE UPDATE -> O(N^2)
@@ -382,7 +382,7 @@ int main(int argc, char **argv)
 
     delete[] weights; delete[] doubleOcs; delete[] electronDensities;
     delete[] magCorrs;
-    delete Gup; delete Gdown;
+    delete Gup; delete Gdown; delete h;
 
     return 0;
 }
