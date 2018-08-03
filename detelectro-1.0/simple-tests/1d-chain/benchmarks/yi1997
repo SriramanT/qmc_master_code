@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ../../
+cd qmc_master_code/detelectro-1.0/simple-tests/
 
 make clean
 
