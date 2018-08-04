@@ -1,2 +1,0 @@
-Electron density <n>     Double occupancy <n+ n-> 
-1.03121853               0.09993505786            
