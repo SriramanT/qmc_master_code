@@ -163,6 +163,7 @@ int main(int argc, char **argv)
     double * signs = new double[totalMCSweeps - W];
     double electronDensities = 0;
     double doubleOcs = 0;
+    double zzMags = 0;
     Eigen::Matrix<double, NSITES, NSITES>  magCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double LOGweight = 0.;
@@ -170,9 +171,11 @@ int main(int argc, char **argv)
       * Gdown->matrix().determinant() );
     double electronDensity;
     double doubleOc;
+    double zzMag;
     Eigen::Matrix<double, NSITES, NSITES> magCorr;
     double nEl = 0;
     double nUp_nDw = 0;
+    double zzAFstFactor = 0;
     Eigen::Matrix<double, NSITES, NSITES> SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double meanSign = sign;
@@ -247,14 +250,15 @@ int main(int argc, char **argv)
               weights[sweep * L + l] = LOGweight;
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
-            electronDensity = 0.; doubleOc = 0.;
+            electronDensity = 0.; doubleOc = 0.; zzMag = 0.;
             for (int x = 0; x < NSITES; x++)
             {
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
                 doubleOc += - Gup->get(x, x) - Gdown->get(x, x) + Gup->get(x, x)
                 * Gdown->get(x, x);
                 magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
-                - 2 * Gup->get(x, x) * Gdown->get(x, x);
+                  - 2 * Gup->get(x, x) * Gdown->get(x, x);
+                zzMag += magCorr;
                 for (int y = 0; y < x; y++)
                 {
                     magCorr(x, y) =
@@ -264,11 +268,14 @@ int main(int argc, char **argv)
                       + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->get(y, y) )
                       - Gup->get(y, x) * Gup->get(x, y)
                       - Gdown->get(y, x) * Gdown->get(x, y);
+                    zzMag += magCorr(x, y) * pow(-1, x-y);
                     magCorr(y, x) = magCorr(x, y);
+                    zzMag += magCorr(y, x) * pow(-1, x-y);
                 }
             }
             electronDensity /= NSITES; electronDensity += 2;
             doubleOc /= NSITES; doubleOc += 1;
+            zzMag /= NSITES;
 
             electronDensities +=
               ( electronDensity - electronDensities ) / ( l + 1 ) ;
@@ -276,7 +283,8 @@ int main(int argc, char **argv)
               ( doubleOc - doubleOcs ) / ( l + 1 ) ;
             magCorrs +=
               (magCorr - magCorrs ) / ( l + 1 );
-
+            zzMags +=
+              (zzMag - zzMags ) / ( l + 1 );
 
             //  DEAL WITH THE GREEN'S FUNCTIONS.
 
@@ -326,9 +334,11 @@ int main(int argc, char **argv)
                       nEl += ( electronDensities - nEl ) / ( (sweep - W)/A + 1 ) ;
                       nUp_nDw += ( doubleOcs - nUp_nDw ) / ( (sweep - W)/A + 1 ) ;
                       SiSj += ( magCorrs - SiSj ) / ( (sweep - W)/A + 1 ) ;
+                      zzAFstFactor += ( zzMags - zzAFstFactor ) / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                    zzMags = 0.;
 
                 }
                 //  MOVE SWEEP COUNTER
@@ -384,10 +394,13 @@ int main(int argc, char **argv)
         }
         file3 << std::left << std::setw(25) << "Electron density <n>";
         file3 << std::left << std::setw(25) << "Double occupancy <n+ n->" << '\n';
+        file3 << std::left << std::setw(25) << "ZZ AF Structure Factor" << '\n';
         file3 << std::left << std::setw(25) << std::setprecision(10)
         << nEl;
         file3 << std::left << std::setw(25) << std::setprecision(10)
         << nUp_nDw << '\n';
+        file3 << std::left << std::setw(25) << std::setprecision(10)
+        << zzAFstFactor << '\n';
         file4 << std::left << std::setw(25) << "<S_i S_j >" << '\n';
         file4 << SiSj << '\n';
         file1 << '\n';
