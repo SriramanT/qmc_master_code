@@ -33,6 +33,7 @@ observables = np.loadtxt('../temp-data/MeasurementsScalars.txt', skiprows = 1)
 
 electronDensity = observables[0]
 doubleOc = observables[1]
+zzAFstrFactor = observables[2]
 
 magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.txt', skiprows = 1)
 
@@ -78,6 +79,8 @@ np.savetxt(directory2 + '/electronDensity.txt', ([electronDensity]))
 np.savetxt(directory2 + '/doubleOccupancy.txt', ([doubleOc]))
 
 np.savetxt(directory2 + '/EqTimeSzCorrelations.txt', (magCorrMeas))
+
+np.savetxt(directory2 + '/zzAFstrFactor.txt', (zzAFstrFactor))
 
 try:
     np.savetxt(directory2 + '/UneqTimeSzCorrelations.txt', (UneqMagCorrMeas))

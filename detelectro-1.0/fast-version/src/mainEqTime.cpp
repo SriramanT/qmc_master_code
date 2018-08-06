@@ -258,7 +258,7 @@ int main(int argc, char **argv)
                 * Gdown->get(x, x);
                 magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
                   - 2 * Gup->get(x, x) * Gdown->get(x, x);
-                zzMag += magCorr;
+                zzMag += magCorr(x, x);
                 for (int y = 0; y < x; y++)
                 {
                     magCorr(x, y) =
@@ -268,9 +268,16 @@ int main(int argc, char **argv)
                       + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->get(y, y) )
                       - Gup->get(y, x) * Gup->get(x, y)
                       - Gdown->get(y, x) * Gdown->get(x, y);
-                    zzMag += magCorr(x, y) * pow(-1, x-y);
-                    magCorr(y, x) = magCorr(x, y);
-                    zzMag += magCorr(y, x) * pow(-1, x-y);
+		    magCorr(y, x) = magCorr(x, y);
+		    if ( ( x + ( ( x - x % int (sqrt(NSITES)) ) / int (sqrt(NSITES)) ) % 2 ) % 2
+			== ( y + ( ( y - y % int (sqrt(NSITES)) ) / int (sqrt(NSITES)) ) % 2 ) % 2 )
+		    {
+                   	zzMag += 2 * magCorr(x, y);
+		    }
+		    else
+		    {
+		    	zzMag -= 2 * magCorr(x, y);
+		    }
                 }
             }
             electronDensity /= NSITES; electronDensity += 2;
@@ -393,12 +400,12 @@ int main(int argc, char **argv)
             file2 << std::left << std::setw(25) << signs[s] << '\n';
         }
         file3 << std::left << std::setw(25) << "Electron density <n>";
-        file3 << std::left << std::setw(25) << "Double occupancy <n+ n->" << '\n';
+        file3 << std::left << std::setw(25) << "Double occupancy <n+ n->";
         file3 << std::left << std::setw(25) << "ZZ AF Structure Factor" << '\n';
         file3 << std::left << std::setw(25) << std::setprecision(10)
         << nEl;
         file3 << std::left << std::setw(25) << std::setprecision(10)
-        << nUp_nDw << '\n';
+        << nUp_nDw;
         file3 << std::left << std::setw(25) << std::setprecision(10)
         << zzAFstFactor << '\n';
         file4 << std::left << std::setw(25) << "<S_i S_j >" << '\n';
