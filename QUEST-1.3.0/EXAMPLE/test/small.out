@@ -1,4 +1,4 @@
- 2D Periodic Lattice; Nx=  8; Ny=  8; total sites=   64
+ 2D Periodic Lattice; Nx=  8; Ny=  8; total sites=   64                          
                           U :            2.000000
                        t_up :            1.000000
                        t_dn :            1.000000
@@ -18,7 +18,7 @@ Global move number of sites :            0
                Reject count :      3671655
     Approximate accept rate :            0.516690
                       gamma :            0.839800
-           Type of matrix B : Dense MatB
+           Type of matrix B : Dense MatB  
          Type of matrix HSF : 0/1
 ============================================================================
  Sign of equal time measurements:

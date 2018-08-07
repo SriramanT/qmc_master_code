@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
     double * weights = new double[W * L];
-    double * signs = new double[totalMCSweeps - W];
+    double * signs = new double[(totalMCSweeps - W) / A];
     double electronDensities = 0;
     double doubleOcs = 0;
     double zzMags = 0;
@@ -178,8 +178,7 @@ int main(int argc, char **argv)
     double zzAFstFactor = 0;
     Eigen::Matrix<double, NSITES, NSITES> SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    double meanSign = sign;
-    signs[0] = meanSign;
+    double meanSign = 0.;
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
@@ -228,8 +227,6 @@ int main(int argc, char **argv)
             //  RANK-ONE UPDATE -> O(N^2)
             Gup->update(alphaUp, dUp, i); Gdown->update(alphaDown, dDown, i);
         }
-        //  KEEP TRACK OF THE SIGN.
-        meanSign += ( sign - meanSign ) / ( step + 2 );
 
 
         // --- COMPUTE WRAPPED GREEN'S FUNCTIONS. ---
@@ -268,30 +265,35 @@ int main(int argc, char **argv)
                       + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->get(y, y) )
                       - Gup->get(y, x) * Gup->get(x, y)
                       - Gdown->get(y, x) * Gdown->get(x, y);
-		    magCorr(y, x) = magCorr(x, y);
-		    if ( ( x + ( ( x - x % int (sqrt(NSITES)) ) / int (sqrt(NSITES)) ) % 2 ) % 2
-			== ( y + ( ( y - y % int (sqrt(NSITES)) ) / int (sqrt(NSITES)) ) % 2 ) % 2 )
-		    {
-                   	zzMag += 2 * magCorr(x, y);
-		    }
-		    else
-		    {
-		    	zzMag -= 2 * magCorr(x, y);
-		    }
-                }
+		                magCorr(y, x) = magCorr(x, y);
+                    zzMag += 2 * pow(-1, x - y ) * magCorr(x, y);
+            		    // if ( ( x + ( ( x - x % int (sqrt(NSITES)) )
+                    //   / int (sqrt(NSITES)) ) % 2 ) % 2
+                    //   == ( y + ( ( y - y % int (sqrt(NSITES)) )
+                    //   / int (sqrt(NSITES)) ) % 2 ) % 2 )
+            		    // {
+                    //     zzMag += 2 * magCorr(x, y);
+            		    // }
+            		    // else
+            		    // {
+            		    //     zzMag -= 2 * magCorr(x, y);
+            		    // }
+                  }
             }
             electronDensity /= NSITES; electronDensity += 2;
             doubleOc /= NSITES; doubleOc += 1;
             zzMag /= NSITES;
 
+            //  KEEP TRACK OF THE SIGN OF THE SWEEP
+            meanSign += ( sign - meanSign ) / ( l + 1 );
             electronDensities +=
-              ( electronDensity - electronDensities ) / ( l + 1 ) ;
+              ( electronDensity * sign - electronDensities ) / ( l + 1 ) ;
             doubleOcs +=
-              ( doubleOc - doubleOcs ) / ( l + 1 ) ;
+              ( doubleOc * sign - doubleOcs ) / ( l + 1 ) ;
             magCorrs +=
-              (magCorr - magCorrs ) / ( l + 1 );
+              (magCorr * sign - magCorrs ) / ( l + 1 );
             zzMags +=
-              (zzMag - zzMags ) / ( l + 1 );
+              (zzMag * sign - zzMags ) / ( l + 1 );
 
             //  DEAL WITH THE GREEN'S FUNCTIONS.
 
@@ -338,16 +340,21 @@ int main(int argc, char **argv)
                     signs[sweep - W] = meanSign;
                     if ( sweep % A == 0 )
                     {
-                      nEl += ( electronDensities - nEl ) / ( (sweep - W)/A + 1 ) ;
-                      nUp_nDw += ( doubleOcs - nUp_nDw ) / ( (sweep - W)/A + 1 ) ;
-                      SiSj += ( magCorrs - SiSj ) / ( (sweep - W)/A + 1 ) ;
-                      zzAFstFactor += ( zzMags - zzAFstFactor ) / ( (sweep - W)/A + 1 ) ;
+                      nEl += ( electronDensities / meanSign - nEl )
+                       / ( (sweep - W)/A + 1 ) ;
+                      nUp_nDw += ( doubleOcs / meanSign - nUp_nDw )
+                       / ( (sweep - W)/A + 1 ) ;
+                      SiSj += ( magCorrs / meanSign - SiSj )
+                       / ( (sweep - W)/A + 1 ) ;
+                      zzAFstFactor += ( zzMags / meanSign - zzAFstFactor )
+                       / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                     zzMags = 0.;
 
                 }
+                meanSign = 0.;
                 //  MOVE SWEEP COUNTER
                 sweep += 1;
                 l = 0; i = 0;
@@ -356,15 +363,14 @@ int main(int argc, char **argv)
     }   //  END OF MC LOOP.
 
     std::cout << "Simulation ended" << std::endl << std::endl;
-    std::cout << "Average Sign: " << meanSign << std::endl << std::endl;
     std::cout << "nEl: " << nEl << std::endl << std::endl;
     std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
 
     //  SAVE OUTPUT.
-    std::ofstream file0("temp-data/simulationParameters.txt");
+    std::ofstream file0("temp-data/simulationParameters.csv");
     if (file0.is_open())
     {
-      file0 << std::left << std::setw(50) << "Number_of_sites" << NSITES << '\n';
+      file0 << std::left << std::setw(50) << "Number of sites" << NSITES << '\n';
       file0 << std::left << std::setw(50) << "dt" << dt << '\n';
       file0 << std::left << std::setw(50) << "beta" << BETA << '\n';
       file0 << std::left << std::setw(50) << "L" << L << '\n';
@@ -372,44 +378,44 @@ int main(int argc, char **argv)
       file0 << std::left << std::setw(50) << "U" << U << '\n';
       file0 << std::left << std::setw(50) << "mu" << mu << '\n';
       file0 << std::left << std::setw(50) << "totalMCSweeps" << totalMCSweeps << '\n';
-      file0 << std::left << std::setw(50) << "Frequency_of_recomputing_G"
+      file0 << std::left << std::setw(50) << "Frequency of recomputing G"
         << GREEN_AFRESH_FREQ << '\n';
       file0 << std::left << std::setw(50)
-        << "Number_of_multiplied_Bs_after_stabilization" << Lbda << '\n';
+        << "Number of multiplied Bs after stabilization" << Lbda << '\n';
       file0 << std::left << std::setw(50) << "Geometry" << GEOM << '\n';
       file0 << std::left << std::setw(50) << "Ny" << NY << '\n';
     } file0.close();
     //  STORE MEASUREMENTS
-    std::ofstream file1("temp-data/Log-weights.txt");
-    std::ofstream file2("temp-data/Local-av-sign.txt");
-    std::ofstream file3("temp-data/MeasurementsScalars.txt");
-    std::ofstream file4("temp-data/EqTimeSzCorrelations.txt");
+    std::ofstream file1("temp-data/Log-weights.csv");
+    std::ofstream file2("temp-data/Local-av-sign.csv");
+    std::ofstream file3("temp-data/MeasurementsScalars.csv");
+    std::ofstream file4("temp-data/EqTimeSzCorrelations.csv");
     if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() )
     {
-        file1 << std::left << std::setw(25) << "Configuration weight" << '\n';
-        file2 << std::left << std::setw(25) << "Local average sign" << '\n';
+        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
+        file2 << std::left << std::setw(50) << "Local average sign" << '\n';
         for (int s = 0; s < W; s++)
         {
             for (int slice = 0; slice < L; slice++)
             {
-                file1 << std::left << std::setw(25) << weights[s * L + slice] << '\n';
+                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
             }
         }
-        for (int s = 0; s < totalMCSweeps - W; s++)
+        for (int s = 0; s < (totalMCSweeps - W) / A ; s++)
         {
-            file2 << std::left << std::setw(25) << signs[s] << '\n';
+            file2 << std::left << std::setw(50) << signs[s] << '\n';
         }
-        file3 << std::left << std::setw(25) << "Electron density <n>";
-        file3 << std::left << std::setw(25) << "Double occupancy <n+ n->";
-        file3 << std::left << std::setw(25) << "ZZ AF Structure Factor" << '\n';
-        file3 << std::left << std::setw(25) << std::setprecision(10)
+        file3 << std::left << std::setw(50) << "Electron density <n>";
+        file3 << std::left << std::setw(50) << "Double occupancy <n+ n->";
+        file3 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
+        file3 << std::left << std::setw(50) << std::setprecision(10)
         << nEl;
-        file3 << std::left << std::setw(25) << std::setprecision(10)
+        file3 << std::left << std::setw(50) << std::setprecision(10)
         << nUp_nDw;
-        file3 << std::left << std::setw(25) << std::setprecision(10)
+        file3 << std::left << std::setw(50) << std::setprecision(10)
         << zzAFstFactor << '\n';
-        file4 << std::left << std::setw(25) << "<S_i S_j >" << '\n';
-        file4 << SiSj << '\n';
+        file4 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
+        file4 << std::setprecision(10) << SiSj << '\n';
         file1 << '\n';
     }
     file1.close();

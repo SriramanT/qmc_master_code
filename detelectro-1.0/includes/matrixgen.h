@@ -13,18 +13,18 @@ class Geometry
 {
     Eigen::Matrix<double, N, N> B;
 public:
-    void oneDimensionalChainPBC(int t, double dt, double mu);
-    void oneDimensionalChainOBC(int t, double dt, double mu);
-    void twoDimensionalRectanglePBC(int Nx, int t, double dt, double mu);
-    void twoDimensionalRectangleOBC(int Nx, int t, double dt, double mu);
-    void honeycombPBC(int Ny, int t, double dt, double mu);
-    void nanoribbon(int Ny, int t, double dt, double mu); //  Nx = width of the ribbon
-//    void nanodot(int t, double dt, double mu); //  Nx = width of the dot
+    void oneDimensionalChainPBC(double t, double dt, double mu);
+    void oneDimensionalChainOBC(double t, double dt, double mu);
+    void twoDimensionalRectanglePBC(int Nx, double t, double dt, double mu);
+    void twoDimensionalRectangleOBC(int Nx, double t, double dt, double mu);
+    void honeycombPBC(int Ny, double t, double dt, double mu);
+    void nanoribbon(int Ny, double t, double dt, double mu); //  Nx = width of the ribbon
+//    void nanodot(double t, double dt, double mu); //  Nx = width of the dot
     Eigen::Matrix<double, N, N> BpreFactor();
 };
 
 template<int N>
-void Geometry<N>::oneDimensionalChainPBC(int t, double dt, double mu)
+void Geometry<N>::oneDimensionalChainPBC(double t, double dt, double mu)
 {
 //    Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
 //    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
@@ -63,7 +63,7 @@ void Geometry<N>::oneDimensionalChainPBC(int t, double dt, double mu)
 }
 
 template<int N>
-void Geometry<N>::oneDimensionalChainOBC(int t, double dt, double mu)
+void Geometry<N>::oneDimensionalChainOBC(double t, double dt, double mu)
 {
 //    Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
 //    //  Set the elements of the hopping matrix that define OBC corresponding to the ends of the 1D chain
@@ -101,7 +101,7 @@ void Geometry<N>::oneDimensionalChainOBC(int t, double dt, double mu)
 }
 
 template<int N>
-void Geometry<N>::twoDimensionalRectanglePBC(int Ny, int t, double dt, double mu)
+void Geometry<N>::twoDimensionalRectanglePBC(int Ny, double t, double dt, double mu)
 {
     int Nx = N / Ny;
     //  Compute the exponential
@@ -156,7 +156,7 @@ void Geometry<N>::twoDimensionalRectanglePBC(int Ny, int t, double dt, double mu
 }
 
 template<int N>
-void Geometry<N>::twoDimensionalRectangleOBC(int Ny, int t, double dt, double mu)
+void Geometry<N>::twoDimensionalRectangleOBC(int Ny, double t, double dt, double mu)
 {
     int Nx = N / Ny;
     //  Compute the exponential
@@ -207,7 +207,7 @@ void Geometry<N>::twoDimensionalRectangleOBC(int Ny, int t, double dt, double mu
 }
 
 template<int N>
-void Geometry<N>::honeycombPBC(int Ny, int t, double dt, double mu)
+void Geometry<N>::honeycombPBC(int Ny, double t, double dt, double mu)
 {   //  Nx = width. Additional means the matrix element does not exist for the ribbon
     Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
     int Nx = N / Ny / 2;
@@ -308,7 +308,7 @@ void Geometry<N>::honeycombPBC(int Ny, int t, double dt, double mu)
 }
 
 template<int N>
-void Geometry<N>::nanoribbon(int Ny, int t, double dt, double mu)
+void Geometry<N>::nanoribbon(int Ny, double t, double dt, double mu)
 {   //  Nx = width of the ribbon
     Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
     int Nx = N / Ny / 2;

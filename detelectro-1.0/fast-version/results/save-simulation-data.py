@@ -6,7 +6,7 @@ cwd = os.getcwd()
 
 # Retrieve simulation parameters
 
-simulation = np.genfromtxt('../temp-data/simulationParameters.txt')
+simulation = np.genfromtxt('../temp-data/simulationParameters.csv')
 
 simulationParameters = simulation[:, 1]
 
@@ -25,20 +25,16 @@ ny = int(simulationParameters[11])
 
 # Load configuration weights
 
-weights = np.loadtxt('../temp-data/Log-weights.txt', skiprows = 1)
+weights = np.loadtxt('../temp-data/Log-weights.csv', skiprows = 1)
 
-signs = np.loadtxt('../temp-data/Local-av-sign.txt', skiprows = 1)
+signs = np.loadtxt('../temp-data/Local-av-sign.csv', skiprows = 1)
 
-observables = np.loadtxt('../temp-data/MeasurementsScalars.txt', skiprows = 1)
+scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', skiprows = 1)
 
-electronDensity = observables[0]
-doubleOc = observables[1]
-zzAFstrFactor = observables[2]
-
-magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.txt', skiprows = 1)
+magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1)
 
 try:
-    UneqMagCorrMeas = np.loadtxt('../temp-data/UneqTimeSzCorrelations.txt', skiprows = 1)
+    UneqMagCorrMeas = np.loadtxt('../temp-data/UneqTimeSzCorrelations.csv', skiprows = 1)
 except IOError:
     print("\nExisting data contains only equal time measurements")
 
@@ -68,22 +64,32 @@ if not os.path.exists(directory2):
 if not os.path.exists(directory3):
     os.makedirs(directory3)
 
-np.savetxt(directory2 + '/Log-weights.txt', (weights))
+np.savetxt(directory2 + '/Log-weights.csv', (weights), header = "Configuration log weight")
 
-np.savetxt(directory2 + '/Local-av-sign.txt', (signs))
+np.savetxt(directory2 + '/Local-av-sign.csv', (signs), header = "Local average sign")
 
-np.savetxt(directory2 + '/simulationParameters.txt', (simulationParameters))
+paramNames  = np.array(['Number of sites', 'dtau', 'beta', 'L',\
+'t', 'U', 'mu', 'Number of MC Sweeps', 'Frequency of recomputing G',\
+'Number of multiplied Bs after stabilization', 'Geometry', 'Ny'])
+namedParams = np.zeros(paramNames.size, dtype=[('pnames', 'U50'), ('params', float)])
+namedParams['pnames'] = paramNames
+namedParams['params'] = simulationParameters
 
-np.savetxt(directory2 + '/electronDensity.txt', ([electronDensity]))
+np.savetxt(directory2 + '/simulationParameters.csv', namedParams, fmt="%50s %10.7f" )
 
-np.savetxt(directory2 + '/doubleOccupancy.txt', ([doubleOc]))
+measNames  = np.array(['Electron density <n>', 'Double occupancy <n+ n->'\
+, 'ZZ AF Structure Factor'])
+namedMeas = np.zeros(measNames.size, dtype=[('mnames', 'U50'), ('meas', float)])
+namedMeas['mnames'] = measNames
+namedMeas['meas'] = scalarMeasurements
 
-np.savetxt(directory2 + '/EqTimeSzCorrelations.txt', (magCorrMeas))
+np.savetxt(directory2 + '/MeasurementsScalars.csv', namedMeas, fmt="%50s %10.7f" )
 
-np.savetxt(directory2 + '/zzAFstrFactor.txt', (zzAFstrFactor))
+np.savetxt(directory2 + '/EqTimeSzCorrelations.csv', (magCorrMeas), \
+header = "<Sz_i Sz_j >")
 
 try:
-    np.savetxt(directory2 + '/UneqTimeSzCorrelations.txt', (UneqMagCorrMeas))
+    np.savetxt(directory2 + '/UneqTimeSzCorrelations.csv', (UneqMagCorrMeas))
 except NameError:
     print("\nIf you want unequal time measurements as well recompile the code \
 and run the simulation again using\n\n\

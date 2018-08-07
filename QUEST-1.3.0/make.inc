@@ -16,7 +16,7 @@
 #
 
 # GNU Fortran compiler
-FC = gfortran-7
+FC = gfortran-8
 FC_FLAGS   = -O3
 NOOPT_FLAGS = -O0
 
@@ -40,7 +40,7 @@ NOOPT_FLAGS = -O0
 # CUDAINC = -I$(CUDAPATH)/include
 
 # GNU C++ compiler
-CXX = gcc-7
+CXX = gcc-8
 CXX_FLAGS = -Wall -O3 $(CUDAINC) $(MAGMAINC)
 
 # Intel C++ compiler

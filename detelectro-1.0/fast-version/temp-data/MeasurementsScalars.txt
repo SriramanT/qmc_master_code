@@ -1,2 +1,0 @@
-Electron density <n>     Double occupancy <n+ n-> ZZ AF Structure Factor   
-1                        0.1228374765             4.918133737              
