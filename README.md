@@ -1,6 +1,8 @@
 # qmc_master_code
 
-This repository is part of a MSc Physics Engineering final project consisting of applying Quantum Monte Carlo (QMC) to a problem of interacting fermions.
+This repository is part of a MSc Physics Engineering final project consisting of applying Quantum Monte Carlo (QMC) to a problem of interacting fermions. We refer the interested reader to the thesis available at
+
+[Thesis](https://github.com/fmonteir/qmc_master_thesis/blob/master/thesis/thesis.pdf)
 
 ## Quantum Monte Carlo for Interacting Fermions
 
@@ -14,7 +16,7 @@ TMD's are graphene-like 2D materials that are promising from both a theoretical 
 
 An example of an interesting property of these nanostructures that we investigate is magnetism. Furthermore, one might be interested in the different phases that arise within the system and in how do the transitions between them occur. For example, recent papers point at the possibility of topological superconductivity in TMD nanoribbons. This is a many-body effect that is only captured numerically by state of the art techniques such as QMC.
 
-In short, the aim of this work wass to carry out a theoretical study (with particular emphasis on numerical aspects) of the properties of a TMD nanoribbon - a graphene-like 2D nanostructure where electron interactions are particularly relevant - using a QMC method.
+In short, the aim of this work was to carry out a theoretical study (with particular emphasis on numerical aspects) of the properties of a TMD nanoribbon - a graphene-like 2D nanostructure where electron interactions are particularly relevant - using a QMC method.
 
 ## Getting started
 
@@ -117,6 +119,20 @@ python save-simulation-data.py
 
 In the _results/plot-src_ directory there are python scripts that use *matplotlib*
 to plot the results of the simulations saved in _results/data_
+
+For this work, the case of most interest is _geom=15_, for which we can explore how a three-band
+minimal tight binding model is changed by adding a Hubbard type interaction.
+
+We started by focusing on the MoS2, and used the data in
+
+[Liu2013](https://github.com/fmonteir/msc_references/blob/master/references/tmd/Liu2013.pdf)
+
+to simulate a MoS2 nanoribbon. To do so, we chose t=-1, so as to normalize all the
+hopping parameters to t0, i.e. setting t0=-1, and measuring everything in units of
+t0.
+One must pay attention when setting the number of sites because it includes both
+real and orbital space. For three orbitals, this means that if we set nsites=60,
+we will be studying a 20-site system.
 
 ### ALF-1.0, QUEST-1.4.9
 
