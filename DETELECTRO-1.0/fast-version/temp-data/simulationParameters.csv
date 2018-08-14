@@ -5,7 +5,7 @@ L,                                                32
 t,                                                1
 U,                                                4
 mu,                                               0
-totalMCSweeps,                                    2048
+totalMCSweeps,                                    20384
 Frequency of recomputing G,                       4
 Number of multiplied Bs after stabilization,      8
 Geometry,                                         1
