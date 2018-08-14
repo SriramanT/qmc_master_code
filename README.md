@@ -124,18 +124,20 @@ python save-simulation-data.py
 In the _results/plot-src_ directory there are python scripts that use *matplotlib*
 to plot the results of the simulations saved in _results/data_
 
-For this work, a case of particular interest is obtained when one sets _geom=15_.
-With this choice, we can explore how a three-band
-minimal tight binding model is changed by adding a Hubbard type interaction.
+For this work, we started by focusing on Molybdenum disulfide, MoS2.
+This case of particular interest is obtained when one sets _geom=15_.
+With this choice, we can explore how the properties of a MoS2 nanoribbon,
+as obtained by a three-band minimal tight binding model are changed by adding
+a Hubbard type interaction.
 
-We started by focusing on Molybdenum disulfide, MoS2, and used the data in
+The hopping parameters allowing us to simulate a MoS2 nanoribbon are given in
 
 [Liu2013](https://github.com/fmonteir/msc_references/blob/master/references/tmd/Liu2013.pdf)
 
-to simulate a MoS2 nanoribbon. To do so, we chose t=-1 when running _simulation_, so as to normalize all the
+When running _simulation_, we  should set t=-1, so as to normalize all the
 hopping parameters to t0, i.e. setting t0=-1, and measuring everything in units of
 t0.
-One must pay attention when setting the number of sites because it includes both
+Moreover, one must pay attention when setting the number of sites because it includes both
 real and orbital space. For three orbitals, this means that if we set nsites=60,
 we will be studying a 20-site system.
 
@@ -154,7 +156,7 @@ Mean field studies, and results of basic analytical calculations for limiting ca
 
 Our own implementation of the determinant QMC algorithm to simulate the Hubbard model. The working name of the software is DETELECTRO. :)
 
-In addition to our implementation of the BSS (Blakenbecler, Scalapino and Sugar) determinant QMC algorithm, this directory contains other interesting studies carried out in the context of this work, namely having to do with the sign problem, low temperature, and large size stabilization, ect.
+In addition to our implementation of the BSS (Blakenbecler, Scalapino and Sugar) determinant QMC algorithm, this directory contains other interesting studies carried out in the context of this work, namely having to do with the sign problem, low temperature, and large size stabilization, etc.
 
 ## Built with
 
