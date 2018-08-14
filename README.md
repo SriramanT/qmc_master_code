@@ -8,20 +8,19 @@ Capturing the effects of electron correlations is not an easy task. The difficul
 
 QMC methods are among the few unbiased methods available to date. In general, they circumvent the exponential complexity hurdle making it algebraic instead. However, for fermionic systems, a sign oscillation deems the algorithm exponential, hence not very effective. This is due to the antisymmetric nature of the many-fermion wavefunction. One of the main tasks of this project is to investigate how to solve this issue. Some approximations exist. They perform differently depending on the problem at hand.
 
-This masters thesis is about implementing an algorithm to deal with tight-binding problems for 2D interacting electronic models. Ultimately, the goal is to write a code that simulates a specific interacting electron system: a transition metal dichalcogenide (TMD) nanoribbon.
+This masters thesis is about implementing an algorithm to deal with tight-binding problems for 2D interacting electronic models. Ultimately, the goal was to write a code that simulates a specific interacting electron system: a transition metal dichalcogenide (TMD) nanoribbon.
 
 TMD's are graphene-like 2D materials that are promising from both a theoretical and an application perspective. A nanoribbon is a 2D  nanostructure that is much longer on one direction than on the other (like a ribbon), so that electronic edge states become relevant and lead to unusual properties. In practice, this means that we can use periodic boundary conditions on the longer direction, and open boundary conditions on the other.
 
 An example of an interesting property of these nanostructures that we wish to investigate is magnetism. Furthermore, one might be interested in the different phases that arise within the system and in how do the transitions between them occur. For example, recent papers point at the possibility of topological superconductivity in TMD nanoribbons. This is a many-body effect that is only captured numerically by state of the art techniques such as QMC.
 
-In short, our aim is to carry out a theoretical study (with particular emphasis on numerical aspects) of the properties of a TMD nanoribbon - a graphene-like 2D nanostructure - where electron interactions are particularly relevant using a QMC method.
+In short, our aim is to carry out a theoretical study (with particular emphasis on numerical aspects) of the properties of a TMD nanoribbon - a graphene-like 2D nanostructure where electron interactions are particularly relevant - using a QMC method.
 
 ## Getting started
 
-To run the code I implemented simply open the following directory:
+To run the code our Determinant QMC implementation simply open the following directory:
 
-
-cd detelectro-1.0/src
+cd DETELECTRO-1.0/fast-version
 
 
 and compile the code using
@@ -30,39 +29,100 @@ and compile the code using
 make
 
 
-Then, you can run the actual code by running the command
+Then, you can run a simulation by running the command
 
 
-./main 4. 0. 1028 100
+./simulation 1 4 0 1 0 2048 512 2
 
 
-where the first argument is the on-site interaction U, the second is the chemical potential mu, the third is the total number of sweeps of the space-time lattice, and the last one is the number of warm-up steps.
+which reproduces a result of the seminal paper "Discrete Hubbard-Stratonovich transformation for fermion lattice models", Phys Rev B, 28, 7, 1983, by J. E. Hirsch. The arguments of *simulation*
+are described below.
+
+
+To change the number of sites, inverse Trotter error, inverse temperature, or the frequency of recomputing the Green's functions, type:
+
+
+make clean
+
+
+make nsites=<Number of sites> dt_inv=<Inverse Trotter Error> beta=<Inverse Temperature> green_afresh_freq=<Frequency of Recomputing G>
+
+
+To run another simulation, simply type ./simulation followed by its arguments:
+
+
+./simulation <t> <U> <mu> <geom> <Ny> <Total Number of Sweeps (Space-Time)> <Number of Warm-up Sweeps (Space-Time)>  <Number of Auto-correlation Sweeps (Space-Time)>
+
+where the first argument is a hopping parameter, the second one is the on-site interaction, followed by the chemical potential. The next two parameters are related to the geometry of the model.
+The last three parameters are related to the Monte Carlo method.
+
+
+The program is prepared to handle a variety of geometries (listed below).
+Input the number corresponding to the desired geometry:
+
+
+(1)		  1D Periodic Chain
+
+(2) 		1D Open Chain
+
+(3) 		2D Periodic Square Lattice
+
+(4) 		2D Open Square Lattice
+
+(5) 		2D Periodic Rectangular Lattice
+
+(6) 		2D Open Rectangular Lattice
+
+(7) 		2D Periodic Triangular Lattice
+
+(8) 		2D Nanoribbon Triangular Lattice
+
+(9) 		2D Periodic Honeycomb Lattice
+
+(10)		2D Honeycomb Nanoribbon
+
+(11)		2D Honeycomb Hexagonal Dot
+
+(12)		2D Honeycomb Triangular Dot
+
+(13)		2D Honeycomb Rectangular Dot
+
+(14)		2D Minimal model of a periodic TMD sample (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
+
+(15)		2D Minimal model of a TMD nanoribbon (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
+
+The Ny parameter is only meaningful for geometry options 5, 6, 8, 10, 13, and 15
 
 To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must edit the makefile. Simply open it in any text editor and change the desired parameters.
 
-The results of the simulation will be saved in a directory named _plots_.
+The results of the simulation will be saved in a directory named _temp-data_
+and will be deleted once you run make clean. To save them enter the directory
+_results_
 
-In that directory there are python scripts that use *matplotlib* to plot the results.
 
-### ALF-1.0, QUEST-1.3.0
+cd results
+
+
+and run
+
+
+python save-simulation-data.py
+
+
+In the _results/plot-src_ directory there are python scripts that use *matplotlib*
+to plot the results of the simulations saved in _results/data_
+
+### ALF-1.0, QUEST-1.4.9
 
 Standard software used in the literature for benchmarking and comparison purposes.
 
-### analytical-plots
+### ANALYTICAL
 
 Mean field studies, and results of basic analytical calculations for limiting cases of interest.
 
-### b-matrices-blow-up
+### DETELECTRO-1.0
 
-An exploration of the low temperature stabilization of the algorithm.
-
-### detelectro-1.0
-
-Our own implementation of the determinant QMC algorithm to simulate the Hubbard model. The working name of the software is detelectro. :)
-
-### detQMC-Hubbard-early-versions
-
-Previous versions created throughout the development phase.
+Our own implementation of the determinant QMC algorithm to simulate the Hubbard model. The working name of the software is DETELECTRO. :)
 
 ## Built with
 
@@ -76,7 +136,7 @@ Previous versions created throughout the development phase.
 
 ## Versioning
 
-v1 - latest update 23.07.2018
+v1 - latest update 14.08.2018
 
 ## Authors
 

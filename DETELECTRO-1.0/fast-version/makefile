@@ -1,28 +1,31 @@
-# detelectro -Determinant Quantum Monte Carlo for the Hubbard model
-# Created by Francisco Brito July 25, 2018
+# DETELECTRO - Determinant Quantum Monte Carlo for Hubbard-like models
+# Created by Francisco Brito August 14, 2018
 
 #	The program is prepared to handle a variety of geometries (listed below).
 
-# Input the number corresponding to the desired geometry
-#		(1) 1d-pbc
-#		(2) 1d-obc
-#		(3) square-pbc
-#		(4) square-obc
-#		(5) rec-pbc
-#		(6) rec-obc
-#		(7) honeycomb-pbc
-#		(8) hc-nanoribbon
-#		(9)	hc-dot
-# The NY parameter defines the width of the sample.
-#	It is only meaningful for options 5, 6, 8, and 9.
+#		Input the number corresponding to the desired geometry
+#		(1)		1D Periodic Chain
+#		(2) 	1D Open Chain
+#		(3) 	2D Periodic Square Lattice
+#		(4) 	2D Open Square Lattice
+#		(5) 	2D Periodic Rectangular Lattice
+#		(6) 	2D Open Rectangular Lattice
+#		(7) 	2D Periodic Triangular Lattice
+#		(8) 	2D Nanoribbon Triangular Lattice
+#		(9) 	2D Periodic Honeycomb Lattice
+#		(10)	2D Honeycomb Nanoribbon
+#		(11)	2D Honeycomb Hexagonal Dot
+#		(12)	2D Honeycomb Triangular Dot
+#		(13)	2D Honeycomb Rectangular Dot
+#		(14)	2D Minimal model of a periodic TMD sample (Liu2013)
+#		(15)	2D Minimal model of a TMD nanoribbon (Liu2013)
 
-nsites = 2
-dt_inv = 64
-beta = 2
-hopping = 1
-green_afresh_freq = 4
-geom = 1
-ny = 0
+#	DEFAULT PARAMETERS
+
+nsites=2 # orbital + real space
+dt_inv=16
+beta=2
+green_afresh_freq=4
 
 eq_or_uneq = src/mainEqTime.cpp
 object = src/mainEqTime.o
@@ -31,8 +34,8 @@ object = src/mainEqTime.o
 # object = src/mainUneqTime.o
 
 # Set parameters of the simulation here.
-CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta) -DHOPPING=$(hopping)\
- -DGREEN_AFRESH_FREQ=$(green_afresh_freq) -DGEOM=$(geom) -DNY=$(ny)
+CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta)\
+ -DGREEN_AFRESH_FREQ=$(green_afresh_freq)
 
 include_dir = ../includes
 
@@ -40,8 +43,64 @@ CXXFLAGS = -Wall -g -O3 -std=c++11 -I$(include_dir)
 
 simulation: $(object)
 	$(CXX) $(CXXFLAGS) -o simulation $(object)
-	@echo "Arguments of simulation: U, mu, number of sweeps, number of warm-up sweeps,\
-	number of auto-correlation sweeps"
+	@echo ""
+	@echo "		DETELECTRO - Determinant Quantum Monte Carlo for Hubbard-like models"
+	@echo ""
+	@echo "			Created by Francisco Brito (2018)"
+	@echo ""
+	@echo "The code has compiled successfully. To change the number of sites, \
+	inverse Trotter error, inverse temperature, or the frequency of recomputing \
+	the Green's functions, type:"
+	@echo ""
+	@echo "make clean"
+	@echo ""
+	@echo "make nsites=<Number of sites> dt_inv=<Inverse Trotter Error> \
+	beta=<Inverse Temperature> green_afresh_freq=<Frequency of Recomputing G>"
+	@echo ""
+	@echo "To run a simulation, simply type ./simulation followed by its arguments:"
+	@echo ""
+	@echo "./simulation <t> <U> <mu> <geom> <Ny>\
+	 <Total Number of Sweeps (Space-Time)>\
+	 <Number of Warm-up Sweeps (Space-Time)> \
+	 <Number of Auto-correlation Sweeps (Space-Time)>"
+	@echo ""
+	@echo "The program is prepared to handle a variety of geometries (listed below).\
+	 Input the number corresponding to the desired geometry:"
+	@echo ""
+	@echo "(1)		1D Periodic Chain"
+	@echo ""
+	@echo "(2) 		1D Open Chain"
+	@echo ""
+	@echo "(3) 		2D Periodic Square Lattice"
+	@echo ""
+	@echo "(4) 		2D Open Square Lattice"
+	@echo ""
+	@echo "(5) 		2D Periodic Rectangular Lattice"
+	@echo ""
+	@echo "(6) 		2D Open Rectangular Lattice"
+	@echo ""
+	@echo "(7) 		2D Periodic Triangular Lattice"
+	@echo ""
+	@echo "(8) 		2D Nanoribbon Triangular Lattice"
+	@echo ""
+	@echo "(9) 		2D Periodic Honeycomb Lattice"
+	@echo ""
+	@echo "(10)		2D Honeycomb Nanoribbon"
+	@echo ""
+	@echo "(11)		2D Honeycomb Hexagonal Dot"
+	@echo ""
+	@echo "(12)		2D Honeycomb Triangular Dot"
+	@echo ""
+	@echo "(13)		2D Honeycomb Rectangular Dot"
+	@echo ""
+	@echo "(14)		2D Minimal model of a periodic TMD sample (Liu et al., Phys Rev B 88, 085433, 2013 )\
+	 - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
+	@echo ""
+	@echo "(15)		2D Minimal model of a TMD nanoribbon (Liu et al., Phys Rev B 88, 085433, 2013 )\
+	 - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
+	@echo ""
+	@echo "The Ny parameter is only meaningful for geometry options 5, 6, 8, 10, 13, and 15"
+	@echo ""
 
 $(object):$(eq_or_uneq) $(include_dir)/matrixgen.h $(include_dir)/green.h $(include_dir)/QDT.h\
 	 $(include_dir)/TDQ.h

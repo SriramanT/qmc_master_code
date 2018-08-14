@@ -20,27 +20,15 @@
 #endif
 
 #ifndef DT_INV
-#define DT_INV 64 //  Inverse Trotter error
+#define DT_INV 16 //  Inverse Trotter error
 #endif
 
 #ifndef BETA
 #define BETA 2  //  inverse temperature
 #endif
 
-#ifndef HOPPING
-#define HOPPING 1 //  hopping parameter. set to 1 by default.
-#endif
-
 #ifndef GREEN_AFRESH_FREQ
 #define GREEN_AFRESH_FREQ 4  //   how often to calculate Green's functions afresh (in # im-time slices)
-#endif
-
-#ifndef GEOM
-#define GEOM 1  //   geometry (for example, 1 stands for a 1D chain with PBCs - see makefile)
-#endif
-
-#ifndef NY
-#define NY 0    //   geometry parameter to define width of the simulated sample
 #endif
 
 #include <iostream>
@@ -57,16 +45,19 @@
 
 int main(int argc, char **argv)
 {
-    if ( argc != 6) //  U, mu, # sweeps, # warm-up sweeps, geometry
+    if ( argc != 9) //  U, mu, # sweeps, # warm-up sweeps, geometry
     {
         return -1;
     }
 
-    double U = atof(argv[1]);  //  on-site interaction
-    double mu = atof(argv[2]);  //  chemical potential
-    int totalMCSweeps = atof(argv[3]);  //  number of sweeps
-    int W = atof(argv[4]);  //  number of warm-up sweeps
-    int A = atof(argv[5]);  //  number of auto-correlation sweeps
+    double t = atof(argv[1]);  //  tight binding parameter
+    double U = atof(argv[2]);  //  on-site interaction
+    double mu = atof(argv[3]);  //  chemical potential
+    int geom = atof(argv[4]);  //   geometry (for example, 1 stands for a 1D chain with PBCs - see makefile)
+    int Ny = atof(argv[5]);    //   geometry parameter to define width of the simulated sample
+    int totalMCSweeps = atof(argv[6]);  //  number of sweeps
+    int W = atof(argv[7]);  //  number of warm-up sweeps
+    int A = atof(argv[8]);  //  number of auto-correlation sweeps
 
     double dt = 1. / DT_INV;  //  Trotter error, or time subinterval width. error scales as dt^2
     const int L = BETA * DT_INV;  //  # slices
@@ -88,49 +79,96 @@ int main(int argc, char **argv)
     //  HOPPING MATRIX
     Geometry< NSITES > K;
     //  1D CHAIN PBC
-    if (GEOM == 1)
+    if (geom == 1)
     {
-        K.oneDimensionalChainPBC(HOPPING, dt, mu);
+        K.oneDimensionalChainPBC(t, dt, mu);
     }
     //  1D CHAIN OBC
-    if (GEOM == 2)
+    if (geom == 2)
     {
-        K.oneDimensionalChainOBC(HOPPING, dt, mu);
+        K.oneDimensionalChainOBC(t, dt, mu);
     }
     //  SQUARE LATTICE PBC
-    if (GEOM == 3)
+    if (geom == 3)
     {
-        K.twoDimensionalRectanglePBC(sqrt(NSITES), HOPPING, dt, mu);
+        K.twoDimensionalRectanglePBC(sqrt(NSITES), t, dt, mu);
     }
     //  SQUARE LATTICE OBC
-    if (GEOM == 4)
+    if (geom == 4)
     {
-        K.twoDimensionalRectangleOBC(sqrt(NSITES), HOPPING, dt, mu);
+        K.twoDimensionalRectangleOBC(sqrt(NSITES), t, dt, mu);
     }
     //  RECTANGULAR LATTICE PBC
-    if (GEOM == 5)
+    if (geom == 5)
     {
-        K.twoDimensionalRectanglePBC(NY, HOPPING, dt, mu);
+        K.twoDimensionalRectanglePBC(Ny, t, dt, mu);
     }
     //  RECTANGULAR LATTICE OBC
-    if (GEOM == 6)
+    if (geom == 6)
     {
-        K.twoDimensionalRectangleOBC(NY, HOPPING, dt, mu);
+        K.twoDimensionalRectangleOBC(Ny, t, dt, mu);
+    }
+    //  TRIANGULAR LATTICE PBC
+    if (geom == 6)
+    {
+        K.twoDimensionalRectangleOBC(Ny, t, dt, mu);
     }
     //  HONEYCOMB LATTICE PBC
-    if (GEOM == 7)
+    if (geom == 9)
     {
-        std::cout << "Honeycomb" << std::endl;
+        K.hcPBC();
+        K.computeExponential(t, dt);
     }
     //  NANORIBBON
-    if (GEOM == 8)
+    if (geom == 10)
     {
-        K.nanoribbon(NY, HOPPING, dt, mu);
+        K.hcNanoribbon(Ny);
+        K.computeExponential(t, dt);
     }
-    //  DOT
-    if (GEOM == 9)
+    //  3 ORBITAL TIGHT BIDING MODEL ON THE M-ATOM TRIANGULAR LATTICE
+    //  MODEL OF A TMD NANORIBBON (SEE Liu2013)
+    //  MoS2
+    if (geom == 14)
     {
-        std::cout << "Dot" << std::endl;
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057, 0.073};
+        K.setParamsThreeOrbitalTB(params, t);
+        K.tmdPBC();
+
+        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
+        std::ofstream TMDhopping("temp-data/tmd-hopping.csv");
+        if (TMDhopping.is_open())
+        {
+            TMDhopping << K.getB() << '\n';
+        }
+        TMDhopping.close();
+
+        K.computeExponential(t, dt);
+    }
+    if (geom == 15)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057, 0.073};
+        K.setParamsThreeOrbitalTB(params, t);
+        K.tmdNanoribbon(Ny);
+
+        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
+        std::ofstream TMDhoppingNano("temp-data/tmd-hopping-nanoribbon.csv");
+        if (TMDhoppingNano.is_open())
+        {
+            TMDhoppingNano << K.getB() << '\n';
+        }
+        TMDhoppingNano.close();
+
+        K.computeExponential(t, dt);
     }
 
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
@@ -142,8 +180,8 @@ int main(int argc, char **argv)
       new OneParticlePropagators< NSITES, L >;
     OneParticlePropagators< NSITES, L > * Bdown=
       new OneParticlePropagators< NSITES, L >;
-    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor() );
-    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor() );
+    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor(dt, mu) );
+    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor(dt, mu) );
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green< NSITES, L, Lbda> * Gup = new Green< NSITES, L, Lbda>;
@@ -370,20 +408,20 @@ int main(int argc, char **argv)
     std::ofstream file0("temp-data/simulationParameters.csv");
     if (file0.is_open())
     {
-      file0 << std::left << std::setw(50) << "Number of sites" << NSITES << '\n';
-      file0 << std::left << std::setw(50) << "dt" << dt << '\n';
-      file0 << std::left << std::setw(50) << "beta" << BETA << '\n';
-      file0 << std::left << std::setw(50) << "L" << L << '\n';
-      file0 << std::left << std::setw(50) << "t" << HOPPING << '\n';
-      file0 << std::left << std::setw(50) << "U" << U << '\n';
-      file0 << std::left << std::setw(50) << "mu" << mu << '\n';
-      file0 << std::left << std::setw(50) << "totalMCSweeps" << totalMCSweeps << '\n';
-      file0 << std::left << std::setw(50) << "Frequency of recomputing G"
+      file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
+      file0 << std::left << std::setw(50) << "dt," << dt << '\n';
+      file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
+      file0 << std::left << std::setw(50) << "L," << L << '\n';
+      file0 << std::left << std::setw(50) << "t," << t << '\n';
+      file0 << std::left << std::setw(50) << "U," << U << '\n';
+      file0 << std::left << std::setw(50) << "mu," << mu << '\n';
+      file0 << std::left << std::setw(50) << "totalMCSweeps," << totalMCSweeps << '\n';
+      file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
         << GREEN_AFRESH_FREQ << '\n';
       file0 << std::left << std::setw(50)
-        << "Number of multiplied Bs after stabilization" << Lbda << '\n';
-      file0 << std::left << std::setw(50) << "Geometry" << GEOM << '\n';
-      file0 << std::left << std::setw(50) << "Ny" << NY << '\n';
+        << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+      file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
+      file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
     } file0.close();
     //  STORE MEASUREMENTS
     std::ofstream file1("temp-data/Log-weights.csv");
@@ -405,13 +443,13 @@ int main(int argc, char **argv)
         {
             file2 << std::left << std::setw(50) << signs[s] << '\n';
         }
-        file3 << std::left << std::setw(50) << "Electron density <n>";
-        file3 << std::left << std::setw(50) << "Double occupancy <n+ n->";
+        file3 << std::left << std::setw(50) << "Electron density <n>,";
+        file3 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
         file3 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
         file3 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl;
+        << nEl << ",";
         file3 << std::left << std::setw(50) << std::setprecision(10)
-        << nUp_nDw;
+        << nUp_nDw << ",";
         file3 << std::left << std::setw(50) << std::setprecision(10)
         << zzAFstFactor << '\n';
         file4 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';

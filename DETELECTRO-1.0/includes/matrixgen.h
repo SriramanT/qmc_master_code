@@ -8,36 +8,61 @@
 #ifndef matrixgen_h
 #define matrixgen_h
 
+#ifndef NORB
+#define NORB 3  //   number of orbitals
+#endif
+
 template<int N>
 class Geometry
 {
-    Eigen::Matrix<double, N, N> B;
+    Eigen::Matrix<double, N, N> B = Eigen::Matrix<double, N, N>::Zero();
+    //  the minimal model of Liu2013 has 9 parameters
+    //  the hopping t0 is taken as the argument t, which in the
+    //  uniform hopping case is multiplied by all elements
+    //  of the hopping matrix
+    double e1; double e2;
+    double t0; double t1; double t2;
+    double t11; double t12; double t22;
+    double lbd;
+    Eigen::Matrix<double, 3, 3> Ezero;
+    Eigen::Matrix<double, 3, 3> Eone;
+    Eigen::Matrix<double, 3, 3> Etwo;
+    Eigen::Matrix<double, 3, 3> Ethree;
+    Eigen::Matrix<double, 3, 3> Efour;
+    Eigen::Matrix<double, 3, 3> Efive;
+    Eigen::Matrix<double, 3, 3> Esix;
 public:
+    //  For the 1D and square lattices, we use the checkerboard breakup.
+    //  Otherwise, we compute the matrix exponential using Eigen.
     void oneDimensionalChainPBC(double t, double dt, double mu);
     void oneDimensionalChainOBC(double t, double dt, double mu);
-    void twoDimensionalRectanglePBC(int Nx, double t, double dt, double mu);
-    void twoDimensionalRectangleOBC(int Nx, double t, double dt, double mu);
-    void honeycombPBC(int Ny, double t, double dt, double mu);
-    void nanoribbon(int Ny, double t, double dt, double mu); //  Nx = width of the ribbon
-//    void nanodot(double t, double dt, double mu); //  Nx = width of the dot
-    Eigen::Matrix<double, N, N> BpreFactor();
+    void twoDimensionalRectanglePBC(int Ny, double t, double dt, double mu);
+    void twoDimensionalRectangleOBC(int Ny, double t, double dt, double mu);
+    void computeExponential(double t, double dt);
+    Eigen::Matrix<double, N, N> getB();
+    void trianglePBC();
+    void triangleNanoribbon(int Ny);
+    void hcPBC();
+    void hcNanoribbon(int Ny); //  Ny = width of the ribbon
+    void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8], double t);
+    void tmdPBC();
+    void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
+    Eigen::Matrix<double, N, N> BpreFactor(double dt, double mu);
 };
 
 template<int N>
 void Geometry<N>::oneDimensionalChainPBC(double t, double dt, double mu)
 {
-//    Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
 //    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
-//    HoppingMatrix(0, 1) += 1.;
-//    HoppingMatrix(0, N - 1) += 1.;
-//    HoppingMatrix(N - 1, 0) += 1.;
-//    HoppingMatrix(N - 1, N - 2) += 1.;
+//    B(0, 1) += 1.;
+//    B(0, N - 1) += 1.;
+//    B(N - 1, 0) += 1.;
+//    B(N - 1, N - 2) += 1.;
 //    //  Set the remaining ones
 //    for (int i = 1; i < N - 1; i++)
 //    {
-//        HoppingMatrix(i, i - 1) += 1; HoppingMatrix(i, i + 1) += 1;
+//        B(i, i - 1) += 1; B(i, i + 1) += 1;
 //    }
-    //  Compute the exponential
     Eigen::Matrix<double, N, N> exp_k1 = Eigen::Matrix<double, N, N>::Zero();
     Eigen::Matrix<double, N, N> exp_k2 = Eigen::Matrix<double, N, N>::Zero();
     for (int i = 1; i < N / 2; i++)
@@ -59,25 +84,24 @@ void Geometry<N>::oneDimensionalChainPBC(double t, double dt, double mu)
     exp_k2(N - 1, N - 1) = cosh( t * dt / 2 );
     exp_k2(0, N - 1) = sinh( t * dt / 2 );
     exp_k2(N - 1, 0) = sinh( t * dt / 2 );
-    B = exp( dt * mu ) * exp_k2 * exp_k1 * exp_k2;
+    B = exp_k2 * exp_k1 * exp_k2;
 }
 
 template<int N>
 void Geometry<N>::oneDimensionalChainOBC(double t, double dt, double mu)
 {
-//    Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
 //    //  Set the elements of the hopping matrix that define OBC corresponding to the ends of the 1D chain
-//    HoppingMatrix(0, 1) += 1.;
-//    //  HoppingMatrix(0, N - 1) += 1.; //   This hopping only occurs for PBC
-//    //  HoppingMatrix(N - 1, 0) += 1.; //   So does this one
-//    HoppingMatrix(N - 1, N - 2) += 1.;
+//    B(0, 1) += 1.;
+//    //  B(0, N - 1) += 1.; //   This hopping only occurs for PBC
+//    //  B(N - 1, 0) += 1.; //   So does this one
+//    B(N - 1, N - 2) += 1.;
 //    //  Set the remaining ones
 //    for (int i = 1; i < N - 1; i++)
 //    {
-//        HoppingMatrix(i, i - 1) += 1; HoppingMatrix(i, i + 1) += 1;
+//        B(i, i - 1) += 1; B(i, i + 1) += 1;
 //    }
 //      //Compute the exponential
-//    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * (dt * t * HoppingMatrix).exp();
+//    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * (dt * t * B).exp();
     Eigen::Matrix<double, N, N> exp_k1 = Eigen::Matrix<double, N, N>::Zero();
     Eigen::Matrix<double, N, N> exp_k2 = Eigen::Matrix<double, N, N>::Zero();
     for (int i = 1; i < N / 2; i++)
@@ -97,7 +121,7 @@ void Geometry<N>::oneDimensionalChainOBC(double t, double dt, double mu)
     exp_k1(1, 0) = sinh( t * dt );
     exp_k2(0, 0) = 1;
     exp_k2(N - 1, N - 1) = 1;
-    B = exp(dt * mu) * exp_k2 * exp_k1 * exp_k2;
+    B = exp_k2 * exp_k1 * exp_k2;
 }
 
 template<int N>
@@ -152,7 +176,7 @@ void Geometry<N>::twoDimensionalRectanglePBC(int Ny, double t, double dt, double
     exp_k1x = exp_k2x * exp_k1x * exp_k2x;
     exp_k1y = exp_k2y * exp_k1y * exp_k2y;
 
-    B = exp(dt * mu) * Eigen::kroneckerProduct(exp_k1y , exp_k1x);
+    B = Eigen::kroneckerProduct(exp_k1y , exp_k1x);
 }
 
 template<int N>
@@ -203,13 +227,32 @@ void Geometry<N>::twoDimensionalRectangleOBC(int Ny, double t, double dt, double
     exp_k1x = exp_k2x * exp_k1x * exp_k2x;
     exp_k1y = exp_k2y * exp_k1y * exp_k2y;
 
-    B = exp(dt * mu) * Eigen::kroneckerProduct(exp_k1y , exp_k1x);
+    B = Eigen::kroneckerProduct(exp_k1y , exp_k1x);
 }
 
 template<int N>
-void Geometry<N>::honeycombPBC(int Ny, double t, double dt, double mu)
-{   //  Nx = width. Additional means the matrix element does not exist for the ribbon
-    Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
+void Geometry<N>::computeExponential(double t, double dt)
+{
+    B = (t * dt * B).exp();
+}
+
+template<int N>
+void Geometry<N>::trianglePBC()
+{
+
+}
+
+template<int N>
+void Geometry<N>::triangleNanoribbon(int Ny)
+{
+
+}
+
+
+template<int N>
+void Geometry<N>::hcPBC()
+{
+    int Ny = sqrt(N / 2);
     int Nx = N / Ny / 2;
     for (int x = 0; x < Nx; x++)
     {
@@ -220,42 +263,42 @@ void Geometry<N>::honeycombPBC(int Ny, double t, double dt, double mu)
             {
                 if (x == 0)
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(x, Nx * Ny + Nx - 1) = 1; // additional
-                    HoppingMatrix(Nx * Ny + Nx * y, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx - 1, x) = 1; //  additional
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    B(x, Nx * Ny + Nx - 1) = 1; // additional
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx - 1, x) = 1; //  additional
                 }
                 else
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
-                    HoppingMatrix(x, Nx * Ny + x - 1) = 1; // additional
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + x - 1, x) = 1; //  additional
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(x, Nx * Ny + x - 1) = 1; // additional
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + x - 1, x) = 1; //  additional
                 }
             }
             else
             {
                 if (x == 0)
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
                 }
             }
             //  SUBLATTICE B
@@ -263,54 +306,51 @@ void Geometry<N>::honeycombPBC(int Ny, double t, double dt, double mu)
             {
                 if (x == Nx - 1)
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * ( Ny - 1 ) + x, Nx * (Ny - 1) ) = 1; // additional
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * y, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * (Ny - 1), Nx * Ny + Nx * ( Ny - 1 ) + x) = 1; // additional
-                    HoppingMatrix(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    B(Nx * Ny + Nx * ( Ny - 1 ) + x, Nx * (Ny - 1) ) = 1; // additional
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * (Ny - 1), Nx * Ny + Nx * ( Ny - 1 ) + x) = 1; // additional
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * ( Ny - 1 ) + x, Nx * ( Ny - 1 ) + x + 1) = 1; // additional
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * ( Ny - 1 ) + x + 1, Nx * Ny + Nx * ( Ny - 1 ) + x) = 1; // additional
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * Ny + Nx * ( Ny - 1 ) + x, Nx * ( Ny - 1 ) + x + 1) = 1; // additional
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( Ny - 1 ) + x + 1, Nx * Ny + Nx * ( Ny - 1 ) + x) = 1; // additional
                 }
             }
             else
             {
                 if (x == Nx - 1)
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
-                    HoppingMatrix(Nx * y, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
                 }
             }
         }
     }
-    //  Compute the exponential
-    B = exp(dt * mu) * (t * dt * HoppingMatrix).exp();
 }
 
 template<int N>
-void Geometry<N>::nanoribbon(int Ny, double t, double dt, double mu)
-{   //  Nx = width of the ribbon
-    Eigen::Matrix<double, N, N> HoppingMatrix = Eigen::Matrix<double, N, N>::Zero();
+void Geometry<N>::hcNanoribbon(int Ny)
+{   //  Ny = width of the ribbon
     int Nx = N / Ny / 2;
     for (int x = 0; x < Nx; x++)
     {
@@ -321,38 +361,38 @@ void Geometry<N>::nanoribbon(int Ny, double t, double dt, double mu)
             {
                 if (x == 0)
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
                 }
             }
             else
             {
                 if (x == 0)
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
                 }
             }
             //  SUBLATTICE B
@@ -360,50 +400,417 @@ void Geometry<N>::nanoribbon(int Ny, double t, double dt, double mu)
             {
                 if (x == Nx - 1)
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * y, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
                 }
             }
             else
             {
                 if (x == Nx - 1)
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
-                    HoppingMatrix(Nx * y, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
                 }
                 else
                 {
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
-                    HoppingMatrix(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
-                    HoppingMatrix(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
-                    HoppingMatrix(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
                 }
             }
         }
     }
-    //  Compute the exponential
-    B = exp(dt * mu) * (t * dt * HoppingMatrix).exp();
 }
 
 template<int N>
-Eigen::Matrix<double, N, N> Geometry<N>::BpreFactor()
+void Geometry<N>::setParamsThreeOrbitalTB(double threeOrbitalTBparameters[9], double t)
+{
+    t0 = threeOrbitalTBparameters[2] / t;
+    e1 = threeOrbitalTBparameters[0] / t0;
+    e2 = threeOrbitalTBparameters[1] / t0;
+    t1 = threeOrbitalTBparameters[3] / t0;
+    t2 = threeOrbitalTBparameters[4] / t0;
+    t11 = threeOrbitalTBparameters[5] / t0;
+    t12 = threeOrbitalTBparameters[6] / t0;
+    t22 = threeOrbitalTBparameters[7] / t0;
+    lbd = threeOrbitalTBparameters[8] / t0;
+
+    t0 = t;
+
+    Ezero << e1,   0.,   0.,
+             0.,   e2,   0.,
+             0.,   0.,   e2;
+
+    Eone << t0,      t1,     t2,
+            -t1,    t11,    t12,
+            t2,     -t12,   t22;
+
+    Efour << t0,    -t1,     t2,
+             t1,    t11,   -t12,
+             t2,    t12,   t22;
+
+    Etwo << t0,                 t1 / 2 - sqrt(3) / 2 * t2,          - sqrt(3) / 2 * t1 - t2 / 2,
+-t1 / 2 - sqrt(3) / 2 * t2,   ( t11 + 3 * t22 ) / 4,              sqrt(3) / 4 * ( t22 - t11 ) - t12,
+sqrt(3) / 2 * t1 - t2 / 2,      sqrt(3) / 4 * ( t22 - t11 ) + t12,  ( 3 * t11 + t22 ) / 4;
+
+    Efive << t0,                -t1 / 2 - sqrt(3) / 2 * t2,             sqrt(3) / 2 * t1 - t2 / 2,
+t1 / 2 - sqrt(3) / 2 * t2,   ( t11 + 3 * t22 ) / 4,              sqrt(3) / 4 * ( t22 - t11 ) + t12,
+-sqrt(3) / 2 * t1 - t2 / 2,      sqrt(3) / 4 * ( t22 - t11 ) - t12,  ( 3 * t11 + t22 ) / 4;
+
+    Ethree << t0,                -t1 / 2 + sqrt(3) / 2 * t2,             -sqrt(3) / 2 * t1 - t2 / 2,
+t1 / 2 + sqrt(3) / 2 * t2,   ( t11 + 3 * t22 ) / 4,              -sqrt(3) / 4 * ( t22 - t11 ) + t12,
+sqrt(3) / 2 * t1 - t2 / 2,      -sqrt(3) / 4 * ( t22 - t11 ) - t12,  ( 3 * t11 + t22 ) / 4;
+
+    Esix << t0,                t1 / 2 + sqrt(3) / 2 * t2,             sqrt(3) / 2 * t1 - t2 / 2,
+-t1 / 2 + sqrt(3) / 2 * t2,   ( t11 + 3 * t22 ) / 4,              -sqrt(3) / 4 * ( t22 - t11 ) - t12,
+-sqrt(3) / 2 * t1 - t2 / 2,      -sqrt(3) / 4 * ( t22 - t11 ) + t12,  ( 3 * t11 + t22 ) / 4;
+
+}
+
+template<int N>
+void Geometry<N>::tmdPBC()
+{
+    int Nx = sqrt(N / NORB);
+    int Ny = Nx;
+    for (int x = 0; x < Nx; x++)
+    {
+        for (int y = 0; y < Ny; y++)
+        {
+            //  Diagonal term
+
+            B.block(
+            ( Nx * y + x ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
+            = Ezero;
+
+            //  E1
+
+            B.block(
+            ( Nx * y + x ) * NORB , ( Nx * y + ( (x + 1) % Nx ) ) * NORB , NORB , NORB )
+            = Eone;
+
+            //  E4
+
+            B.block(
+            ( Nx * y + ( (x + 1) % Nx ) ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
+            = Efour;
+
+            if ( y == 0 )
+            {
+                B.block(
+                x * NORB , ( Nx + x ) * NORB , NORB , NORB )
+                = Esix;
+
+                B.block(
+                ( Nx + x ) * NORB , x * NORB , NORB , NORB )
+                = Ethree;
+
+                B.block(
+                x * NORB, (Nx * (Ny - 1) + x)*NORB, NORB, NORB )
+                = Ethree;
+
+                B.block(
+                (Nx * (Ny - 1) + x)*NORB, x * NORB, NORB, NORB )
+                = Esix;
+
+                B.block(
+                x * NORB, ( Nx * (Ny - 1) + (x + 1) % Nx ) * NORB, NORB, NORB)
+                = Etwo;
+
+                B.block(
+                ( Nx * (Ny - 1) + (x + 1) % Nx ) * NORB, x * NORB, NORB, NORB)
+                = Efive;
+
+                if ( x == 0 )
+                {
+                    B.block(
+                    x * NORB , ( Nx + (Nx - 1 ) ) * NORB , NORB , NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx + (Nx - 1 ) ) * NORB, x * NORB , NORB , NORB )
+                    = Etwo;
+                }
+                else
+                {
+                    B.block(
+                    x * NORB, ( Nx + ( x - 1 ) ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx + ( x - 1 ) ) * NORB, x * NORB, NORB, NORB )
+                    = Etwo;
+                }
+            }
+            else
+            {
+                if ( y == Ny - 1 )
+                {
+                    B.block(
+                    ( Nx * ( Ny - 1 ) + x ) * NORB,
+                    ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
+                    = Etwo;
+
+                    B.block(
+                    ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB,
+                    ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx * ( Ny - 1 ) + x ) * NORB,
+                    ( Nx * ( Ny - 2 ) + x ) * NORB, NORB, NORB )
+                    = Ethree;
+
+                    B.block(
+                    ( Nx * ( Ny - 2 ) + x ) * NORB,
+                    ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
+                    = Esix;
+
+                    B.block(
+                    (Nx * (Ny - 1) + x) * NORB,
+                    x * NORB, NORB, NORB )
+                    = Esix;
+
+                    B.block(
+                    x * NORB,
+                    (Nx * (Ny - 1) + x) * NORB,
+                    NORB, NORB )
+                    = Ethree;
+
+                    if (x == 0)
+                    {
+                        B.block(
+                        x * NORB, (Nx - 1) * NORB, NORB, NORB)
+                        = Efive;
+
+                        B.block(
+                        (Nx - 1) * NORB, x * NORB, NORB, NORB)
+                        = Etwo;
+                    }
+                    else
+                    {
+                        B.block(
+                        ( Nx * y + x )* NORB, (x-1)*NORB, NORB, NORB)
+                        = Efive;
+
+                        B.block(
+                        (x-1)*NORB, ( Nx * y + x )* NORB, NORB, NORB)
+                        = Etwo;
+                    }
+
+                }
+                else
+                {
+                    B.block(
+                    ( Nx * y + x ) * NORB,
+                    ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
+                    = Etwo;
+
+                    B.block(
+                    ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB,
+                    ( Nx * y + x ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx * y + x ) * NORB,
+                    ( Nx * ( y - 1 ) + x ) * NORB, NORB, NORB )
+                    = Ethree;
+
+                    B.block(
+                    ( Nx * ( y - 1 ) + x ) * NORB,
+                    ( Nx * y + x ) * NORB, NORB, NORB )
+                    = Esix;
+
+                    if ( x == 0 )
+                    {
+                        B.block(
+                        ( Nx * y + x ) * NORB,
+                        ( Nx * ( y + 1 ) + Nx - 1 ) * NORB, NORB, NORB )
+                        = Efive;
+
+                        B.block(
+                        ( Nx * ( y + 1 ) + Nx - 1 ) * NORB,
+                        ( Nx * y + x ) * NORB, NORB, NORB )
+                        = Etwo;
+                    }
+                    else
+                    {
+                        B.block(
+                        ( Nx * y + x ) * NORB,
+                        ( Nx * ( y + 1 ) + x - 1 ) * NORB, NORB, NORB )
+                        = Efive;
+
+                        B.block(
+                        ( Nx * ( y + 1 ) + x - 1 ) * NORB,
+                        ( Nx * y + x ) * NORB, NORB, NORB )
+                        = Etwo;
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+
+template<int N>
+void Geometry<N>::tmdNanoribbon(int Ny)
+{
+    int Nx = N / Ny / NORB;
+    for (int x = 0; x < Nx; x++)
+    {
+        for (int y = 0; y < Ny; y++)
+        {
+            //  Diagonal term
+
+            B.block(
+            ( Nx * y + x ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
+            = Ezero;
+
+            //  E1
+
+            B.block(
+            ( Nx * y + x ) * NORB , ( Nx * y + ( (x + 1) % Nx ) ) * NORB , NORB , NORB )
+            = Eone;
+
+            //  E4
+
+            B.block(
+            ( Nx * y + ( (x + 1) % Nx ) ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
+            = Efour;
+
+            if ( y == 0 )
+            {
+                B.block(
+                x * NORB , ( Nx + x ) * NORB , NORB , NORB )
+                = Esix;
+
+                B.block(
+                ( Nx + x ) * NORB , x * NORB , NORB , NORB )
+                = Ethree;
+
+                if ( x == 0 )
+                {
+                    B.block(
+                    x * NORB , ( Nx + (Nx - 1 ) ) * NORB , NORB , NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx + (Nx - 1 ) ) * NORB, x * NORB , NORB , NORB )
+                    = Etwo;
+                }
+                else
+                {
+                    B.block(
+                    x * NORB, ( Nx + ( x - 1 ) ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx + ( x - 1 ) ) * NORB, x * NORB, NORB, NORB )
+                    = Etwo;
+                }
+            }
+            else
+            {
+                if ( y == Ny - 1 )
+                {
+                    B.block(
+                    ( Nx * ( Ny - 1 ) + x ) * NORB,
+                    ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
+                    = Etwo;
+
+                    B.block(
+                    ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB,
+                    ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx * ( Ny - 1 ) + x ) * NORB,
+                    ( Nx * ( Ny - 2 ) + x ) * NORB, NORB, NORB )
+                    = Ethree;
+
+                    B.block(
+                    ( Nx * ( Ny - 2 ) + x ) * NORB,
+                    ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
+                    = Esix;
+                }
+                else
+                {
+                    B.block(
+                    ( Nx * y + x ) * NORB,
+                    ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
+                    = Etwo;
+
+                    B.block(
+                    ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB,
+                    ( Nx * y + x ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx * y + x ) * NORB,
+                    ( Nx * ( y - 1 ) + x ) * NORB, NORB, NORB )
+                    = Ethree;
+
+                    B.block(
+                    ( Nx * ( y - 1 ) + x ) * NORB,
+                    ( Nx * y + x ) * NORB, NORB, NORB )
+                    = Esix;
+
+                    if ( x == 0 )
+                    {
+                        B.block(
+                        ( Nx * y + x ) * NORB,
+                        ( Nx * ( y + 1 ) + Nx - 1 ) * NORB, NORB, NORB )
+                        = Efive;
+
+                        B.block(
+                        ( Nx * ( y + 1 ) + Nx - 1 ) * NORB,
+                        ( Nx * y + x ) * NORB, NORB, NORB )
+                        = Etwo;
+                    }
+                    else
+                    {
+                        B.block(
+                        ( Nx * y + x ) * NORB,
+                        ( Nx * ( y + 1 ) + x - 1 ) * NORB, NORB, NORB )
+                        = Efive;
+
+                        B.block(
+                        ( Nx * ( y + 1 ) + x - 1 ) * NORB,
+                        ( Nx * y + x ) * NORB, NORB, NORB )
+                        = Etwo;
+                    }
+                }
+            }
+        }
+    }
+}
+
+template<int N>
+Eigen::Matrix<double, N, N> Geometry<N>::getB()
 {
     return B;
+}
+
+template<int N>
+Eigen::Matrix<double, N, N> Geometry<N>::BpreFactor(double dt, double mu)
+{
+    return exp(dt * mu) * B;
 }
 
 template<int L, int N>
