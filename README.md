@@ -4,19 +4,23 @@ This repository is part of a MSc in Physics Engineering final project consisting
 
 [Thesis](https://github.com/fmonteir/qmc_master_thesis/blob/master/thesis/thesis.pdf)
 
+The aim of this work was to carry out a theoretical study (with particular emphasis on numerical aspects) of the properties of a TMD (transition metal dichalcogenide) nanoribbon - a graphene-like 2D nanostructure where electron interactions are particularly relevant - using a QMC method.
+
 ## Quantum Monte Carlo for Interacting Fermions
 
 Capturing the effects of electron correlations is not an easy task. The difficulty lies in devising a numerical method to solve the many-body Schrödinger equation in a reasonable amount of computer time. The development and application of unbiased methods is a central point in correlated electron systems, particularly in 2D. Naive methods have exponential complexity in the system size, which motivates an approach based on Monte Carlo sampling.
 
-Quantum Monte Carlo (QMC) methods are among the few unbiased methods available to date. In general, they circumvent the exponential complexity hurdle making it algebraic instead. However, for fermionic systems, a sign oscillation deems the algorithm exponential in the system size and inverse temperature, hence not very effective. This is due to the antisymmetric nature of the many-fermion wavefunction. One of the main tasks of this project was to investigate whether this issue would impede the simulation of a minimal model of 2D nanostructures made out of novel graphene-like 2D materials. Some approximations exist to deal with the sign problem, and they perform differently depending on the problem at hand. However, it might be the case that the sign problem is either absent, as it happens for a class of models, or is not very serious, still allowing an unbiased and accurate simulation of the system at hand. Going beyond the fermion sign problem barrier in quantum simulations is an open topic of research and many possibilities have been put forward recently, namely an approach based on neural networks (see thesis and references therein).
+Quantum Monte Carlo (QMC) methods are among the few unbiased methods available to date. In general, they circumvent the exponential complexity hurdle making it algebraic instead. However, for fermionic systems, a sign oscillation deems the algorithm exponential in the system size and inverse temperature, hence not very effective. This is due to the antisymmetric nature of the many-fermion wavefunction. One of the main tasks of this project was to investigate whether this issue would impede the simulation of a minimal model of 2D nanostructures made out of novel graphene-like 2D materials.
 
-In short, this masters thesis was about implementing an algorithm to deal with tight-binding problems for 2D interacting electronic models. Ultimately, the goal was to write a code that would simulate a specific interacting electron system: a transition metal dichalcogenide (TMD) nanoribbon.
+Some approximations exist to deal with the sign problem, and they perform differently depending on the problem at hand. However, it might be the case that the sign problem is either absent, as it happens for a class of models, or is not very serious, still allowing an unbiased and accurate simulation of the system at hand. Going beyond the fermion sign problem barrier in quantum simulations is an open topic of research and many possibilities have been put forward recently, namely an approach based on neural networks (see thesis and references therein).
+
+In short, this masters thesis is about the implementation of an algorithm to deal with tight-binding problems for 2D interacting electronic models. Ultimately, the goal was to write a code that would simulate a specific interacting electron system: a transition metal dichalcogenide (TMD) nanoribbon.
 
 TMD's are graphene-like 2D materials that are promising from both a theoretical and an application perspective. A nanoribbon is a 2D  nanostructure that is much longer on one direction than on the other (like a ribbon), so that electronic edge states become relevant and lead to unusual properties. In practice, this means that one can use periodic boundary conditions on the longer direction, and open boundary conditions on the other.
 
 An example of an interesting property of these nanostructures that we investigate is magnetism. Furthermore, one might be interested in the different phases that arise within the system and in how do the transitions between them occur. For example, recent papers point at the possibility of topological superconductivity in TMD nanoribbons. This is a many-body effect that is only captured numerically by state of the art techniques such as QMC.
 
-In short, the aim of this work was to carry out a theoretical study (with particular emphasis on numerical aspects) of the properties of a TMD nanoribbon - a graphene-like 2D nanostructure where electron interactions are particularly relevant - using a QMC method.
+Our work consists of three main branches: implementing a QMC code and comparing it with existing software, and with results of previous studies, examining a minimal model of a TMD nanoribbon at the mean field level, applying our QMC code to simulate the model for TMD nanoribbons.
 
 ## Getting started
 
