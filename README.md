@@ -44,7 +44,7 @@ which reproduces a result of the seminal paper "Discrete Hubbard-Stratonovich tr
 
 The arguments of *simulation* are described below.
 
-To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must provide arguments when running make. If you simply run make, you will obtain the default parameters that reproduce Hirsch's results.
+To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must provide arguments when running make. If you simply run make, you will obtain the default parameters that reproduce Hirsch's results for U = 4.
 
 
 To change the number of sites, inverse Trotter error, inverse temperature, or the frequency of recomputing the Green's functions, type:
