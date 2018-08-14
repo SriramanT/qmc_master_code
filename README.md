@@ -97,9 +97,9 @@ Input the number corresponding to the desired geometry:
 
 (13)		2D Honeycomb Rectangular Dot
 
-(14)		2D Minimal model of a periodic TMD sample (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
+(14)		2D Minimal model of a periodic TMD (MoS2) sample (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
 
-(15)		2D Minimal model of a TMD nanoribbon (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
+(15)		2D Minimal model of a TMD (MoS2) nanoribbon (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
 
 The Ny parameter is only meaningful for geometry options 5, 6, 8, 10, 13, and 15.
 
@@ -120,19 +120,23 @@ python save-simulation-data.py
 In the _results/plot-src_ directory there are python scripts that use *matplotlib*
 to plot the results of the simulations saved in _results/data_
 
-For this work, the case of most interest is _geom=15_, for which we can explore how a three-band
+For this work, a case of particular interest is obtained when one sets _geom=15_.
+With this choice, we can explore how a three-band
 minimal tight binding model is changed by adding a Hubbard type interaction.
 
-We started by focusing on the MoS2, and used the data in
+We started by focusing on Molybdenum disulfide, MoS2, and used the data in
 
 [Liu2013](https://github.com/fmonteir/msc_references/blob/master/references/tmd/Liu2013.pdf)
 
-to simulate a MoS2 nanoribbon. To do so, we chose t=-1, so as to normalize all the
+to simulate a MoS2 nanoribbon. To do so, we chose t=-1 when running _simulation_, so as to normalize all the
 hopping parameters to t0, i.e. setting t0=-1, and measuring everything in units of
 t0.
 One must pay attention when setting the number of sites because it includes both
 real and orbital space. For three orbitals, this means that if we set nsites=60,
 we will be studying a 20-site system.
+
+Other choices of the geom parameter allow the study of other TMDs (by changing the
+  parameters of the minimal 3-band model introduced by Liu et al.)
 
 ### ALF-1.0, QUEST-1.4.9
 
