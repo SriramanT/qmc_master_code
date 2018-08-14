@@ -36,9 +36,13 @@ Then, you can run a simulation by running the command
 ./simulation 1 4 0 1 0 20384 512 128
 
 
-which reproduces a result of the seminal paper "Discrete Hubbard-Stratonovich transformation for fermion lattice models", Phys Rev B, 28, 7, 1983, by J. E. Hirsch. The arguments of *simulation*
-are described below.
+which reproduces a result of the seminal paper "Discrete Hubbard-Stratonovich transformation for fermion lattice models", Phys Rev B, 28, 7, 1983, by J. E. Hirsch.
 
+![alt-text][hirsch]
+
+[hirsch]: https://github.com/fmonteir/qmc_master_code/blob/master/DETELECTRO-1.0/hirsch-reproduce.png
+
+The arguments of *simulation* are described below.
 
 To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must provide arguments when running make. If you simply run make, you will obtain the default parameters that reproduce Hirsch's results.
 
