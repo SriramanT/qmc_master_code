@@ -18,7 +18,8 @@ In short, our aim is to carry out a theoretical study (with particular emphasis 
 
 ## Getting started
 
-To run the code our Determinant QMC implementation simply open the following directory:
+To run our Determinant QMC implementation simply open the following directory:
+
 
 cd DETELECTRO-1.0/fast-version
 
@@ -39,19 +40,22 @@ which reproduces a result of the seminal paper "Discrete Hubbard-Stratonovich tr
 are described below.
 
 
+To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must provide arguments when running make. If you simply run make, you will obtain the default parameters that reproduce Hirsch's results.
+
+
 To change the number of sites, inverse Trotter error, inverse temperature, or the frequency of recomputing the Green's functions, type:
 
 
 make clean
 
 
-make nsites=<Number of sites> dt_inv=<Inverse Trotter Error> beta=<Inverse Temperature> green_afresh_freq=<Frequency of Recomputing G>
+make nsites=\<Number of sites\> dt_inv=\<Inverse Trotter Error\> beta=\<Inverse Temperature\> green_afresh_freq=\<Frequency of Recomputing G\>
 
 
 To run another simulation, simply type ./simulation followed by its arguments:
 
 
-./simulation <t> <U> <mu> <geom> <Ny> <Total Number of Sweeps (Space-Time)> <Number of Warm-up Sweeps (Space-Time)>  <Number of Auto-correlation Sweeps (Space-Time)>
+./simulation \<t\> \<U\> \<mu\> \<geom\> \<Ny\> \<Total Number of Sweeps (Space-Time)\> \<Number of Warm-up Sweeps (Space-Time)\>  \< Number of Auto-correlation Sweeps (Space-Time) \>
 
 where the first argument is a hopping parameter, the second one is the on-site interaction, followed by the chemical potential. The next two parameters are related to the geometry of the model.
 The last three parameters are related to the Monte Carlo method.
@@ -91,12 +95,10 @@ Input the number corresponding to the desired geometry:
 
 (15)		2D Minimal model of a TMD nanoribbon (Liu et al., Phys Rev B 88, 085433, 2013 ) - nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites.
 
-The Ny parameter is only meaningful for geometry options 5, 6, 8, 10, 13, and 15
-
-To maximize the efficiency of the code, some simulation parameters must be known at compile time. Thus, to set them, you must edit the makefile. Simply open it in any text editor and change the desired parameters.
+The Ny parameter is only meaningful for geometry options 5, 6, 8, 10, 13, and 15.
 
 The results of the simulation will be saved in a directory named _temp-data_
-and will be deleted once you run make clean. To save them enter the directory
+and will be deleted once you run _make clean_. To save them enter the directory
 _results_
 
 
