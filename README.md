@@ -1,14 +1,14 @@
 # qmc_master_code
 
-This repository is part of a MSc Physics Engineering final project consisting of applying Quantum Monte Carlo (QMC) to a problem of interacting fermions. We refer the interested reader to the thesis available at
+This repository is part of a MSc in Physics Engineering final project consisting of applying Quantum Monte Carlo (QMC) to a problem of interacting fermions. We refer the interested reader to the thesis available at
 
 [Thesis](https://github.com/fmonteir/qmc_master_thesis/blob/master/thesis/thesis.pdf)
 
 ## Quantum Monte Carlo for Interacting Fermions
 
-Capturing the effects of electron correlations is not an easy task. The difficulty lies in devising a numerical method to solve the many-body Schrödinger equation in a reasonable amount of computer time. Naive methods have exponential complexity in the system size, which motivates an approach based on Monte Carlo sampling. The development and application of unbiased methods is a central point in correlated electron systems, particularly in 2D.
+Capturing the effects of electron correlations is not an easy task. The difficulty lies in devising a numerical method to solve the many-body Schrödinger equation in a reasonable amount of computer time. The development and application of unbiased methods is a central point in correlated electron systems, particularly in 2D. Naive methods have exponential complexity in the system size, which motivates an approach based on Monte Carlo sampling.
 
-QMC methods are among the few unbiased methods available to date. In general, they circumvent the exponential complexity hurdle making it algebraic instead. However, for fermionic systems, a sign oscillation deems the algorithm exponential, hence not very effective. This is due to the antisymmetric nature of the many-fermion wavefunction. One of the main tasks of this project was to investigate whether this issue impedes the simulation of a minimal model of 2D nanostructures made out of novel graphene-like 2D materials. Some approximations exist to deal with the sign problem, and they perform differently depending on the problem at hand. However, it might be the case that the sign problem is either absent, as it happens for a class of models, or is not very serious, still allowing an unbiased and accurate simulation of the system at hand.
+Quantum Monte Carlo (QMC) methods are among the few unbiased methods available to date. In general, they circumvent the exponential complexity hurdle making it algebraic instead. However, for fermionic systems, a sign oscillation deems the algorithm exponential in the system size and inverse temperature, hence not very effective. This is due to the antisymmetric nature of the many-fermion wavefunction. One of the main tasks of this project was to investigate whether this issue would impede the simulation of a minimal model of 2D nanostructures made out of novel graphene-like 2D materials. Some approximations exist to deal with the sign problem, and they perform differently depending on the problem at hand. However, it might be the case that the sign problem is either absent, as it happens for a class of models, or is not very serious, still allowing an unbiased and accurate simulation of the system at hand. Going beyond the fermion sign problem barrier in quantum simulations is an open topic of research and many possibilities have been put forward recently, namely an approach based on neural networks (see thesis and references therein).
 
 In short, this masters thesis was about implementing an algorithm to deal with tight-binding problems for 2D interacting electronic models. Ultimately, the goal was to write a code that would simulate a specific interacting electron system: a transition metal dichalcogenide (TMD) nanoribbon.
 
@@ -38,7 +38,7 @@ Then, you can run a simulation by running the command
 ./simulation 1 4 0 1 0 20384 512 128
 
 
-which reproduces a result of the seminal paper "Discrete Hubbard-Stratonovich transformation for fermion lattice models", Phys Rev B, 28, 7, 1983, by J. E. Hirsch.
+which reproduces the results of the seminal paper "Discrete Hubbard-Stratonovich transformation for fermion lattice models", Phys Rev B, 28, 7, 1983, by J. E. Hirsch.
 
 ![alt-text][hirsch]
 
@@ -149,6 +149,8 @@ Mean field studies, and results of basic analytical calculations for limiting ca
 ### DETELECTRO-1.0
 
 Our own implementation of the determinant QMC algorithm to simulate the Hubbard model. The working name of the software is DETELECTRO. :)
+
+In addition to our implementation of the BSS (Blakenbecler, Scalapino and Sugar) determinant QMC algorithm, this directory contains other interesting studies carried out in the context of this work, namely having to do with the sign problem, low temperature, and large size stabilization, ect.
 
 ## Built with
 
