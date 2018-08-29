@@ -158,6 +158,10 @@ Our own implementation of the determinant QMC algorithm to simulate the Hubbard 
 
 In addition to our implementation of the BSS (Blakenbecler, Scalapino and Sugar) determinant QMC algorithm, this directory contains other interesting studies carried out in the context of this work, namely having to do with the sign problem, low temperature, and large size stabilization, etc.
 
+### evcastro_tb_tmd.nb
+
+A Mathematica notebook by E.V. Castro with some tight binding (3-band model) studies of TMDs.
+
 ## Built with
 
 *C++*
