@@ -162,6 +162,20 @@ In addition to our implementation of the BSS (Blakenbecler, Scalapino and Sugar)
 
 A Mathematica notebook by E.V. Castro with some tight binding (3-band model) studies of TMDs.
 
+## To do
+
+- Benchmark detQMC by applying it to the U / t -> 0, inf limit
+- Benchmark by reproducing Hirsch's 1983 paper
+- U / t >> 1 limit to compare with Heisenberg
+- Compare with White's seminal paper
+- Explore parameter reduction in Mean Field
+- Compare w/ QUEST and ALF
+- Faster version of the code
+- Implement more measurements and comment
+- Implement ideia of Bai2010
+- Add geometries
+- Apply MF and QMC to TMDs
+
 ## Built with
 
 *C++*
