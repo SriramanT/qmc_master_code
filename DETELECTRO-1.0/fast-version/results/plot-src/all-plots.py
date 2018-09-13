@@ -24,7 +24,7 @@ L = 128
 t = 1.
 U = 4.
 mu = 0.
-totalMCSweeps = 2048
+totalMCSweeps = 5000
 freq = 4
 intsize = 32
 geom = 1
@@ -48,7 +48,7 @@ plotDir = (mainDir + '/plots/' + \
 
 # Load weights to plot
 
-weights = np.loadtxt(simDir + '/Log-weights.txt')
+weights = np.loadtxt(simDir + '/Log-weights.csv')
 
 nLatSweeps = weights.size
 
@@ -66,7 +66,7 @@ if SAVEPLOTS == True:
 # Sign problem
 
 sweeps = np.arange(totalMCSweeps) + 1
-signs = np.loadtxt(simDir + '/Local-av-sign.txt')
+signs = np.loadtxt(simDir + '/Local-av-sign.csv')
 avSign = np.mean(signs) * np.ones(len(sweeps))
 
 fig = plt.figure(2)
@@ -84,7 +84,7 @@ if SAVEPLOTS == True:
 
 ## Electron density
 
-electronDensity = np.loadtxt(simDir + '/electronDensity.txt')
+electronDensity = np.loadtxt(simDir + '/electronDensity.csv')
 plt.figure(3)
 plt.scatter(sweeps, electronDensity, s = 1)
 plt.xlabel(r'Space-time sweep')
@@ -94,7 +94,7 @@ if SAVEPLOTS == True:
 
 ## Double occupancy
 
-doubleOc = np.loadtxt(simDir + '/doubleOccupancy.txt')
+doubleOc = np.loadtxt(simDir + '/doubleOccupancy.csv')
 plt.figure(4)
 plt.scatter(sweeps, doubleOc, s = 2)
 plt.xlabel(r'Space-time sweep')
@@ -142,7 +142,7 @@ print('variance: ', varDoubleOc)
 
 ## Auto-correlation time in the measurement of the correlation function
 
-magCorrMeas = np.loadtxt(simDir + '/EqTimeSzCorrelations.txt')
+magCorrMeas = np.loadtxt(simDir + '/EqTimeSzCorrelations.csv')
 
 tMax = 100
 chiMag = np.zeros(tMax)
@@ -226,7 +226,7 @@ if SAVEPLOTS == True:
 #e^{i \mathbf q \cdot  (\mathbf i - \mathbf j)} \int_0^\beta \left\langle \mathbf
 #S_{\mathbf i}(\tau) \cdot \mathbf S_{\mathbf j}(0) \right\rangle d\tau $
 
-UneqMagCorrMeas = np.loadtxt(simDir + '/UneqTimeSzCorrelations.txt', skiprows = 1)
+UneqMagCorrMeas = np.loadtxt(simDir + '/UneqTimeSzCorrelations.csv', skiprows = 1)
 
 UneqMagCorr = np.zeros((NSITES, NSITES))
 
