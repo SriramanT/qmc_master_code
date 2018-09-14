@@ -412,62 +412,62 @@ int main(int argc, char **argv)
     std::cout << "nEl: " << nEl << std::endl << std::endl;
     std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
 
-    //  SAVE OUTPUT.
-    std::ofstream file0("temp-data/simulationParameters.csv");
-    if (file0.is_open())
-    {
-      file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
-      file0 << std::left << std::setw(50) << "dt," << dt << '\n';
-      file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
-      file0 << std::left << std::setw(50) << "L," << L << '\n';
-      file0 << std::left << std::setw(50) << "t," << t << '\n';
-      file0 << std::left << std::setw(50) << "U," << U << '\n';
-      file0 << std::left << std::setw(50) << "mu," << mu << '\n';
-      file0 << std::left << std::setw(50) << "totalMCSweeps," << totalMCSweeps << '\n';
-      file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
-        << GREEN_AFRESH_FREQ << '\n';
-      file0 << std::left << std::setw(50)
-        << "Number of multiplied Bs after stabilization," << Lbda << '\n';
-      file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
-      file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
-    } file0.close();
-    //  STORE MEASUREMENTS
-    std::ofstream file1("temp-data/Log-weights.csv");
-    std::ofstream file2("temp-data/Local-av-sign.csv");
-    std::ofstream file3("temp-data/MeasurementsScalars.csv");
-    std::ofstream file4("temp-data/EqTimeSzCorrelations.csv");
-    if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() )
-    {
-        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
-        file2 << std::left << std::setw(50) << "Local average sign" << '\n';
-        for (int s = 0; s < W; s++)
-        {
-            for (int slice = 0; slice < L; slice++)
-            {
-                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
-            }
-        }
-        for (int s = 0; s < (totalMCSweeps - W) / A ; s++)
-        {
-            file2 << std::left << std::setw(50) << signs[s] << '\n';
-        }
-        file3 << std::left << std::setw(50) << "Electron density <n>,";
-        file3 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
-        file3 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
-        file3 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl << ",";
-        file3 << std::left << std::setw(50) << std::setprecision(10)
-        << nUp_nDw << ",";
-        file3 << std::left << std::setw(50) << std::setprecision(10)
-        << zzAFstFactor << '\n';
-        file4 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
-        file4 << std::setprecision(10) << SiSj << '\n';
-        file1 << '\n';
-    }
-    file1.close();
-    file2.close();
-    file3.close();
-    file4.close();
+    // //  SAVE OUTPUT.
+    // std::ofstream file0("temp-data/simulationParameters.csv");
+    // if (file0.is_open())
+    // {
+    //   file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
+    //   file0 << std::left << std::setw(50) << "dt," << dt << '\n';
+    //   file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
+    //   file0 << std::left << std::setw(50) << "L," << L << '\n';
+    //   file0 << std::left << std::setw(50) << "t," << t << '\n';
+    //   file0 << std::left << std::setw(50) << "U," << U << '\n';
+    //   file0 << std::left << std::setw(50) << "mu," << mu << '\n';
+    //   file0 << std::left << std::setw(50) << "totalMCSweeps," << totalMCSweeps << '\n';
+    //   file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
+    //     << GREEN_AFRESH_FREQ << '\n';
+    //   file0 << std::left << std::setw(50)
+    //     << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+    //   file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
+    //   file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
+    // } file0.close();
+    // //  STORE MEASUREMENTS
+    // std::ofstream file1("temp-data/Log-weights.csv");
+    // std::ofstream file2("temp-data/Local-av-sign.csv");
+    // std::ofstream file3("temp-data/MeasurementsScalars.csv");
+    // std::ofstream file4("temp-data/EqTimeSzCorrelations.csv");
+    // if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() )
+    // {
+    //     file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
+    //     file2 << std::left << std::setw(50) << "Local average sign" << '\n';
+    //     for (int s = 0; s < W; s++)
+    //     {
+    //         for (int slice = 0; slice < L; slice++)
+    //         {
+    //             file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
+    //         }
+    //     }
+    //     for (int s = 0; s < (totalMCSweeps - W) / A ; s++)
+    //     {
+    //         file2 << std::left << std::setw(50) << signs[s] << '\n';
+    //     }
+    //     file3 << std::left << std::setw(50) << "Electron density <n>,";
+    //     file3 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+    //     file3 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
+    //     file3 << std::left << std::setw(50) << std::setprecision(10)
+    //     << nEl << ",";
+    //     file3 << std::left << std::setw(50) << std::setprecision(10)
+    //     << nUp_nDw << ",";
+    //     file3 << std::left << std::setw(50) << std::setprecision(10)
+    //     << zzAFstFactor << '\n';
+    //     file4 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
+    //     file4 << std::setprecision(10) << SiSj << '\n';
+    //     file1 << '\n';
+    // }
+    // file1.close();
+    // file2.close();
+    // file3.close();
+    // file4.close();
 
     delete[] weights; delete[] signs;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
