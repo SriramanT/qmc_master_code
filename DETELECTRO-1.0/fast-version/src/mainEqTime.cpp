@@ -196,7 +196,6 @@ int main(int argc, char **argv)
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
     double * weights = new double[W * L];
-    double * signs = new double[(totalMCSweeps - W) / A];
     double electronDensities = 0;
     double doubleOcs = 0;
     // double energies = 0;
@@ -383,7 +382,6 @@ int main(int argc, char **argv)
             {
                 if ( (sweep >= W) )
                 {
-                    signs[sweep - W] = meanSign;
                     if ( sweep % A == 0 )
                     {
                       nEl += ( electronDensities / meanSign - nEl )
@@ -433,13 +431,11 @@ int main(int argc, char **argv)
     } file0.close();
     //  STORE MEASUREMENTS
     std::ofstream file1("temp-data/Log-weights.csv");
-    std::ofstream file2("temp-data/Local-av-sign.csv");
-    std::ofstream file3("temp-data/MeasurementsScalars.csv");
-    std::ofstream file4("temp-data/EqTimeSzCorrelations.csv");
-    if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() )
+    std::ofstream file2("temp-data/MeasurementsScalars.csv");
+    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
+    if ( file1.is_open() and file2.is_open() and file3.is_open() )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
-        file2 << std::left << std::setw(50) << "Local average sign" << '\n';
         for (int s = 0; s < W; s++)
         {
             for (int slice = 0; slice < L; slice++)
@@ -447,29 +443,23 @@ int main(int argc, char **argv)
                 file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
             }
         }
-        for (int s = 0; s < (totalMCSweeps - W) / A ; s++)
-        {
-            file2 << std::left << std::setw(50) << signs[s] << '\n';
-        }
-        file3 << std::left << std::setw(50) << "Electron density <n>,";
-        file3 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
-        file3 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
-        file3 << std::left << std::setw(50) << std::setprecision(10)
+        file2 << std::left << std::setw(50) << "Electron density <n>,";
+        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+        file2 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
+        file2 << std::left << std::setw(50) << std::setprecision(10)
         << nEl << ",";
-        file3 << std::left << std::setw(50) << std::setprecision(10)
+        file2 << std::left << std::setw(50) << std::setprecision(10)
         << nUp_nDw << ",";
-        file3 << std::left << std::setw(50) << std::setprecision(10)
+        file2 << std::left << std::setw(50) << std::setprecision(10)
         << zzAFstFactor << '\n';
-        file4 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
-        file4 << std::setprecision(10) << SiSj << '\n';
-        file1 << '\n';
+        file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
+        file3 << std::setprecision(10) << SiSj << '\n';
     }
     file1.close();
     file2.close();
     file3.close();
-    file4.close();
 
-    delete[] weights; delete[] signs;
+    delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
 
     return 0;
