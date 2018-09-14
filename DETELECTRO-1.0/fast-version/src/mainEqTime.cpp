@@ -199,7 +199,7 @@ int main(int argc, char **argv)
     double * signs = new double[(totalMCSweeps - W) / A];
     double electronDensities = 0;
     double doubleOcs = 0;
-    double energies = 0;
+    // double energies = 0;
     double zzMags = 0;
     Eigen::Matrix<double, NSITES, NSITES>  magCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -208,12 +208,12 @@ int main(int argc, char **argv)
       * Gdown->matrix().determinant() );
     double electronDensity;
     double doubleOc;
-    double energy;
+    // double energy;
     double zzMag;
     Eigen::Matrix<double, NSITES, NSITES> magCorr;
     double nEl = 0;
     double nUp_nDw = 0;
-    double Hkin = 0;
+    // double Hkin = 0;
     double zzAFstFactor = 0;
     Eigen::Matrix<double, NSITES, NSITES> SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
