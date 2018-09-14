@@ -1,12 +1,12 @@
-Number of sites,                                  2
+Number of sites,                                  36
 dt,                                               0.0625
 beta,                                             2
 L,                                                32
 t,                                                1
 U,                                                4
 mu,                                               0
-totalMCSweeps,                                    20384
+totalMCSweeps,                                    1000
 Frequency of recomputing G,                       4
 Number of multiplied Bs after stabilization,      8
-Geometry,                                         1
-Ny,                                               0
+Geometry,                                         15
+Ny,                                               4

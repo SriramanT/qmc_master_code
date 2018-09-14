@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     //  TRIANGULAR LATTICE PBC
     if (geom == 6)
     {
-        K.twoDimensionalRectangleOBC(Ny, t, dt, mu);
+
     }
     //  HONEYCOMB LATTICE PBC
     if (geom == 9)
@@ -135,8 +135,8 @@ int main(int argc, char **argv)
             std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
             return -1;
         }
-        double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057, 0.073};
-        K.setParamsThreeOrbitalTB(params, t);
+        double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057};
+        K.setParamsThreeOrbitalTB(params);
         K.tmdPBC();
 
         // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
@@ -146,7 +146,6 @@ int main(int argc, char **argv)
             TMDhopping << K.getB() << '\n';
         }
         TMDhopping.close();
-
         K.computeExponential(t, dt);
     }
     if (geom == 15)
@@ -156,8 +155,8 @@ int main(int argc, char **argv)
             std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
             return -1;
         }
-        double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057, 0.073};
-        K.setParamsThreeOrbitalTB(params, t);
+        double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
+        K.setParamsThreeOrbitalTB(params);
         K.tmdNanoribbon(Ny);
 
         // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
@@ -167,7 +166,6 @@ int main(int argc, char **argv)
             TMDhoppingNano << K.getB() << '\n';
         }
         TMDhoppingNano.close();
-
         K.computeExponential(t, dt);
     }
 
@@ -201,6 +199,7 @@ int main(int argc, char **argv)
     double * signs = new double[(totalMCSweeps - W) / A];
     double electronDensities = 0;
     double doubleOcs = 0;
+    double energies = 0;
     double zzMags = 0;
     Eigen::Matrix<double, NSITES, NSITES>  magCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -209,10 +208,12 @@ int main(int argc, char **argv)
       * Gdown->matrix().determinant() );
     double electronDensity;
     double doubleOc;
+    double energy;
     double zzMag;
     Eigen::Matrix<double, NSITES, NSITES> magCorr;
     double nEl = 0;
     double nUp_nDw = 0;
+    double Hkin = 0;
     double zzAFstFactor = 0;
     Eigen::Matrix<double, NSITES, NSITES> SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -285,7 +286,7 @@ int main(int argc, char **argv)
               weights[sweep * L + l] = LOGweight;
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
-            electronDensity = 0.; doubleOc = 0.; zzMag = 0.;
+            electronDensity = 0.; doubleOc = 0.; zzMag = 0.; energy = 0.;
             for (int x = 0; x < NSITES; x++)
             {
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
@@ -304,18 +305,25 @@ int main(int argc, char **argv)
                       - Gup->get(y, x) * Gup->get(x, y)
                       - Gdown->get(y, x) * Gdown->get(x, y);
 		                magCorr(y, x) = magCorr(x, y);
-                    zzMag += 2 * pow(-1, x - y ) * magCorr(x, y);
-            		    // if ( ( x + ( ( x - x % int (sqrt(NSITES)) )
-                    //   / int (sqrt(NSITES)) ) % 2 ) % 2
-                    //   == ( y + ( ( y - y % int (sqrt(NSITES)) )
-                    //   / int (sqrt(NSITES)) ) % 2 ) % 2 )
-            		    // {
-                    //     zzMag += 2 * magCorr(x, y);
-            		    // }
-            		    // else
-            		    // {
-            		    //     zzMag -= 2 * magCorr(x, y);
-            		    // }
+                    if ( geom == 1 or geom == 2 )
+                    {
+                      zzMag += 2 * pow(-1, x - y ) * magCorr(x, y);
+                    }
+
+                    if ( geom == 3 or geom == 4 or geom == 5 or geom == 6 )
+                    {
+                		    if ( ( x + ( ( x - x % int (sqrt(NSITES)) )
+                          / int (sqrt(NSITES)) ) % 2 ) % 2
+                          == ( y + ( ( y - y % int (sqrt(NSITES)) )
+                          / int (sqrt(NSITES)) ) % 2 ) % 2 )
+                		    {
+                            zzMag += 2 * magCorr(x, y);
+                		    }
+                		    else
+                		    {
+                		        zzMag -= 2 * magCorr(x, y);
+                		    }
+                    }
                   }
             }
             electronDensity /= NSITES; electronDensity += 2;

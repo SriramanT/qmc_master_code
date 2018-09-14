@@ -44,7 +44,7 @@ public:
     void triangleNanoribbon(int Ny);
     void hcPBC();
     void hcNanoribbon(int Ny); //  Ny = width of the ribbon
-    void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8], double t);
+    void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8]);
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
     Eigen::Matrix<double, N, N> BpreFactor(double dt, double mu);
@@ -439,9 +439,9 @@ void Geometry<N>::hcNanoribbon(int Ny)
 }
 
 template<int N>
-void Geometry<N>::setParamsThreeOrbitalTB(double threeOrbitalTBparameters[9], double t)
+void Geometry<N>::setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8])
 {
-    t0 = threeOrbitalTBparameters[2] / t;
+    t0 = fabs(threeOrbitalTBparameters[2]);
     e1 = threeOrbitalTBparameters[0] / t0;
     e2 = threeOrbitalTBparameters[1] / t0;
     t1 = threeOrbitalTBparameters[3] / t0;
@@ -449,9 +449,8 @@ void Geometry<N>::setParamsThreeOrbitalTB(double threeOrbitalTBparameters[9], do
     t11 = threeOrbitalTBparameters[5] / t0;
     t12 = threeOrbitalTBparameters[6] / t0;
     t22 = threeOrbitalTBparameters[7] / t0;
-    lbd = threeOrbitalTBparameters[8] / t0;
 
-    t0 = t;
+    t0 = -1;
 
     Ezero << e1,   0.,   0.,
              0.,   e2,   0.,
@@ -665,6 +664,8 @@ void Geometry<N>::tmdPBC()
 
         }
     }
+
+    B = - B;
 }
 
 
@@ -799,6 +800,8 @@ void Geometry<N>::tmdNanoribbon(int Ny)
             }
         }
     }
+
+    B = - B;
 }
 
 template<int N>
