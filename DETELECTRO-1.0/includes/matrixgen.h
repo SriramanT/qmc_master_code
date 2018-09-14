@@ -667,7 +667,6 @@ void Geometry<N>::tmdPBC()
 
         }
     }
-
     B = - B;
 }
 
@@ -804,7 +803,6 @@ void Geometry<N>::tmdNanoribbon(int Ny)
             }
         }
     }
-
     B = - B;
 }
 
