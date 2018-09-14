@@ -469,8 +469,8 @@ int main(int argc, char **argv)
     file3.close();
     file4.close();
 
-    // delete[] weights; delete[] signs;
-    // delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
+    delete[] weights; delete[] signs;
+    delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
 
     return 0;
 }
