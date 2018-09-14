@@ -195,8 +195,8 @@ int main(int argc, char **argv)
     double alphaUp; double alphaDown; double dUp; double dDown; double accRatio;
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
-    double * weights = new double[W * L];
-    double * signs = new double[(totalMCSweeps - W) / A];
+    double * weights = new double[W * L + 1];
+    double * signs = new double[(totalMCSweeps - W) / A + 1];
     double electronDensities = 0;
     double doubleOcs = 0;
     // double energies = 0;
