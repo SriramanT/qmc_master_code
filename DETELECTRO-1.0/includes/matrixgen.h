@@ -15,7 +15,7 @@
 template<int N>
 class Geometry
 {
-    Eigen::Matrix<double, N, N> B = Eigen::Matrix<double, N, N>::Zero();
+    Eigen::Matrix<double, N, N> B;
     //  the minimal model of Liu2013 has 9 parameters
     //  the hopping t0 is taken as the argument t, which in the
     //  uniform hopping case is multiplied by all elements
@@ -252,6 +252,7 @@ void Geometry<N>::triangleNanoribbon(int Ny)
 template<int N>
 void Geometry<N>::hcPBC()
 {
+    B = Eigen::Matrix<double, N, N>::Zero();
     int Ny = sqrt(N / 2);
     int Nx = N / Ny / 2;
     for (int x = 0; x < Nx; x++)
@@ -351,6 +352,7 @@ void Geometry<N>::hcPBC()
 template<int N>
 void Geometry<N>::hcNanoribbon(int Ny)
 {   //  Ny = width of the ribbon
+    B = Eigen::Matrix<double, N, N>::Zero();
     int Nx = N / Ny / 2;
     for (int x = 0; x < Nx; x++)
     {
@@ -485,6 +487,7 @@ sqrt(3) / 2 * t1 - t2 / 2,      -sqrt(3) / 4 * ( t22 - t11 ) - t12,  ( 3 * t11 +
 template<int N>
 void Geometry<N>::tmdPBC()
 {
+    B = Eigen::Matrix<double, N, N>::Zero();
     int Nx = sqrt(N / NORB);
     int Ny = Nx;
     for (int x = 0; x < Nx; x++)
@@ -672,6 +675,7 @@ void Geometry<N>::tmdPBC()
 template<int N>
 void Geometry<N>::tmdNanoribbon(int Ny)
 {
+    B = Eigen::Matrix<double, N, N>::Zero();
     int Nx = N / Ny / NORB;
     for (int x = 0; x < Nx; x++)
     {
