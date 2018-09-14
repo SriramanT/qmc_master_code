@@ -286,7 +286,7 @@ int main(int argc, char **argv)
               weights[sweep * L + l] = LOGweight;
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
-            electronDensity = 0.; doubleOc = 0.; zzMag = 0.; energy = 0.;
+            electronDensity = 0.; doubleOc = 0.; zzMag = 0.;
             for (int x = 0; x < NSITES; x++)
             {
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );

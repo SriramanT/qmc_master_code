@@ -107,4 +107,4 @@ $(object):$(eq_or_uneq) $(include_dir)/matrixgen.h $(include_dir)/green.h $(incl
 
 clean:
 	rm -f simulation $(object)
-	rm -f /temp-data/*
+	rm -f ./temp-data/*
