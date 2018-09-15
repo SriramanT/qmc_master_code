@@ -14,19 +14,19 @@
 template<int N, int L, int Lbda>
 class Green
 {
-    Eigen::Matrix<double, N, N> M;
-    Eigen::Matrix<double, N, N> G;
-    Eigen::Matrix<double, N, 1> u;
-    Eigen::Matrix<double, 1, N> w;
-    Eigen::Matrix<double, N, N> U;
-    Eigen::Matrix<double, N, N> D;
-    Eigen::Matrix<double, N, N> V;
-    Eigen::Matrix<double, 2 * N, 2 * N> Udouble;
-    Eigen::Matrix<double, 2 * N, 2 * N> Ddouble;
-    Eigen::Matrix<double, 2 * N, 2 * N> Vdouble;
-    Eigen::Matrix<double, N, N> Gforward;
-    Eigen::Matrix<double, N, N> Gbackward;
-    Eigen::Matrix<double, N, N> Gzero;
+    Eigen::Matrix<double, -1, -1> M;
+    Eigen::Matrix<double, -1, -1> G;
+    Eigen::Matrix<double, -1, -1> u;
+    Eigen::Matrix<double, -1, -1> w;
+    Eigen::Matrix<double, -1, -1> U;
+    Eigen::Matrix<double, -1, -1> D;
+    Eigen::Matrix<double, -1, -1> V;
+    Eigen::Matrix<double, -1, -1> Udouble;
+    Eigen::Matrix<double, -1, -1> Ddouble;
+    Eigen::Matrix<double, -1, -1> Vdouble;
+    Eigen::Matrix<double, -1, -1> Gforward;
+    Eigen::Matrix<double, -1, -1> Gbackward;
+    Eigen::Matrix<double, -1, -1> Gzero;
     //  ALLOCATE MEMORY TO STORE THE PARTIAL PRODUCTS INVOLVED IN
     //  SPEEDING UP THE LOW TEMPERATURE STABILIZATION.
     Eigen::Matrix<double, N, N> Us[Lbda];
@@ -41,16 +41,21 @@ public:
     void computeStableGreenNaiveL(Eigen::Matrix<double, N, N>* Bs, int l);
     void computeGreenFromVDU();
     void initializeUneqs();
-    void storeVDU(Eigen::Matrix<double, N, N>* Bs);
+    void storeVDU(Eigen::MatrixXd* Bs);
     void computeStableGreen(int l, int greenAfreshFreq);
     void computeBlockOfGreens(int l, int greenAfreshFreq);
-    void storeUDV(Eigen::Matrix<double, N, N>* Bs, int l, int greenAfreshFreq);
-    Eigen::Matrix<double, N, N> matrix();
+    void storeUDV(Eigen::MatrixXd* Bs, int l, int greenAfreshFreq);
+    Eigen::MatrixXd matrix();
     double uneqForward(int x, int y);
     double uneqBackward(int x, int y);
     double zero(int x, int y);
     double get(int x, int y);
-    Eigen::Matrix<double, N, N> getM();
+    Eigen::MatrixXd getM();
+    Green() : M(N, N), G(N, N), u(N, 1), w(1, N),
+    U(N, N), D(N, N), V(N, N), Udouble(2 * N, 2 * N),
+    Ddouble(2 * N, 2 * N), Vdouble(2 * N, 2 * N),
+    Gforward(N, N), Gbackward(N, N), Gzero(N, N)  {
+    };
 };
 
 template<int N, int L, int Lbda>
@@ -252,21 +257,22 @@ void Green<N, L, Lbda>::initializeUneqs()
 
 
 template<int N, int L, int Lbda>
-void Green<N, L, Lbda>::storeVDU(Eigen::Matrix<double, N, N>* Bs)
+void Green<N, L, Lbda>::storeVDU(Eigen::MatrixXd* Bs)
 {
     //  This is very similar to the function above. The only difference is that the
     //  Green's function is not computed, and this is to be used at the beginning of
     //  each imaginary time sweep, i.e. M = I + B_{L-1} B_{L-2}... B_{0}
-    U = Eigen::Matrix<double, N, N>::Identity();
-    D = Eigen::Matrix<double, N, N>::Identity();
-    V = Eigen::Matrix<double, N, N>::Identity();
+    U = Eigen::MatrixXd::Identity(N, N);
+    D = Eigen::MatrixXd::Identity(N, N);
+    V = Eigen::MatrixXd::Identity(N, N);
 
     int slice;
     int sliceCounter = 0;
     int lbda = 0;
 
     //  INITIALIZE PARTIAL PRODUCTS.
-    Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
+    Eigen::MatrixXd partialProdBs
+    = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
 
     //  COMPUTE UDVs.
     for (slice = L - 1; slice >= 0; slice--)
@@ -292,12 +298,12 @@ void Green<N, L, Lbda>::storeVDU(Eigen::Matrix<double, N, N>* Bs)
 }
 
 template<int N, int L, int Lbda>
-void Green<N, L, Lbda>::storeUDV(Eigen::Matrix<double, N, N>* Bs, int l, int greenAfreshFreq)
+void Green<N, L, Lbda>::storeUDV(Eigen::MatrixXd* Bs, int l, int greenAfreshFreq)
 {
     //  NOTE THAT THE ARGUMENT l will never be zero, since at l = 0, we compute the VDUs from the right and the Green's function
     int lbda = (l + 1) / greenAfreshFreq - 1;
     int slice;
-    Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
+    Eigen::MatrixXd partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
 
     //  INITIALIZE PARTIAL PRODUCTS.
     if ( lbda == 0 )
@@ -387,7 +393,7 @@ void Green<N, L, Lbda>::computeBlockOfGreens(int l, int greenAfreshFreq)
 }
 
 template<int N, int L, int Lbda>
-Eigen::Matrix<double, N, N> Green<N, L, Lbda>::matrix()
+Eigen::MatrixXd Green<N, L, Lbda>::matrix()
 {
     return G;
 }
@@ -417,7 +423,7 @@ double Green<N, L, Lbda>::zero(int x, int y)
 }
 
 template<int N, int L, int Lbda>
-Eigen::Matrix<double, N, N> Green<N, L, Lbda>::getM()
+Eigen::MatrixXd Green<N, L, Lbda>::getM()
 {
     return M;
 }

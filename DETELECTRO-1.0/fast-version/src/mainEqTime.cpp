@@ -200,23 +200,24 @@ int main(int argc, char **argv)
     double doubleOcs = 0;
     // double energies = 0;
     double zzMags = 0;
-    Eigen::Matrix<double, NSITES, NSITES>  magCorrs =
+    Eigen::MatrixXd magCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double LOGweight = 0.;
-    double sign = std::copysign(1, Gup->matrix().determinant()
-      * Gdown->matrix().determinant() );
+    // double sign = std::copysign(1, Gup->matrix().determinant()
+    //   * Gdown->matrix().determinant() );
+    double sign = 1;
     double electronDensity;
     double doubleOc;
     // double energy;
     double zzMag;
-    Eigen::Matrix<double, NSITES, NSITES> magCorr;
+    Eigen::MatrixXd magCorr = Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double nEl = 0;
     double nUp_nDw = 0;
     // double Hkin = 0;
     double zzAFstFactor = 0;
     Eigen::Matrix<double, NSITES, NSITES> SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    double meanSign = 0.;
+    double meanSign = 0;
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
@@ -329,8 +330,6 @@ int main(int argc, char **argv)
             doubleOc /= NSITES; doubleOc += 1;
             zzMag /= NSITES;
 
-            //  KEEP TRACK OF THE SIGN OF THE SWEEP
-            meanSign += ( sign - meanSign ) / ( l + 1 );
             electronDensities +=
               ( electronDensity * sign - electronDensities ) / ( l + 1 ) ;
             doubleOcs +=
@@ -384,13 +383,14 @@ int main(int argc, char **argv)
                 {
                     if ( sweep % A == 0 )
                     {
-                      nEl += ( electronDensities / meanSign - nEl )
+                      meanSign += ( sign - meanSign ) / ( ( sweep - W ) / A + 1 );
+                      nEl += ( electronDensities - nEl )
                        / ( (sweep - W)/A + 1 ) ;
-                      nUp_nDw += ( doubleOcs / meanSign - nUp_nDw )
+                      nUp_nDw += ( doubleOcs - nUp_nDw )
                        / ( (sweep - W)/A + 1 ) ;
-                      SiSj += ( magCorrs / meanSign - SiSj )
+                      SiSj += ( magCorrs - SiSj )
                        / ( (sweep - W)/A + 1 ) ;
-                      zzAFstFactor += ( zzMags / meanSign - zzAFstFactor )
+                      zzAFstFactor += ( zzMags - zzAFstFactor )
                        / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.; doubleOcs = 0.;
@@ -398,13 +398,15 @@ int main(int argc, char **argv)
                     zzMags = 0.;
 
                 }
-                meanSign = 0.;
                 //  MOVE SWEEP COUNTER
                 sweep += 1;
                 l = 0; i = 0;
             }
         }
     }   //  END OF MC LOOP.
+
+    //  Normalize to mean sign
+    nEl /= meanSign; nUp_nDw /= meanSign; SiSj /= meanSign; zzAFstFactor /= meanSign;
 
     std::cout << "Simulation ended" << std::endl << std::endl;
     std::cout << "nEl: " << nEl << std::endl << std::endl;

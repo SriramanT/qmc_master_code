@@ -1,6 +1,6 @@
 //
 //  TDQ.h
-//  
+//
 //
 //  Created by Francisco Brito on 18/06/2018.
 //
@@ -11,20 +11,22 @@
 template< int N >
 class TDQ
 {
-    Eigen::Matrix<double, N, N> Q;
-    Eigen::Matrix<double, N, N> R;
-    Eigen::Matrix<double, N, N> T;
-    Eigen::Matrix<double, N, N> P;
+    Eigen::MatrixXd Q;
+    Eigen::MatrixXd R;
+    Eigen::MatrixXd T;
+    Eigen::MatrixXd P;
 public:
-    Eigen::Matrix<double, N, N> QR_and_getQ(Eigen::Matrix<double, N, N> toDecompose);
-    Eigen::Matrix<double, N, N> getD();
-    Eigen::Matrix<double, N, N> getT();
+    Eigen::MatrixXd QR_and_getQ(Eigen::MatrixXd toDecompose);
+    Eigen::MatrixXd getD();
+    Eigen::MatrixXd getT();
+    TDQ() : Q(N, N), R(N, N), T(N, N), P(N, N)  {
+    };
 };
 
 template< int N >
-Eigen::Matrix<double, N, N> TDQ<N>::QR_and_getQ( Eigen::Matrix<double, N, N> toDecompose )
+Eigen::MatrixXd TDQ<N>::QR_and_getQ( Eigen::MatrixXd toDecompose )
 {
-    Eigen::ColPivHouseholderQR< Eigen::Matrix<double, N, N> > colPivQrHH( toDecompose.colwise().reverse().transpose() );
+    Eigen::ColPivHouseholderQR< Eigen::MatrixXd > colPivQrHH( toDecompose.colwise().reverse().transpose() );
     Q = colPivQrHH.householderQ();
     R = colPivQrHH.matrixQR().template triangularView<Eigen::Upper>();
     R = R.transpose().colwise().reverse().rowwise().reverse().eval();
@@ -34,13 +36,13 @@ Eigen::Matrix<double, N, N> TDQ<N>::QR_and_getQ( Eigen::Matrix<double, N, N> toD
 }
 
 template< int N >
-Eigen::Matrix<double, N, N> TDQ<N>::getD()
+Eigen::MatrixXd TDQ<N>::getD()
 {
     return ( R.diagonal() ).asDiagonal();
 }
 
 template< int N >
-Eigen::Matrix<double, N, N> TDQ<N>::getT()
+Eigen::MatrixXd TDQ<N>::getT()
 {
     T = Eigen::Matrix<double, N, N>::Identity();
     for (int a = 0; a < N; a++)

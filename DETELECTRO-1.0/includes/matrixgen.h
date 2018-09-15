@@ -15,7 +15,7 @@
 template<int N>
 class Geometry
 {
-    Eigen::Matrix<double, N, N> B;
+    Eigen::MatrixXd B;
     //  the minimal model of Liu2013 has 9 parameters
     //  the hopping t0 is taken as the argument t, which in the
     //  uniform hopping case is multiplied by all elements
@@ -39,7 +39,7 @@ public:
     void twoDimensionalRectanglePBC(int Ny, double t, double dt, double mu);
     void twoDimensionalRectangleOBC(int Ny, double t, double dt, double mu);
     void computeExponential(double t, double dt);
-    Eigen::Matrix<double, N, N> getB();
+    Eigen::MatrixXd getB();
     void trianglePBC();
     void triangleNanoribbon(int Ny);
     void hcPBC();
@@ -47,7 +47,9 @@ public:
     void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8]);
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
-    Eigen::Matrix<double, N, N> BpreFactor(double dt, double mu);
+    Eigen::MatrixXd BpreFactor(double dt, double mu);
+    Geometry() : B(N, N) {
+    };
 };
 
 template<int N>
@@ -63,8 +65,8 @@ void Geometry<N>::oneDimensionalChainPBC(double t, double dt, double mu)
 //    {
 //        B(i, i - 1) += 1; B(i, i + 1) += 1;
 //    }
-    Eigen::Matrix<double, N, N> exp_k1 = Eigen::Matrix<double, N, N>::Zero();
-    Eigen::Matrix<double, N, N> exp_k2 = Eigen::Matrix<double, N, N>::Zero();
+    Eigen::MatrixXd exp_k1 = Eigen::Matrix<double, N, N>::Zero();
+    Eigen::MatrixXd exp_k2 = Eigen::Matrix<double, N, N>::Zero();
     for (int i = 1; i < N / 2; i++)
     {
         exp_k1(2 * i, 2 * i) = cosh( t * dt );
@@ -102,8 +104,8 @@ void Geometry<N>::oneDimensionalChainOBC(double t, double dt, double mu)
 //    }
 //      //Compute the exponential
 //    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * (dt * t * B).exp();
-    Eigen::Matrix<double, N, N> exp_k1 = Eigen::Matrix<double, N, N>::Zero();
-    Eigen::Matrix<double, N, N> exp_k2 = Eigen::Matrix<double, N, N>::Zero();
+    Eigen::MatrixXd exp_k1 = Eigen::Matrix<double, N, N>::Zero();
+    Eigen::MatrixXd exp_k2 = Eigen::Matrix<double, N, N>::Zero();
     for (int i = 1; i < N / 2; i++)
     {
         exp_k1(2 * i, 2 * i) = cosh( t * dt );
@@ -807,13 +809,13 @@ void Geometry<N>::tmdNanoribbon(int Ny)
 }
 
 template<int N>
-Eigen::Matrix<double, N, N> Geometry<N>::getB()
+Eigen::MatrixXd Geometry<N>::getB()
 {
     return B;
 }
 
 template<int N>
-Eigen::Matrix<double, N, N> Geometry<N>::BpreFactor(double dt, double mu)
+Eigen::MatrixXd Geometry<N>::BpreFactor(double dt, double mu)
 {
     return exp(dt * mu) * B;
 }
@@ -873,16 +875,17 @@ void Configuration<L, N>::flip(int l, int i)
 template<int N, int L>
 class OneParticlePropagators
 {
-    Eigen::Matrix<double, N, N> B[L];
+    Eigen::MatrixXd B[L];
 public:
-    void fillMatrices(bool spin, double nu, Eigen::Matrix<double, L, N> h, Eigen::Matrix<double, N, N> BpreFactor);
-    Eigen::Matrix<double, N, N> matrix(int l);
-    Eigen::Matrix<double, N, N> * list();
+    void fillMatrices(bool spin, double nu, Eigen::Matrix<double, L, N> h, Eigen::MatrixXd BpreFactor);
+    Eigen::MatrixXd matrix(int l);
+    Eigen::MatrixXd * list();
     void update(int l, int i, double alpha);
 };
 
 template<int N, int L>
-void OneParticlePropagators<N, L>::fillMatrices(bool spin, double nu, Eigen::Matrix<double, L, N> h, Eigen::Matrix<double, N, N> BpreFactor)
+void OneParticlePropagators<N, L>::fillMatrices(bool spin, double nu,
+   Eigen::Matrix<double, L, N> h, Eigen::MatrixXd BpreFactor)
 {
     int i;
     int l;
@@ -915,13 +918,13 @@ void OneParticlePropagators<N, L>::update(int l, int i, double alpha)
 }
 
 template<int N, int L>
-Eigen::Matrix<double, N, N> OneParticlePropagators<N, L>::matrix(int l)
+Eigen::MatrixXd OneParticlePropagators<N, L>::matrix(int l)
 {
     return B[l];
 }
 
 template<int N, int L>
-Eigen::Matrix<double, N, N> * OneParticlePropagators<N, L>::list()
+Eigen::MatrixXd * OneParticlePropagators<N, L>::list()
 {
     return B;
 }
