@@ -215,7 +215,7 @@ int main(int argc, char **argv)
     double nUp_nDw = 0;
     // double Hkin = 0;
     double zzAFstFactor = 0;
-    Eigen::Matrix<double, NSITES, NSITES> SiSj =
+    Eigen::MatrixXd SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double meanSign = 0;
 

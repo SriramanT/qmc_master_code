@@ -29,13 +29,13 @@ class Green
     Eigen::Matrix<double, -1, -1> Gzero;
     //  ALLOCATE MEMORY TO STORE THE PARTIAL PRODUCTS INVOLVED IN
     //  SPEEDING UP THE LOW TEMPERATURE STABILIZATION.
-    Eigen::Matrix<double, N, N> Us[Lbda];
-    Eigen::Matrix<double, N, N> Ds[Lbda];
-    Eigen::Matrix<double, N, N> Vs[Lbda];
+    Eigen::MatrixXd Us[Lbda];
+    Eigen::MatrixXd Ds[Lbda];
+    Eigen::MatrixXd Vs[Lbda];
 public:
     //  COMPUTING ELEMENTS OF THE GREEN'S FUNCTION
     void update(double alpha, double d, int i);
-    void wrap(Eigen::Matrix<double, N, N> B);
+    void wrap(Eigen::MatrixXd B);
     void computeGreenNaive(Eigen::Matrix<double, N, N>* Bs, int l);
     void computeStableGreenNaiveR(Eigen::Matrix<double, N, N>* Bs, int l);
     void computeStableGreenNaiveL(Eigen::Matrix<double, N, N>* Bs, int l);
@@ -73,7 +73,7 @@ void Green<N, L, Lbda>::update(double alpha, double d, int i)
 }
 
 template<int N, int L, int Lbda>
-void Green<N, L, Lbda>::wrap(Eigen::Matrix<double, N, N> B)
+void Green<N, L, Lbda>::wrap(Eigen::MatrixXd B)
 {
     G = B * G * B.inverse();
     Gforward = B * Gforward;

@@ -1,6 +1,6 @@
 //
 //  QDT.h
-//  
+//
 //
 //  Created by Francisco Brito on 18/06/2018.
 //
@@ -11,32 +11,34 @@
 template< int N >
 class QDT
 {
-    Eigen::Matrix<double, N, N> R;
-    Eigen::Matrix<double, N, N> T;
-    Eigen::Matrix<double, N, N> P;
+    Eigen::MatrixXd R;
+    Eigen::MatrixXd T;
+    Eigen::MatrixXd P;
 public:
-    Eigen::Matrix<double, N, N> QR_and_getQ(Eigen::Matrix<double, N, N> toDecompose);
-    Eigen::Matrix<double, N, N> getD();
-    Eigen::Matrix<double, N, N> getT();
+    Eigen::MatrixXd QR_and_getQ(Eigen::MatrixXd toDecompose);
+    Eigen::MatrixXd getD();
+    Eigen::MatrixXd getT();
+    QDT() : R(N, N), T(N, N), P(N, N) {
+    };
 };
 
 template< int N >
-Eigen::Matrix<double, N, N> QDT<N>::QR_and_getQ( Eigen::Matrix<double, N, N> toDecompose )
+Eigen::MatrixXd QDT<N>::QR_and_getQ( Eigen::MatrixXd toDecompose )
 {
-    Eigen::ColPivHouseholderQR< Eigen::Matrix<double, N, N> > colPivQrHH( toDecompose );
+    Eigen::ColPivHouseholderQR< Eigen::MatrixXd > colPivQrHH( toDecompose );
     R = colPivQrHH.matrixQR().template triangularView<Eigen::Upper>();
     P = colPivQrHH.colsPermutation();
     return colPivQrHH.householderQ();
 }
 
 template< int N >
-Eigen::Matrix<double, N, N> QDT<N>::getD()
+Eigen::MatrixXd QDT<N>::getD()
 {
     return ( R.diagonal() ).asDiagonal();
 }
 
 template< int N >
-Eigen::Matrix<double, N, N> QDT<N>::getT()
+Eigen::MatrixXd QDT<N>::getT()
 {
     T = Eigen::Matrix<double, N, N>::Identity();
     for (int a = 0; a < N; a++)
