@@ -1,8 +1,8 @@
 //
-//  main.cpp
+//  mainUneqTime.cpp
 //
 //
-//  Created by Francisco Brito on 08/06/2018.
+//  Created by Francisco Brito on 17/09/2018.
 //
 //  This program simulates the Hubbard model for an arbitrary geometry lattice
 //  using auxiliary field (or determinant) Quantum Monte Carlo: in particular, the BSS algorithm.
@@ -27,20 +27,8 @@
 #define BETA 2  //  inverse temperature
 #endif
 
-#ifndef HOPPING
-#define HOPPING 1 //  hopping parameter. set to 1 by default.
-#endif
-
 #ifndef GREEN_AFRESH_FREQ
 #define GREEN_AFRESH_FREQ 4  //   how often to calculate Green's functions afresh (in # im-time slices)
-#endif
-
-#ifndef GEOM
-#define GEOM 1  //   geometry (for example, 1 stands for a 1D chain with PBCs - see makefile)
-#endif
-
-#ifndef NY
-#define NY 0    //   geometry parameter to define width of the simulated sample
 #endif
 
 #include <iostream>
@@ -57,16 +45,19 @@
 
 int main(int argc, char **argv)
 {
-    if ( argc != 6) //  U, mu, # sweeps, # warm-up sweeps, geometry
+    if ( argc != 9) //  U, mu, # sweeps, # warm-up sweeps, geometry
     {
         return -1;
     }
 
-    double U = atof(argv[1]);  //  on-site interaction
-    double mu = atof(argv[2]);  //  chemical potential
-    int totalMCSweeps = atof(argv[3]);  //  number of sweeps
-    int W = atof(argv[4]);  //  number of warm-up sweeps
-    int A = atof(argv[5]);  //  number of auto-correlation sweeps
+    double t = atof(argv[1]);  //  tight binding parameter
+    double U = atof(argv[2]);  //  on-site interaction
+    double mu = atof(argv[3]);  //  chemical potential
+    int geom = atof(argv[4]);  //   geometry (for example, 1 stands for a 1D chain with PBCs - see makefile)
+    int Ny = atof(argv[5]);    //   geometry parameter to define width of the simulated sample
+    int totalMCSweeps = atof(argv[6]);  //  number of sweeps
+    int W = atof(argv[7]);  //  number of warm-up sweeps
+    int A = atof(argv[8]);  //  number of auto-correlation sweeps
 
     double dt = 1. / DT_INV;  //  Trotter error, or time subinterval width. error scales as dt^2
     const int L = BETA * DT_INV;  //  # slices
@@ -88,49 +79,94 @@ int main(int argc, char **argv)
     //  HOPPING MATRIX
     Geometry< NSITES > K;
     //  1D CHAIN PBC
-    if (GEOM == 1)
+    if (geom == 1)
     {
-        K.oneDimensionalChainPBC(HOPPING, dt, mu);
+        K.oneDimensionalChainPBC(t, dt, mu);
     }
     //  1D CHAIN OBC
-    if (GEOM == 2)
+    if (geom == 2)
     {
-        K.oneDimensionalChainOBC(HOPPING, dt, mu);
+        K.oneDimensionalChainOBC(t, dt, mu);
     }
     //  SQUARE LATTICE PBC
-    if (GEOM == 3)
+    if (geom == 3)
     {
-        K.twoDimensionalRectanglePBC(sqrt(NSITES), HOPPING, dt, mu);
+        K.twoDimensionalRectanglePBC(sqrt(NSITES), t, dt, mu);
     }
     //  SQUARE LATTICE OBC
-    if (GEOM == 4)
+    if (geom == 4)
     {
-        K.twoDimensionalRectangleOBC(sqrt(NSITES), HOPPING, dt, mu);
+        K.twoDimensionalRectangleOBC(sqrt(NSITES), t, dt, mu);
     }
     //  RECTANGULAR LATTICE PBC
-    if (GEOM == 5)
+    if (geom == 5)
     {
-        K.twoDimensionalRectanglePBC(NY, HOPPING, dt, mu);
+        K.twoDimensionalRectanglePBC(Ny, t, dt, mu);
     }
     //  RECTANGULAR LATTICE OBC
-    if (GEOM == 6)
+    if (geom == 6)
     {
-        K.twoDimensionalRectangleOBC(NY, HOPPING, dt, mu);
+        K.twoDimensionalRectangleOBC(Ny, t, dt, mu);
+    }
+    //  TRIANGULAR LATTICE PBC
+    if (geom == 6)
+    {
+
     }
     //  HONEYCOMB LATTICE PBC
-    if (GEOM == 7)
+    if (geom == 9)
     {
-        std::cout << "Honeycomb" << std::endl;
+        K.hcPBC();
+        K.computeExponential(t, dt);
     }
     //  NANORIBBON
-    if (GEOM == 8)
+    if (geom == 10)
     {
-        K.nanoribbon(NY, HOPPING, dt, mu);
+        K.hcNanoribbon(Ny);
+        K.computeExponential(t, dt);
     }
-    //  DOT
-    if (GEOM == 9)
+    //  3 ORBITAL TIGHT BIDING MODEL ON THE M-ATOM TRIANGULAR LATTICE
+    //  MODEL OF A TMD NANORIBBON (SEE Liu2013)
+    //  MoS2
+    if (geom == 14)
     {
-        std::cout << "Dot" << std::endl;
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdPBC();
+
+        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
+        std::ofstream TMDhopping("temp-data/tmd-hopping.csv");
+        if (TMDhopping.is_open())
+        {
+            TMDhopping << K.matrix() << '\n';
+        }
+        TMDhopping.close();
+        K.computeExponential(t, dt);
+    }
+    if (geom == 15)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdNanoribbon(Ny);
+
+        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
+        std::ofstream TMDhoppingNano("temp-data/tmd-hopping-nanoribbon.csv");
+        if (TMDhoppingNano.is_open())
+        {
+            TMDhoppingNano << K.matrix() << '\n';
+        }
+        TMDhoppingNano.close();
+        K.computeExponential(t, dt);
     }
 
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
@@ -161,16 +197,29 @@ int main(int argc, char **argv)
     double * weights = new double[W * L];
     double electronDensities = 0;
     double doubleOcs = 0;
-    Eigen::Matrix<double, NSITES, NSITES>  magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    //Eigen::Matrix<double, NSITES, NSITES> * uneqMagCorrs = new Eigen::Matrix<double, NSITES, NSITES>[totalMCSweeps];
-    //uneqMagCorrs[0] = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    double weight = 0.;
+    double energies = 0;
+    double zzMags = 0;
+    Eigen::MatrixXd magCorrs =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::Matrix<double, NSITES, NSITES> * uneqMagCorrs
+    = new Eigen::Matrix<double, NSITES, NSITES>[totalMCSweeps];
+    uneqMagCorrs[0] = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+
+    double LOGweight = 0.;
+    // double sign = std::copysign(1, Gup->matrix().determinant()
+    //   * Gdown->matrix().determinant() );
+    double sign = 1;
     double electronDensity;
     double doubleOc;
-    Eigen::Matrix<double, NSITES, NSITES> magCorr;
+    double energy;
+    double zzMag;
+    Eigen::MatrixXd magCorr = Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double nEl = 0;
     double nUp_nDw = 0;
-    Eigen::Matrix<double, NSITES, NSITES> SiSj = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    double Hkin = 0;
+    double zzAFstFactor = 0;
+    Eigen::MatrixXd SiSj =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double meanSign = 0;
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
@@ -187,23 +236,31 @@ int main(int argc, char **argv)
         //  DISPLAY PROGRESS OF THE RUN.
         if ( (step + 1)  % (totalMCSteps/8) == 0 )
         {
-            std::cout << (step + 1) * 1. / totalMCSteps * 100 << '%' << std::endl << std::endl;
-            std::cout << "Average Sign: " << meanSign << std::endl << std::endl;
-            std::cout << "Log Weight: " << weight << std::endl << std::endl;
+            std::cout << (step + 1) * 1. / totalMCSteps * 100 << " %"
+              << std::endl << std::endl;
+            std::cout << "Average Sign: " << meanSign
+              << std::endl << std::endl;
+            std::cout << "Log Weight: " << LOGweight
+              << std::endl << std::endl;
         }
 
         //  COMPUTE THE ACCEPTANCE RATIO.
-        alphaUp = ( exp( -2 * h->get(l, i) * nu ) - 1 ); alphaDown = ( exp( 2 * h->get(l, i) * nu ) - 1 );
-        dUp = ( 1 + alphaUp  * ( 1 - Gup->get(i, i) ) ); dDown = ( 1 + alphaDown  * ( 1 - Gdown->get(i, i) ) );
+        alphaUp = ( exp( -2 * h->get(l, i) * nu ) - 1 );
+        alphaDown = ( exp( 2 * h->get(l, i) * nu ) - 1 );
+        dUp = ( 1 + alphaUp  * ( 1 - Gup->get(i, i) ) );
+        dDown = ( 1 + alphaDown  * ( 1 - Gdown->get(i, i) ) );
         //  SAMPLING: METROPOLIS OR HEAT BATH
-        accRatio = fabs( dUp * dDown ); // accRatio = dUp * dDown / ( 1 + dUp * dDown );
+        accRatio = fabs( dUp * dDown );
+        // accRatio = fabs( dUp * dDown / ( 1 + dUp * dDown ) );
+
         //  DECIDE WHETHER OR NOT TO ACCEPT THE STEP.
         decisionMaker = dis(gen);
 
         if (decisionMaker <= accRatio )
         {
             //  KEEP TRACK OF WEIGHT
-            weight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
+            LOGweight += log( fabs( dUp ) ) + log( fabs ( dDown ) );
+            sign *= std::copysign(1, dUp * dDown );
             //  FLIP A SPIN
             h->flip(l, i);
             //  UPDATE Bs
@@ -211,8 +268,6 @@ int main(int argc, char **argv)
             //  RANK-ONE UPDATE -> O(N^2)
             Gup->update(alphaUp, dUp, i); Gdown->update(alphaDown, dDown, i);
         }
-        //  KEEP TRACK OF THE SIGN.
-        meanSign += ( std::copysign(1., dUp * dDown) - meanSign ) / ( step + 1 );
 
 
         // --- COMPUTE WRAPPED GREEN'S FUNCTIONS. ---
@@ -227,87 +282,134 @@ int main(int argc, char **argv)
             //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH.
             latticeSweepUntilAfresh += 1;
             //  --- MEASUREMENTS ---
-            if ( sweep <= W )
+            if ( sweep < W )
             {
               //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
-              weights[sweep * L + l] = weight;
+              weights[sweep * L + l] = LOGweight;
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
-            electronDensity = 0.; doubleOc = 0.;
+            electronDensity = 0.; doubleOc = 0.; zzMag = 0.; energy = 0.;
             for (int x = 0; x < NSITES; x++)
             {
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
-                doubleOc = doubleOc - Gup->get(x, x) - Gdown->get(x, x) + Gup->get(x, x) * Gdown->get(x, x);
-                magCorr(x, x) =  ( Gup->get(x, x) + Gdown->get(x, x) ) - 2 * Gup->get(x, x) * Gdown->get(x, x);
-                // if (l == 0)
-                // {
-                //     uneqMagCorrs[sweep](x, x) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
-                //     + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(x, x) ) + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
-                //     + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(x, x) )
-                //     - Gup->zero(x, x) * Gup->zero(x, x) - Gdown->zero(x, x) * Gdown->zero(x, x)
-                //     - 4 * Gdown->zero(x, x) * Gup->zero(x, x);
-                // }
-                // else
-                // {
-                //     uneqMagCorrs[sweep](x, x) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(x, x) )
-                //     + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(x, x) ) + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(x, x) )
-                //     + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(x, x) )
-                //     - Gup->uneqBackward(x, x) * Gup->uneqForward(x, x) - Gdown->uneqBackward(x, x) * Gdown->uneqForward(x, x)
-                //     - 2 * Gdown->uneqBackward(x, x) * Gup->uneqForward(x, x) - 2 * Gup->uneqBackward(x, x) * Gdown->uneqForward(x, x);
-                // }
+                doubleOc += - Gup->get(x, x) - Gdown->get(x, x) + Gup->get(x, x)
+                * Gdown->get(x, x);
+                magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
+                  - 2 * Gup->get(x, x) * Gdown->get(x, x);
+                zzMag += magCorr(x, x);
+                energy += 2 * ( Gup->get(x, x) + Gdown->get(x, x) ) * t * K.get(x, x);
+                if (l == 0)
+                {
+                    uneqMagCorrs[sweep](x, x) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
+                    + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(x, x) )
+                    + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
+                    + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(x, x) )
+                    - Gup->zero(x, x) * Gup->zero(x, x) - Gdown->zero(x, x) * Gdown->zero(x, x)
+                    - 4 * Gdown->zero(x, x) * Gup->zero(x, x);
+                }
+                else
+                {
+                    uneqMagCorrs[sweep](x, x) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(x, x) )
+                     + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(x, x) )
+                     + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(x, x) )
+                     + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(x, x) )
+                     - Gup->uneqBackward(x, x) * Gup->uneqForward(x, x)
+                     - Gdown->uneqBackward(x, x) * Gdown->uneqForward(x, x)
+                     - 2 * Gdown->uneqBackward(x, x) * Gup->uneqForward(x, x)
+                     - 2 * Gup->uneqBackward(x, x) * Gdown->uneqForward(x, x);
+                }
                 for (int y = 0; y < x; y++)
                 {
-                  magCorr(x, y) =
-                  - ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->get(y, y) )
-                  - ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->get(y, y) )
-                  + ( 1 - Gup->get(x, x) ) * ( 1 - Gup->get(y, y) )
-                  + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->get(y, y) )
-                  + ( 1 - Gup->get(y, x) ) * Gup->get(x, y)
-                  + ( 1 - Gdown->get(y, x) ) * Gdown->get(x, y);
-                  magCorr(y, x) = magCorr(x, y);
-                //     if (l == 0)
-                //     {
-                //         uneqMagCorrs[sweep](x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(y, y) ) + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
-                //         - Gup->zero(y, x) * Gup->zero(x, y) - Gdown->zero(y, x) * Gdown->zero(x, y)
-                //         - 4 * Gdown->zero(y, x) * Gup->zero(x, y);
-                //     }
-                //     else
-                //     {
-                //         uneqMagCorrs[sweep](x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(y, y) ) + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
-                //         - Gup->uneqBackward(y, x) * Gup->uneqForward(x, y) - Gdown->uneqBackward(y, x) * Gdown->uneqForward(x, y)
-                //         - 2 * Gdown->uneqBackward(y, x) * Gup->uneqForward(x, y) - 2 * Gup->uneqBackward(y, x) * Gdown->uneqForward(x, y);
-                //     }
+                    magCorr(x, y) =
+                      - ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->get(y, y) )
+                      - ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->get(y, y) )
+                      + ( 1 - Gup->get(x, x) ) * ( 1 - Gup->get(y, y) )
+                      + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->get(y, y) )
+                      - Gup->get(y, x) * Gup->get(x, y)
+                      - Gdown->get(y, x) * Gdown->get(x, y);
+                    magCorr(y, x) = magCorr(x, y);
+                    energy += ( Gup->get(x, y) + Gdown->get(x, y)
+                      + Gup->get(y, x) + Gdown->get(y, x) ) * t * K.get(x, y);
+                    if ( geom == 1 or geom == 2 )
+                    {
+                      zzMag += 2 * pow(-1, x - y ) * magCorr(x, y);
+                    }
+
+                    if ( geom == 3 or geom == 4 or geom == 5 or geom == 6 )
+                    {
+                        if ( ( x + ( ( x - x % int (sqrt(NSITES)) )
+                          / int (sqrt(NSITES)) ) % 2 ) % 2
+                          == ( y + ( ( y - y % int (sqrt(NSITES)) )
+                          / int (sqrt(NSITES)) ) % 2 ) % 2 )
+                        {
+                            zzMag += 2 * magCorr(x, y);
+                        }
+                        else
+                        {
+                            zzMag -= 2 * magCorr(x, y);
+                        }
+                    }
+                    if (l == 0)
+                    {
+                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        - Gup->zero(y, x) * Gup->zero(x, y)
+                        - Gdown->zero(y, x) * Gdown->zero(x, y)
+                        - 4 * Gdown->zero(y, x) * Gup->zero(x, y);
+                    }
+                    else
+                    {
+                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        - Gup->uneqBackward(y, x) * Gup->uneqForward(x, y)
+                        - Gdown->uneqBackward(y, x) * Gdown->uneqForward(x, y)
+                        - 2 * Gdown->uneqBackward(y, x) * Gup->uneqForward(x, y)
+                        - 2 * Gup->uneqBackward(y, x) * Gdown->uneqForward(x, y);
+                    }
                 }
-                // for (int y = x + 1; y < NSITES; y++)
-                // {
-                //     if (l == 0)
-                //     {
-                //         uneqMagCorrs[sweep](x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(y, y) ) + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
-                //         - Gup->zero(y, x) * Gup->zero(x, y) - Gdown->zero(y, x) * Gdown->zero(x, y)
-                //         - 4 * Gdown->zero(y, x) * Gup->zero(x, y);
-                //     }
-                //     else
-                //     {
-                //         uneqMagCorrs[sweep](x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(y, y) ) + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(y, y) )
-                //         + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
-                //         - Gup->uneqBackward(y, x) * Gup->uneqForward(x, y) - Gdown->uneqBackward(y, x) * Gdown->uneqForward(x, y)
-                //         - 2 * Gdown->uneqBackward(y, x) * Gup->uneqForward(x, y) - 2 * Gup->uneqBackward(y, x) * Gdown->uneqForward(x, y);
-                //     }
-                // }
+                for (int y = x + 1; y < NSITES; y++)
+                {
+                    if (l == 0)
+                    {
+                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        - Gup->zero(y, x) * Gup->zero(x, y)
+                        - Gdown->zero(y, x) * Gdown->zero(x, y)
+                        - 4 * Gdown->zero(y, x) * Gup->zero(x, y);
+                    }
+                    else
+                    {
+                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
+                        - Gup->uneqBackward(y, x) * Gup->uneqForward(x, y)
+                        - Gdown->uneqBackward(y, x) * Gdown->uneqForward(x, y)
+                        - 2 * Gdown->uneqBackward(y, x) * Gup->uneqForward(x, y)
+                        - 2 * Gup->uneqBackward(y, x) * Gdown->uneqForward(x, y);
+                    }
+                }
             }
             electronDensity /= NSITES; electronDensity += 2;
             doubleOc /= NSITES; doubleOc += 1;
+            zzMag /= NSITES; energy /= NSITES;
 
-            electronDensities += ( electronDensity - electronDensities ) / ( l + 1 ) ;
-            doubleOcs +=  ( doubleOc - doubleOcs ) / ( l + 1 ) ;
-            magCorrs += (magCorr - magCorrs ) / ( l + 1 );
+            electronDensities +=
+              ( electronDensity * sign - electronDensities ) / ( l + 1 ) ;
+            doubleOcs +=
+              ( doubleOc * sign - doubleOcs ) / ( l + 1 ) ;
+            magCorrs +=
+              (magCorr * sign - magCorrs ) / ( l + 1 );
+            zzMags +=
+              (zzMag * sign - zzMags ) / ( l + 1 );
+            energies +=
+              ( energy * sign - energies ) / ( l + 1 ) ;
 
 
             //  DEAL WITH THE GREEN'S FUNCTIONS.
@@ -317,17 +419,24 @@ int main(int argc, char **argv)
             if (latticeSweepUntilAfresh == GREEN_AFRESH_FREQ)
             {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
                 //  Uncomment to compute the product in the naive, unstable manner
-//                Gup->computeGreenNaive(Bup->list(), l); Gdown->computeGreenNaive(Bdown->list(), l);
+//                Gup->computeGreenNaive(Bup->list(), l);
+//                Gdown->computeGreenNaive(Bdown->list(), l);
                 //  Uncomment to compute the product in the stabilized, but slightly inefficient way
-//                Gup->computeStableGreenNaiveR(Bup->list(), l); Gdown->computeStableGreenNaiveR(Bdown->list(), l);
+//                Gup->computeStableGreenNaiveR(Bup->list(), l);
+//                Gdown->computeStableGreenNaiveR(Bdown->list(), l);
                 //  Most efficient solution (storing decompositions)
                 if (l != ( L - 1 ) )
                 {
-                    Gup->storeUDV(Bup->list(), l, GREEN_AFRESH_FREQ); Gdown->storeUDV(Bdown->list(), l, GREEN_AFRESH_FREQ);
-                    //  This is the standard way described in "Stable simulations of models of interacting electrons"
-//                    Gup->computeStableGreen(l, GREEN_AFRESH_FREQ); Gdown->computeStableGreen(l, GREEN_AFRESH_FREQ);
-//                    //  Using the BlockOfGreens Method, we can obtain time-displaced Green's as well
-                    Gup->computeBlockOfGreens(l, GREEN_AFRESH_FREQ); Gdown->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
+                    Gup->storeUDV(Bup->list(), l, GREEN_AFRESH_FREQ);
+                    Gdown->storeUDV(Bdown->list(), l, GREEN_AFRESH_FREQ);
+                    //  This is the standard way described in "Stable simulations
+                    //  of models of interacting electrons"
+//                    Gup->computeStableGreen(l, GREEN_AFRESH_FREQ);
+//                    Gdown->computeStableGreen(l, GREEN_AFRESH_FREQ);
+                    //  Using the BlockOfGreens Method, we can obtain
+                    //  time-displaced Green's as well
+                    Gup->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
+                    Gdown->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
                 }
                 else
                 {
@@ -363,52 +472,81 @@ int main(int argc, char **argv)
         }
     }   //  END OF MC LOOP.
 
+    //  Normalize to mean sign
+    nEl /= meanSign; nUp_nDw /= meanSign; SiSj /= meanSign; zzAFstFactor /= meanSign;
+    Hkin /= meanSign;
+
     std::cout << "Simulation ended" << std::endl << std::endl;
-    std::cout << "Average Sign: " << meanSign << std::endl << std::endl;
     std::cout << "nEl: " << nEl << std::endl << std::endl;
     std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
+    std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << std::endl << std::endl;
+    std::cout << "Hkin: " << Hkin << std::endl << std::endl;
+    std::cout << "Hint: " << U * nUp_nDw << std::endl << std::endl;
+    std::cout << "E: " << Hkin + U * nUp_nDw - mu * NSITES << std::endl << std::endl;
 
     //  SAVE OUTPUT.
-    std::ofstream file0("temp-data/simulationParameters.txt");
+    std::ofstream file0("temp-data/simulationParameters.csv");
     if (file0.is_open())
     {
-      file0 << std::left << std::setw(50) << "Number_of_sites" << NSITES << '\n';
-      file0 << std::left << std::setw(50) << "dt" << dt << '\n';
-      file0 << std::left << std::setw(50) << "beta" << BETA << '\n';
-      file0 << std::left << std::setw(50) << "L" << L << '\n';
-      file0 << std::left << std::setw(50) << "t" << HOPPING << '\n';
-      file0 << std::left << std::setw(50) << "U" << U << '\n';
-      file0 << std::left << std::setw(50) << "mu" << mu << '\n';
-      file0 << std::left << std::setw(50) << "totalMCSweeps" << totalMCSweeps << '\n';
-      file0 << std::left << std::setw(50) << "Frequency_of_recomputing_G"
+      file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
+      file0 << std::left << std::setw(50) << "dt," << dt << '\n';
+      file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
+      file0 << std::left << std::setw(50) << "L," << L << '\n';
+      file0 << std::left << std::setw(50) << "t," << t << '\n';
+      file0 << std::left << std::setw(50) << "U," << U << '\n';
+      file0 << std::left << std::setw(50) << "mu," << mu << '\n';
+      file0 << std::left << std::setw(50) << "totalMCSweeps," << totalMCSweeps << '\n';
+      file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
         << GREEN_AFRESH_FREQ << '\n';
       file0 << std::left << std::setw(50)
-        << "Number_of_multiplied_Bs_after_stabilization" << Lbda << '\n';
-      file0 << std::left << std::setw(50) << "Geometry" << GEOM << '\n';
-      file0 << std::left << std::setw(50) << "Ny" << NY << '\n';
+        << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+      file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
+      file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
     } file0.close();
     //  STORE MEASUREMENTS
-    std::ofstream file1("temp-data/Log-weights.txt");
-    std::ofstream file2("plots/EqTimeSzCorrelations.txt");
-    if ( file1.is_open() and file2.is_open() )
+    std::ofstream file1("temp-data/Log-weights.csv");
+    std::ofstream file2("temp-data/MeasurementsScalars.csv");
+    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
+    if ( file1.is_open() and file2.is_open() and file3.is_open() )
     {
-        file1 << std::left << std::setw(25) << "Configuration weight" << '\n';
-        file2 << std::left << std::setw(25) << "<S_i S_j >" << '\n';
+        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
         {
             for (int slice = 0; slice < L; slice++)
             {
-                file1 << std::left << std::setw(25) << weights[s * L + slice] << '\n';
+                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
             }
         }
-        file2 << SiSj << '\n';
-        file1 << '\n';
+        file2 << std::left << std::setw(50) << "Electron density <n>,";
+        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+        file2 << std::left << std::setw(50) << "ZZ AF Structure Factor,";
+        file2 << std::left << std::setw(50) << "< m^2 >,";
+        file2 << std::left << std::setw(50) << "Hkin,";
+        file2 << std::left << std::setw(50) << "Hint,";
+        file2 << std::left << std::setw(50) << "E" << '\n';
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nUp_nDw << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << zzAFstFactor << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl - 2 * nUp_nDw << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << U * nUp_nDw << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin + U * nUp_nDw - mu * NSITES << '\n';
+        file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
+        file3 << std::setprecision(10) << SiSj << '\n';
     }
     file1.close();
     file2.close();
+    file3.close();
 
-    delete[] weights;
-    delete Gup; delete Gdown; delete h;
+    delete[] weights; delete uneqMagCorrs[];
+    delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
 
     return 0;
-}
+    }

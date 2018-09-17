@@ -1,8 +1,8 @@
 //
-//  main.cpp
+//  mainEqTime.cpp
 //
 //
-//  Created by Francisco Brito on 08/06/2018.
+//  Created by Francisco Brito on 17/09/2018.
 //
 //  This program simulates the Hubbard model for an arbitrary geometry lattice
 //  using auxiliary field (or determinant) Quantum Monte Carlo: in particular, the BSS algorithm.
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
         std::ofstream TMDhopping("temp-data/tmd-hopping.csv");
         if (TMDhopping.is_open())
         {
-            TMDhopping << K.getB() << '\n';
+            TMDhopping << K.matrix() << '\n';
         }
         TMDhopping.close();
         K.computeExponential(t, dt);
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
         std::ofstream TMDhoppingNano("temp-data/tmd-hopping-nanoribbon.csv");
         if (TMDhoppingNano.is_open())
         {
-            TMDhoppingNano << K.getB() << '\n';
+            TMDhoppingNano << K.matrix() << '\n';
         }
         TMDhoppingNano.close();
         K.computeExponential(t, dt);
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
     double * weights = new double[W * L];
     double electronDensities = 0;
     double doubleOcs = 0;
-    // double energies = 0;
+    double energies = 0;
     double zzMags = 0;
     Eigen::MatrixXd magCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -208,12 +208,12 @@ int main(int argc, char **argv)
     double sign = 1;
     double electronDensity;
     double doubleOc;
-    // double energy;
+    double energy;
     double zzMag;
     Eigen::MatrixXd magCorr = Eigen::Matrix<double, NSITES, NSITES>::Zero();
     double nEl = 0;
     double nUp_nDw = 0;
-    // double Hkin = 0;
+    double Hkin = 0;
     double zzAFstFactor = 0;
     Eigen::MatrixXd SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
               weights[sweep * L + l] = LOGweight;
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
-            electronDensity = 0.; doubleOc = 0.; zzMag = 0.;
+            electronDensity = 0.; doubleOc = 0.; zzMag = 0.; energy = 0.;
             for (int x = 0; x < NSITES; x++)
             {
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
@@ -295,6 +295,7 @@ int main(int argc, char **argv)
                 magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
                   - 2 * Gup->get(x, x) * Gdown->get(x, x);
                 zzMag += magCorr(x, x);
+                energy += 2 * ( Gup->get(x, x) + Gdown->get(x, x) ) * t * K.get(x, x);
                 for (int y = 0; y < x; y++)
                 {
                     magCorr(x, y) =
@@ -305,6 +306,8 @@ int main(int argc, char **argv)
                       - Gup->get(y, x) * Gup->get(x, y)
                       - Gdown->get(y, x) * Gdown->get(x, y);
 		                magCorr(y, x) = magCorr(x, y);
+                    energy += ( Gup->get(x, y) + Gdown->get(x, y)
+                      + Gup->get(y, x) + Gdown->get(y, x) ) * t * K.get(x, y);
                     if ( geom == 1 or geom == 2 )
                     {
                       zzMag += 2 * pow(-1, x - y ) * magCorr(x, y);
@@ -324,11 +327,11 @@ int main(int argc, char **argv)
                 		        zzMag -= 2 * magCorr(x, y);
                 		    }
                     }
-                  }
+                }
             }
             electronDensity /= NSITES; electronDensity += 2;
             doubleOc /= NSITES; doubleOc += 1;
-            zzMag /= NSITES;
+            zzMag /= NSITES; energy /= NSITES;
 
             electronDensities +=
               ( electronDensity * sign - electronDensities ) / ( l + 1 ) ;
@@ -338,6 +341,8 @@ int main(int argc, char **argv)
               (magCorr * sign - magCorrs ) / ( l + 1 );
             zzMags +=
               (zzMag * sign - zzMags ) / ( l + 1 );
+            energies +=
+              ( energy * sign - energies ) / ( l + 1 ) ;
 
             //  DEAL WITH THE GREEN'S FUNCTIONS.
 
@@ -392,10 +397,13 @@ int main(int argc, char **argv)
                        / ( (sweep - W)/A + 1 ) ;
                       zzAFstFactor += ( zzMags - zzAFstFactor )
                        / ( (sweep - W)/A + 1 ) ;
+                      Hkin += ( energies - Hkin )
+                       / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                     zzMags = 0.;
+                    energies = 0.;
 
                 }
                 //  MOVE SWEEP COUNTER
@@ -407,10 +415,15 @@ int main(int argc, char **argv)
 
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSj /= meanSign; zzAFstFactor /= meanSign;
+    Hkin /= meanSign;
 
     std::cout << "Simulation ended" << std::endl << std::endl;
     std::cout << "nEl: " << nEl << std::endl << std::endl;
     std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
+    std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << std::endl << std::endl;
+    std::cout << "Hkin: " << Hkin << std::endl << std::endl;
+    std::cout << "Hint: " << U * nUp_nDw << std::endl << std::endl;
+    std::cout << "E: " << Hkin + U * nUp_nDw - mu * NSITES << std::endl << std::endl;
 
     //  SAVE OUTPUT.
     std::ofstream file0("temp-data/simulationParameters.csv");
@@ -447,13 +460,25 @@ int main(int argc, char **argv)
         }
         file2 << std::left << std::setw(50) << "Electron density <n>,";
         file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
-        file2 << std::left << std::setw(50) << "ZZ AF Structure Factor" << '\n';
+        file2 << std::left << std::setw(50) << "ZZ AF Structure Factor,";
+        file2 << std::left << std::setw(50) << "< m^2 >,";
+        file2 << std::left << std::setw(50) << "Hkin,";
+        file2 << std::left << std::setw(50) << "Hint,";
+        file2 << std::left << std::setw(50) << "E" << '\n';
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nEl << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nUp_nDw << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << zzAFstFactor << '\n';
+        << zzAFstFactor << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl - 2 * nUp_nDw << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << U * nUp_nDw << ",";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin + U * nUp_nDw - mu * NSITES << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
         file3 << std::setprecision(10) << SiSj << '\n';
     }

@@ -16,6 +16,7 @@ template<int N>
 class Geometry
 {
     Eigen::MatrixXd B;
+    Eigen::MatrixXd Hoppings;
     //  the minimal model of Liu2013 has 9 parameters
     //  the hopping t0 is taken as the argument t, which in the
     //  uniform hopping case is multiplied by all elements
@@ -39,7 +40,8 @@ public:
     void twoDimensionalRectanglePBC(int Ny, double t, double dt, double mu);
     void twoDimensionalRectangleOBC(int Ny, double t, double dt, double mu);
     void computeExponential(double t, double dt);
-    Eigen::MatrixXd getB();
+    Eigen::MatrixXd matrix();
+    double get(int x, int y);
     void trianglePBC();
     void triangleNanoribbon(int Ny);
     void hcPBC();
@@ -48,23 +50,24 @@ public:
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
     Eigen::MatrixXd BpreFactor(double dt, double mu);
-    Geometry() : B(N, N) {
+    Geometry() : B(N, N), Hoppings(N, N) {
     };
 };
 
 template<int N>
 void Geometry<N>::oneDimensionalChainPBC(double t, double dt, double mu)
 {
-//    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
-//    B(0, 1) += 1.;
-//    B(0, N - 1) += 1.;
-//    B(N - 1, 0) += 1.;
-//    B(N - 1, N - 2) += 1.;
-//    //  Set the remaining ones
-//    for (int i = 1; i < N - 1; i++)
-//    {
-//        B(i, i - 1) += 1; B(i, i + 1) += 1;
-//    }
+   Hoppings = Eigen::Matrix<double, N, N>::Zero();
+   //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
+   Hoppings(0, 1) += 1.;
+   Hoppings(0, N - 1) += 1.;
+   Hoppings(N - 1, 0) += 1.;
+   Hoppings(N - 1, N - 2) += 1.;
+   //  Set the remaining ones
+   for (int i = 1; i < N - 1; i++)
+   {
+       Hoppings(i, i - 1) += 1; Hoppings(i, i + 1) += 1;
+   }
     Eigen::MatrixXd exp_k1 = Eigen::Matrix<double, N, N>::Zero();
     Eigen::MatrixXd exp_k2 = Eigen::Matrix<double, N, N>::Zero();
     for (int i = 1; i < N / 2; i++)
@@ -92,18 +95,18 @@ void Geometry<N>::oneDimensionalChainPBC(double t, double dt, double mu)
 template<int N>
 void Geometry<N>::oneDimensionalChainOBC(double t, double dt, double mu)
 {
-//    //  Set the elements of the hopping matrix that define OBC corresponding to the ends of the 1D chain
-//    B(0, 1) += 1.;
-//    //  B(0, N - 1) += 1.; //   This hopping only occurs for PBC
-//    //  B(N - 1, 0) += 1.; //   So does this one
-//    B(N - 1, N - 2) += 1.;
-//    //  Set the remaining ones
-//    for (int i = 1; i < N - 1; i++)
-//    {
-//        B(i, i - 1) += 1; B(i, i + 1) += 1;
-//    }
-//      //Compute the exponential
-//    B = exp(dt * mu) * Eigen::Matrix<double, N, N>::Identity() * (dt * t * B).exp();
+    Hoppings = Eigen::Matrix<double, N, N>::Zero();
+    //  Set the elements of the hopping matrix that define OBC
+    //  corresponding to the ends of the 1D chain
+    Hoppings(0, 1) += 1.;
+    //  B(0, N - 1) += 1.; //   This hopping only occurs for PBC
+    //  B(N - 1, 0) += 1.; //   So does this one
+    Hoppings(N - 1, N - 2) += 1.;
+    //  Set the remaining ones
+    for (int i = 1; i < N - 1; i++)
+    {
+       Hoppings(i, i - 1) += 1; Hoppings(i, i + 1) += 1;
+    }
     Eigen::MatrixXd exp_k1 = Eigen::Matrix<double, N, N>::Zero();
     Eigen::MatrixXd exp_k2 = Eigen::Matrix<double, N, N>::Zero();
     for (int i = 1; i < N / 2; i++)
@@ -130,7 +133,35 @@ template<int N>
 void Geometry<N>::twoDimensionalRectanglePBC(int Ny, double t, double dt, double mu)
 {
     int Nx = N / Ny;
-    //  Compute the exponential
+
+    Eigen::MatrixXd HopX = Eigen::MatrixXd::Zero(Nx, Nx);
+    Eigen::MatrixXd HopY =  Eigen::MatrixXd::Zero(Ny, Ny);
+
+    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
+    HopX(0, 1) += 1.;
+    HopX(0, Nx - 1) += 1.;
+    HopX(Nx - 1, 0) += 1.;
+    HopX(Nx - 1, Nx - 2) += 1.;
+    //  Set the remaining ones
+    for (int i = 1; i < Nx - 1; i++)
+    {
+        HopX(i, i - 1) += 1; HopX(i, i + 1) += 1;
+    }
+
+    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
+    HopY(0, 1) += 1.;
+    HopY(0, Ny - 1) += 1.;
+    HopY(Ny - 1, 0) += 1.;
+    HopY(Ny - 1, Ny - 2) += 1.;
+    //  Set the remaining ones
+    for (int i = 1; i < Ny - 1; i++)
+    {
+        HopY(i, i - 1) += 1; HopY(i, i + 1) += 1;
+    }
+
+    Hoppings = Eigen::kroneckerProduct( Eigen::MatrixXd::Identity(Nx, Nx) , HopY ) +
+     Eigen::kroneckerProduct( Eigen::MatrixXd::Identity(Ny, Ny) , HopX );
+
     Eigen::MatrixXd exp_k1x = Eigen::MatrixXd::Zero(Nx, Nx);
     Eigen::MatrixXd exp_k2x = Eigen::MatrixXd::Zero(Nx, Nx);
     for (int i = 1; i < Nx / 2; i++)
@@ -185,7 +216,31 @@ template<int N>
 void Geometry<N>::twoDimensionalRectangleOBC(int Ny, double t, double dt, double mu)
 {
     int Nx = N / Ny;
-    //  Compute the exponential
+
+    Eigen::MatrixXd HopX = Eigen::MatrixXd::Zero(Nx, Nx);
+    Eigen::MatrixXd HopY =  Eigen::MatrixXd::Zero(Ny, Ny);
+
+    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
+    HopX(0, 1) += 1.;
+    HopX(Nx - 1, Nx - 2) += 1.;
+    //  Set the remaining ones
+    for (int i = 1; i < Nx - 1; i++)
+    {
+        HopX(i, i - 1) += 1; HopX(i, i + 1) += 1;
+    }
+
+    //  Set the elements of the hopping matrix that define PBC corresponding to the ends of the 1D chain
+    HopY(0, 1) += 1.;
+    HopY(Ny - 1, Ny - 2) += 1.;
+    //  Set the remaining ones
+    for (int i = 1; i < Ny - 1; i++)
+    {
+        HopY(i, i - 1) += 1; HopY(i, i + 1) += 1;
+    }
+
+    Hoppings = Eigen::kroneckerProduct( Eigen::MatrixXd::Identity(Nx, Nx) , HopY ) +
+     Eigen::kroneckerProduct( Eigen::MatrixXd::Identity(Ny, Ny) , HopX );
+
     Eigen::MatrixXd exp_k1x = Eigen::MatrixXd::Zero(Nx, Nx);
     Eigen::MatrixXd exp_k2x = Eigen::MatrixXd::Zero(Nx, Nx);
     for (int i = 1; i < Nx / 2; i++)
@@ -349,6 +404,7 @@ void Geometry<N>::hcPBC()
             }
         }
     }
+    Hoppings = B;
 }
 
 template<int N>
@@ -440,6 +496,7 @@ void Geometry<N>::hcNanoribbon(int Ny)
             }
         }
     }
+    Hoppings = B;
 }
 
 template<int N>
@@ -670,6 +727,7 @@ void Geometry<N>::tmdPBC()
         }
     }
     B = - B;
+    Hoppings = B;
 }
 
 
@@ -806,12 +864,19 @@ void Geometry<N>::tmdNanoribbon(int Ny)
         }
     }
     B = - B;
+    Hoppings = B;
 }
 
 template<int N>
-Eigen::MatrixXd Geometry<N>::getB()
+Eigen::MatrixXd Geometry<N>::matrix()
 {
-    return B;
+    return Hoppings;
+}
+
+template<int N>
+double Geometry<N>::get(int x, int y)
+{
+    return Hoppings(x, y);
 }
 
 template<int N>
