@@ -295,7 +295,7 @@ int main(int argc, char **argv)
                 magCorr(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
                   - 2 * Gup->get(x, x) * Gdown->get(x, x);
                 zzMag += magCorr(x, x);
-                energy += 2 * ( Gup->get(x, x) + Gdown->get(x, x) ) * t * K.get(x, x);
+                energy += 2 * ( Gup->get(x, x) + Gdown->get(x, x) ) * (t * K.get(x, x) + mu);
                 for (int y = 0; y < x; y++)
                 {
                     magCorr(x, y) =
@@ -423,7 +423,7 @@ int main(int argc, char **argv)
     std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << std::endl << std::endl;
     std::cout << "Hkin: " << Hkin << std::endl << std::endl;
     std::cout << "Hint: " << U * nUp_nDw << std::endl << std::endl;
-    std::cout << "E: " << Hkin + U * nUp_nDw - mu * NSITES << std::endl << std::endl;
+    std::cout << "E: " << Hkin + U * nUp_nDw << std::endl << std::endl;
 
     //  SAVE OUTPUT.
     std::ofstream file0("temp-data/simulationParameters.csv");
