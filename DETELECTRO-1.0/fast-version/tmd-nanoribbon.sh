@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd ~/qmc_master_code/DETELECTRO-1.0/fast-version
-
 make clean
 
 make nsites=96 beta=8
