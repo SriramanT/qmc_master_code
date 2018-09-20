@@ -6,7 +6,7 @@ cwd = os.getcwd()
 
 # Retrieve simulation parameters
 
-simulation = np.genfromtxt('../temp-data/simulationParameters.csv')
+simulation = np.genfromtxt('../temp-data/simulationParameters.csv', delimiter=',')
 
 simulationParameters = simulation[:, 1]
 
@@ -27,9 +27,7 @@ ny = int(simulationParameters[11])
 
 weights = np.loadtxt('../temp-data/Log-weights.csv', skiprows = 1)
 
-signs = np.loadtxt('../temp-data/Local-av-sign.csv', skiprows = 1)
-
-scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', skiprows = 1)
+scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', skiprows = 1, delimiter=',')
 
 magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1)
 
@@ -66,8 +64,6 @@ if not os.path.exists(directory3):
 
 np.savetxt(directory2 + '/Log-weights.csv', (weights), header = "Configuration log weight")
 
-np.savetxt(directory2 + '/Local-av-sign.csv', (signs), header = "Local average sign")
-
 paramNames  = np.array(['Number of sites', 'dtau', 'beta', 'L',\
 't', 'U', 'mu', 'Number of MC Sweeps', 'Frequency of recomputing G',\
 'Number of multiplied Bs after stabilization', 'Geometry', 'Ny'])
@@ -78,7 +74,7 @@ namedParams['params'] = simulationParameters
 np.savetxt(directory2 + '/simulationParameters.csv', namedParams, fmt="%50s %10.7f" )
 
 measNames  = np.array(['Electron density <n>', 'Double occupancy <n+ n->'\
-, 'ZZ AF Structure Factor'])
+, 'ZZ AF Structure Factor', 'Sq.Magnetization <m^2>', 'Hkin', 'Hint', 'E'])
 namedMeas = np.zeros(measNames.size, dtype=[('mnames', 'U50'), ('meas', float)])
 namedMeas['mnames'] = measNames
 namedMeas['meas'] = scalarMeasurements
@@ -92,6 +88,6 @@ try:
     np.savetxt(directory2 + '/UneqTimeSzCorrelations.csv', (UneqMagCorrMeas))
 except NameError:
     print("\nIf you want unequal time measurements as well recompile the code \
-and run the simulation again using\n\n\
+and run the simulation again using\n\nmake clean\n\n\
 make eq_or_uneq=src/mainUneqTime.cpp object\
-=src/mainUneqTime.o\n\nand \n\n./simulation <U> <mu> <totalMCSweeps>\n")
+=src/mainUneqTime.o\n\nand \n\n./simulation <t> <U> <mu> <geom> <Ny> <Total Number of Sweeps (Space-Time)> <Number of Warm-up Sweeps (Space-Time)>  <Number of Auto-correlation Sweeps (Space-Time)>\n")
