@@ -1,10 +1,12 @@
 #!/bin/bash
 
+cd ~/qmc_master_code/DETELECTRO-1.0/fast-version/
+
 make clean
 
-make nsites=96 beta=8
+make nsites=48 beta=16
 
-./simulation 1 8 12.55 15 4 5012 512 4
+./simulation 1 1 12.6 15 4 100 20 2
 
 cd results
 
