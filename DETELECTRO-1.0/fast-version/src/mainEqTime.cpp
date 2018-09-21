@@ -478,7 +478,7 @@ int main(int argc, char **argv)
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << U * nUp_nDw << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << Hkin + U * nUp_nDw - mu * NSITES << '\n';
+        << Hkin + U * nUp_nDw << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
         file3 << std::setprecision(10) << SiSj << '\n';
     }
