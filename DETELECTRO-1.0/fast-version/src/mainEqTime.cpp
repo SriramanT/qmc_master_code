@@ -464,7 +464,8 @@ int main(int argc, char **argv)
         file2 << std::left << std::setw(50) << "< m^2 >,";
         file2 << std::left << std::setw(50) << "Hkin,";
         file2 << std::left << std::setw(50) << "Hint,";
-        file2 << std::left << std::setw(50) << "E" << '\n';
+        file2 << std::left << std::setw(50) << "E,";
+        file2 << std::left << std::setw(50) << "Average sign" << '\n';
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nEl << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
@@ -479,6 +480,8 @@ int main(int argc, char **argv)
         << U * nUp_nDw << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << Hkin + U * nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << meanSign << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
         file3 << std::setprecision(10) << SiSj << '\n';
     }
