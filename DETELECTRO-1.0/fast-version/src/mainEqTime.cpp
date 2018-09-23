@@ -479,7 +479,7 @@ int main(int argc, char **argv)
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << U * nUp_nDw << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << Hkin + U * nUp_nDw << '\n';
+        << Hkin + U * nUp_nDw << ",";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << meanSign << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
