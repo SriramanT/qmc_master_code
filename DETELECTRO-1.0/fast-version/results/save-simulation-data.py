@@ -74,7 +74,7 @@ namedParams['params'] = simulationParameters
 np.savetxt(directory2 + '/simulationParameters.csv', namedParams, fmt="%50s %10.7f" )
 
 measNames  = np.array(['Electron density <n>', 'Double occupancy <n+ n->'\
-, 'ZZ AF Structure Factor', 'Sq.Magnetization <m^2>', 'Hkin', 'Hint', 'E'])
+, 'ZZ AF Structure Factor', 'Sq.Magnetization <m^2>', 'Hkin', 'Hint', 'E', 'Average sign <s>'])
 namedMeas = np.zeros(measNames.size, dtype=[('mnames', 'U50'), ('meas', float)])
 namedMeas['mnames'] = measNames
 namedMeas['meas'] = scalarMeasurements
