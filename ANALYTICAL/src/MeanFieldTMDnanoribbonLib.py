@@ -4,7 +4,7 @@ def fermi(e, mu, beta):
     For zero temperature, set beta = 99999
     '''
     if beta == 99999:
-        return (e < mu)
+        return (e < mu).astype(int)
     else:
         return 1 / ( 1 + np.exp( beta * ( e - mu ) ) )
     
