@@ -888,12 +888,14 @@ Eigen::MatrixXd Geometry<N>::BpreFactor(double dt, double mu)
 template<int L, int N>
 class Configuration
 {
-    Eigen::Matrix<double, L, N> HSfield;
+    Eigen::MatrixXd HSfield;
 public:
     void genHsMatrix();
-    Eigen::Matrix<double, L, N> matrix();
+    Eigen::MatrixXd matrix();
     double get(int x, int y);
     void flip(int l, int i);
+    Configuration() : HSfield(L, N) {
+    };
 };
 
 template<int L, int N>
@@ -920,7 +922,7 @@ void Configuration<L, N>::genHsMatrix()
 }
 
 template<int L, int N>
-Eigen::Matrix<double, L, N> Configuration<L, N>::matrix()
+Eigen::MatrixXd Configuration<L, N>::matrix()
 {
     return HSfield;
 }
@@ -942,7 +944,7 @@ class OneParticlePropagators
 {
     Eigen::MatrixXd B[L];
 public:
-    void fillMatrices(bool spin, double nu, Eigen::Matrix<double, L, N> h, Eigen::MatrixXd BpreFactor);
+    void fillMatrices(bool spin, double nu, Eigen::MatrixXd h, Eigen::MatrixXd BpreFactor);
     Eigen::MatrixXd matrix(int l);
     Eigen::MatrixXd * list();
     void update(int l, int i, double alpha);
@@ -950,7 +952,7 @@ public:
 
 template<int N, int L>
 void OneParticlePropagators<N, L>::fillMatrices(bool spin, double nu,
-   Eigen::Matrix<double, L, N> h, Eigen::MatrixXd BpreFactor)
+   Eigen::MatrixXd h, Eigen::MatrixXd BpreFactor)
 {
     int i;
     int l;
