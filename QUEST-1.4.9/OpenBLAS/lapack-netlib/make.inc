@@ -1,4 +1,4 @@
-FORTRAN     = gfortran-8
+FORTRAN     = gfortran
 OPTS        = -O2 -m128bit-long-double -Wall -m64 -fopenmp -fPIC
 POPTS       = -O2 -m128bit-long-double -Wall -m64 -fopenmp -fPIC -pg -fno-inline
 NOOPT       = -O2 -m128bit-long-double -Wall -m64 -fopenmp -fPIC -O0
@@ -18,7 +18,7 @@ SUFFIX      = o
 PSUFFIX     = po
 CEXTRALIB   = -lgfortran
 TIMER       = NONE
-LOADER      = gfortran-8
+LOADER      = gfortran
 SHELL = /bin/sh
 PLAT = _LINUX
 DRVOPTS  = $(OPTS)

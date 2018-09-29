@@ -3,7 +3,7 @@
 # ==========================
 
 ofile  = test
-gfile  = triangle.geom
+gfile  = 1d.geom
 
 # ==========================
 # Hubbard model
@@ -11,8 +11,8 @@ gfile  = triangle.geom
 
 mu_up  =  0.00
 mu_dn  =  0.00
-L      = 10
-dtau   = 0.1
+L      = 240
+dtau   = 0.0625
 HSF    = -1
 bcond  =  0.0, 0.0, 0.0
 

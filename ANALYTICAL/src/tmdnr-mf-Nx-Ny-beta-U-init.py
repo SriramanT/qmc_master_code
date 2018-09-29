@@ -1,3 +1,9 @@
+
+# coding: utf-8
+
+# In[3]:
+
+
 import numpy as np
 import numpy.linalg as la
 import os
@@ -15,6 +21,10 @@ nOrb = 3
 nHole = 0
 
 tmd = 'MoS_2'
+
+
+# In[78]:
+
 
 if tmd == 'MoS_2' :
 
@@ -78,69 +88,43 @@ def triangularNano(Nx, Ny, nOrb, hoppings):
     for x in range(Nx):
         for y in range(Ny):
             # Diagonal term
-            T[ iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny) + 1) * nOrb,\
-              iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny) + 1) * nOrb ]\
-            = hoppings[0]
+            T[ iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny) + 1) * nOrb,              iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny) + 1) * nOrb ]            = hoppings[0]
             
             # E1
-            T[ iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny) + 1)*nOrb,\
-              iTriang( (x + 1) % Nx , y, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y, Nx, Ny) + 1)*nOrb ]\
-              = hoppings[1]
+            T[ iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny) + 1)*nOrb,              iTriang( (x + 1) % Nx , y, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y, Nx, Ny) + 1)*nOrb ]              = hoppings[1]
             
             # E4
-            T[ iTriang( (x + 1) % Nx , y, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y, Nx, Ny) + 1)*nOrb\
-              , iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb ] = hoppings[4]
+            T[ iTriang( (x + 1) % Nx , y, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y, Nx, Ny) + 1)*nOrb              , iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb ] = hoppings[4]
             
             if y == 0:
-                T[ iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb,\
-                  iTriang( x, 1, Nx, Ny)*nOrb:(iTriang( x, 1, Nx, Ny)+1)*nOrb ]\
-                  = hoppings[6]
+                T[ iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb,                  iTriang( x, 1, Nx, Ny)*nOrb:(iTriang( x, 1, Nx, Ny)+1)*nOrb ]                  = hoppings[6]
                 
-                T[ iTriang(x, 1, Nx, Ny)*nOrb:(iTriang(x, 1, Nx, Ny)+1)*nOrb,\
-                  iTriang( x, 0, Nx, Ny)*nOrb:(iTriang( x, 0, Nx, Ny)+1)*nOrb ]\
-                  = hoppings[3]
+                T[ iTriang(x, 1, Nx, Ny)*nOrb:(iTriang(x, 1, Nx, Ny)+1)*nOrb,                  iTriang( x, 0, Nx, Ny)*nOrb:(iTriang( x, 0, Nx, Ny)+1)*nOrb ]                  = hoppings[3]
                 
                 if x == 0:
-                    T[iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny) + 1)*nOrb,\
-                      iTriang( Nx - 1, 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, 1, Nx, Ny) + 1)*nOrb]\
-                      = hoppings[5]
-                    T[iTriang( Nx - 1, 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, 1, Nx, Ny)+1)*nOrb,\
-                      iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb] = hoppings[2]
+                    T[iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny) + 1)*nOrb,                      iTriang( Nx - 1, 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, 1, Nx, Ny) + 1)*nOrb]                      = hoppings[5]
+                    T[iTriang( Nx - 1, 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, 1, Nx, Ny)+1)*nOrb,                      iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb] = hoppings[2]
                 else:
-                    T[iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb,\
-                      iTriang( x - 1, 1, Nx, Ny)*nOrb:(iTriang( x - 1, 1, Nx, Ny)+1)*nOrb] = hoppings[5]
-                    T[iTriang(x - 1, 1, Nx, Ny)*nOrb:(iTriang(x - 1, 1, Nx, Ny)+1)*nOrb,\
-                      iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb] = hoppings[2]
+                    T[iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb,                      iTriang( x - 1, 1, Nx, Ny)*nOrb:(iTriang( x - 1, 1, Nx, Ny)+1)*nOrb] = hoppings[5]
+                    T[iTriang(x - 1, 1, Nx, Ny)*nOrb:(iTriang(x - 1, 1, Nx, Ny)+1)*nOrb,                      iTriang(x, 0, Nx, Ny)*nOrb:(iTriang(x, 0, Nx, Ny)+1)*nOrb] = hoppings[2]
         else:
             if y == Ny - 1:
-                T[iTriang(x, Ny - 1 , Nx, Ny)*nOrb:(iTriang(x, Ny - 1 , Nx, Ny) + 1)*nOrb,\
-                  iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny) + 1)*nOrb]= hoppings[2]
-                T[iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny)+1)*nOrb,\
-                  iTriang(x, Ny - 1, Nx, Ny)*nOrb:(iTriang(x, Ny - 1, Nx, Ny)+1)*nOrb] = hoppings[5]
-                T[iTriang(x, Ny - 1, Nx, Ny)*nOrb:(iTriang(x, Ny - 1, Nx, Ny)+1)*nOrb,\
-                  iTriang( x, Ny - 2, Nx, Ny)*nOrb:(iTriang( x, Ny - 2, Nx, Ny)+1)*nOrb] = hoppings[3]
-                T[iTriang(x, Ny - 2, Nx, Ny)*nOrb:(iTriang(x, Ny - 2, Nx, Ny)+1)*nOrb,\
-                  iTriang( x, Ny - 1, Nx, Ny)*nOrb:(iTriang( x, Ny - 1, Nx, Ny)+1)*nOrb] = hoppings[6]
+                T[iTriang(x, Ny - 1 , Nx, Ny)*nOrb:(iTriang(x, Ny - 1 , Nx, Ny) + 1)*nOrb,                  iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny) + 1)*nOrb]= hoppings[2]
+                T[iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , Ny - 2, Nx, Ny)+1)*nOrb,                  iTriang(x, Ny - 1, Nx, Ny)*nOrb:(iTriang(x, Ny - 1, Nx, Ny)+1)*nOrb] = hoppings[5]
+                T[iTriang(x, Ny - 1, Nx, Ny)*nOrb:(iTriang(x, Ny - 1, Nx, Ny)+1)*nOrb,                  iTriang( x, Ny - 2, Nx, Ny)*nOrb:(iTriang( x, Ny - 2, Nx, Ny)+1)*nOrb] = hoppings[3]
+                T[iTriang(x, Ny - 2, Nx, Ny)*nOrb:(iTriang(x, Ny - 2, Nx, Ny)+1)*nOrb,                  iTriang( x, Ny - 1, Nx, Ny)*nOrb:(iTriang( x, Ny - 1, Nx, Ny)+1)*nOrb] = hoppings[6]
                 
             else:
-                T[iTriang(x, y , Nx, Ny)*nOrb:(iTriang(x, y , Nx, Ny)+1)*nOrb,\
-                  iTriang( (x + 1) % Nx , y - 1, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y - 1, Nx, Ny)+1)*nOrb] = hoppings[2]
-                T[iTriang( (x + 1) % Nx , y - 1, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y - 1, Nx, Ny)+1)*nOrb,\
-                  iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb] = hoppings[5]
-                T[iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb,\
-                  iTriang( x, y - 1, Nx, Ny)*nOrb:(iTriang( x, y - 1, Nx, Ny)+1)*nOrb] = hoppings[3]
-                T[iTriang(x, y - 1, Nx, Ny)*nOrb:(iTriang(x, y - 1, Nx, Ny)+1)*nOrb,\
-                  iTriang( x, y, Nx, Ny)*nOrb:(iTriang( x, y, Nx, Ny)+1)*nOrb] = hoppings[6]
+                T[iTriang(x, y , Nx, Ny)*nOrb:(iTriang(x, y , Nx, Ny)+1)*nOrb,                  iTriang( (x + 1) % Nx , y - 1, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y - 1, Nx, Ny)+1)*nOrb] = hoppings[2]
+                T[iTriang( (x + 1) % Nx , y - 1, Nx, Ny)*nOrb:(iTriang( (x + 1) % Nx , y - 1, Nx, Ny)+1)*nOrb,                  iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb] = hoppings[5]
+                T[iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb,                  iTriang( x, y - 1, Nx, Ny)*nOrb:(iTriang( x, y - 1, Nx, Ny)+1)*nOrb] = hoppings[3]
+                T[iTriang(x, y - 1, Nx, Ny)*nOrb:(iTriang(x, y - 1, Nx, Ny)+1)*nOrb,                  iTriang( x, y, Nx, Ny)*nOrb:(iTriang( x, y, Nx, Ny)+1)*nOrb] = hoppings[6]
                 if x == 0:
-                    T[iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb,\
-                      iTriang( Nx - 1, y + 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, y + 1, Nx, Ny)+1)*nOrb] = hoppings[5]
-                    T[iTriang( Nx - 1, y + 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, y + 1, Nx, Ny)+1)*nOrb,\
-                      iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb] = hoppings[2]
+                    T[iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb,                      iTriang( Nx - 1, y + 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, y + 1, Nx, Ny)+1)*nOrb] = hoppings[5]
+                    T[iTriang( Nx - 1, y + 1, Nx, Ny)*nOrb:(iTriang( Nx - 1, y + 1, Nx, Ny)+1)*nOrb,                      iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb] = hoppings[2]
                 else:
-                    T[iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb,\
-                      iTriang(x - 1, y + 1, Nx, Ny)*nOrb:(iTriang(x - 1, y + 1, Nx, Ny)+1)*nOrb] = hoppings[5]
-                    T[iTriang(x - 1, y + 1, Nx, Ny)*nOrb:(iTriang(x - 1, y + 1, Nx, Ny)+1)*nOrb,\
-                      iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb] = hoppings[2]
+                    T[iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb,                      iTriang(x - 1, y + 1, Nx, Ny)*nOrb:(iTriang(x - 1, y + 1, Nx, Ny)+1)*nOrb] = hoppings[5]
+                    T[iTriang(x - 1, y + 1, Nx, Ny)*nOrb:(iTriang(x - 1, y + 1, Nx, Ny)+1)*nOrb,                      iTriang(x, y, Nx, Ny)*nOrb:(iTriang(x, y, Nx, Ny)+1)*nOrb] = hoppings[2]
     return T
 
 def Hribbon(k, Ny):
@@ -196,6 +180,8 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
         intTemp : Inverse Temperature Beta
         U : On-site interaction
         initCond : 1: Ferromagnetic, 2: AF, 3: Paramagnetic
+        
+        Returns nUp, nDown, energies, itSwitch, lastIt, eUp, eDown, wUp, wDown
     '''
     
     K = triangularNano(Nx, Ny, nOrb, hoppings)
@@ -258,8 +244,7 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
         
        # Annealing
        
-        if (beta < inftyCutOff \
-           and beta < betaTarget) : # > infty: zero temperature case
+        if (beta < inftyCutOff            and beta < betaTarget) : # > infty: zero temperature case
            beta = beta0 ** it
            if beta > betaTarget:
                itSwitch = it
@@ -286,8 +271,7 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
         nDownOld = nDown.copy()
 
         def rootToChem(chemPot):
-            return ( np.sum(fermi(eUp, chemPot, beta )) \
-                    +  np.sum(fermi(eDown, chemPot, beta )) ) / Nx / Ny - (2 - nHole)
+            return ( np.sum(fermi(eUp, chemPot, beta ))                     +  np.sum(fermi(eDown, chemPot, beta )) ) / Nx / Ny - (2 - nHole)
 
         mu = opt.bisect(rootToChem, -50, 50)
     
@@ -303,10 +287,8 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
 
         # Damping
         if it % dampFreq == 0:
-            nUp = ( 1 / 2 + lbda * it ) * nUp\
-            + ( 1 / 2 - lbda * it) * nUpOld
-            nDown = ( 1 / 2 + lbda * it ) * nDown\
-            + ( 1 / 2 - lbda * it) * nDownOld
+            nUp = ( 1 / 2 + lbda * it ) * nUp            + ( 1 / 2 - lbda * it) * nUpOld
+            nDown = ( 1 / 2 + lbda * it ) * nDown            + ( 1 / 2 - lbda * it) * nDownOld
     
         deltaUp = np.dot(nUp - nUpOld, nUp - nUpOld) / np.dot(nUpOld, nUpOld)
         deltaDown = np.dot(nDown - nDownOld, nDown - nDownOld) / np.dot(nDownOld, nDownOld)
@@ -318,24 +300,40 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
         # the right number of particles
         print('<n>: ', (nUp.sum() + nDown.sum() ) / ( 3 * Ny ) )
                 
-        energies[it] = U * np.dot(nUp, nDown) / 3 / Ny + mu * (nUp + nDown).sum() / Ny/3\
-        - 1 / beta * ( np.log( 1 + np.exp( - beta * ( eUp - mu ) ) ) + \
-                      np.log( 1 + np.exp( - beta * ( eDown - mu ) ) ) ).sum()
+        energies[it] = U * np.dot(nUp, nDown) / 3 / Ny + mu * (nUp + nDown).sum()         - 1 / beta * ( ( np.log( 1 + np.exp( - beta * ( eUp - mu ) ) ) ).sum() +                       (np.log( 1 + np.exp( - beta * ( eDown - mu ) ) ) ).sum() )
             
         it += 1
             
     lastIt = it
+    print(lastIt)
 
-    return nUp, nDown, energies, itSwitch, lastIt
+    return nUp, nDown, energies, itSwitch, lastIt, eUp, eDown, wUp, wDown, mu
 
-##    RUN     ##
+def savedata(SAVESUBDIR, data):
+    np.savetxt(SAVESUBDIR + "nUp.txt", data[0])
+    np.savetxt(SAVESUBDIR + "nDown.txt", data[1])
+    np.savetxt(SAVESUBDIR + "energies.txt", data[2])
+    np.savetxt(SAVESUBDIR + "itSwitch_lastIt_mu.txt", (data[3], data[4], data[9]))
+    np.savetxt(SAVESUBDIR + "eUp.txt", (data[5]))
+    np.savetxt(SAVESUBDIR + "eDown.txt", (data[6]))
+    np.savetxt(SAVESUBDIR + "wUp.txt", (data[7]).flatten('C'))
+    np.savetxt(SAVESUBDIR + "wDown.txt", (data[8]).flatten('C'))
+    np.savetxt(SAVESUBDIR + "modelParams.txt",              (abs_t0, e1, e2, t0, t1, t2, t11, t12, t22))
+
+
+# In[79]:
 
 
 cwd = os.getcwd()
-
 SAVEDIR = "../plots/MeanFieldTMDnanoribbon/"
 if not os.path.exists(SAVEDIR):
     os.makedirs(SAVEDIR)
+
+
+# ## Small ribbon
+
+# In[93]:
+
 
 Nx = int(sys.argv[1])
 Ny = int(sys.argv[2])
@@ -348,11 +346,8 @@ SAVESUBDIR = SAVEDIR + "/Nx=" + str(Nx) +\
     "_Ny=" + str(Ny) + "_U=" + str(U) + "_beta=" + str(beta) + "/"
 if not os.path.exists(SAVESUBDIR):
     os.makedirs(SAVESUBDIR)
-
+    
 data = solve_self_consistent(Nx, Ny, beta, U, initCond)
+savedata(SAVESUBDIR, data)
 
-np.savetxt(SAVESUBDIR + "nUp.txt", data[0])
-np.savetxt(SAVESUBDIR + "nDown.txt", data[1])
-np.savetxt(SAVESUBDIR + "energies.txt", data[2])
-np.savetxt(SAVESUBDIR + "itInformation.txt", (data[3], data[4]))
 
