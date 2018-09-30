@@ -20,7 +20,7 @@
 #endif
 
 #ifndef DT_INV
-#define DT_INV 64 //  Inverse Trotter error
+#define DT_INV 16 //  Inverse Trotter error
 #endif
 
 #ifndef BETA
@@ -178,6 +178,8 @@ int main(int argc, char **argv)
       new OneParticlePropagators< NSITES, L >;
     OneParticlePropagators< NSITES, L > * Bdown=
       new OneParticlePropagators< NSITES, L >;
+    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor(dt, mu) );
+    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor(dt, mu) );
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green< NSITES, L, Lbda> * Gup = new Green< NSITES, L, Lbda>;
@@ -201,9 +203,8 @@ int main(int argc, char **argv)
     double zzMags = 0;
     Eigen::MatrixXd magCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::Matrix<double, NSITES, NSITES> * uneqMagCorrs
-    = new Eigen::Matrix<double, NSITES, NSITES>[totalMCSweeps];
-    uneqMagCorrs[0] = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd uneqMagCorrs =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     double LOGweight = 0.;
     // double sign = std::copysign(1, Gup->matrix().determinant()
@@ -223,7 +224,8 @@ int main(int argc, char **argv)
     double meanSign = 0;
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
-    //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE, THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
+    //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
+    //  THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
     int l = 0; int i = 0; int latticeSweepUntilAfresh = 0; int sweep = 0; int step;
 
 
@@ -300,7 +302,7 @@ int main(int argc, char **argv)
                 energy += 2 * ( Gup->get(x, x) + Gdown->get(x, x) ) * t * K.get(x, x);
                 if (l == 0)
                 {
-                    uneqMagCorrs[sweep](x, x) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
+                    uneqMagCorrs(x, x) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
                     + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(x, x) )
                     + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(x, x) )
                     + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(x, x) )
@@ -309,7 +311,7 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    uneqMagCorrs[sweep](x, x) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(x, x) )
+                    uneqMagCorrs(x, x) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(x, x) )
                      + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(x, x) )
                      + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(x, x) )
                      + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(x, x) )
@@ -351,7 +353,7 @@ int main(int argc, char **argv)
                     }
                     if (l == 0)
                     {
-                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        uneqMagCorrs(x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
                         + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
@@ -361,7 +363,7 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        uneqMagCorrs(x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
                         + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
@@ -375,7 +377,7 @@ int main(int argc, char **argv)
                 {
                     if (l == 0)
                     {
-                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        uneqMagCorrs(x, y) += ( 1 - Gup->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gup->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
                         + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gdown->zero(x, x) ) * ( 1 - Gdown->zero(y, y) )
@@ -385,7 +387,7 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-                        uneqMagCorrs[sweep](x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
+                        uneqMagCorrs(x, y) += ( 1 - Gup->get(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gup->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
                         + ( 1 - Gdown->get(x, x) ) * ( 1 - Gup->zero(y, y) )
                         + ( 1 - Gdown->get(x, x) ) * ( 1 - Gdown->zero(y, y) )
@@ -456,17 +458,29 @@ int main(int argc, char **argv)
             }
             else
             {
+                if ( (sweep >= W) )
+                {
+                    if ( sweep % A == 0 )
+                    {
+                      meanSign += ( sign - meanSign ) / ( ( sweep - W ) / A + 1 );
+                      nEl += ( electronDensities - nEl )
+                       / ( (sweep - W)/A + 1 ) ;
+                      nUp_nDw += ( doubleOcs - nUp_nDw )
+                       / ( (sweep - W)/A + 1 ) ;
+                      SiSj += ( magCorrs - SiSj )
+                       / ( (sweep - W)/A + 1 ) ;
+                      zzAFstFactor += ( zzMags - zzAFstFactor )
+                       / ( (sweep - W)/A + 1 ) ;
+                      Hkin += ( energies - Hkin )
+                       / ( (sweep - W)/A + 1 ) ;
+                     }
+                     electronDensities = 0.; doubleOcs = 0.;
+                     magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                     zzMags = 0.;
+                     energies = 0.;
+                }
                 //  MOVE SWEEP COUNTER
                 sweep += 1;
-                meanSign = 0;
-                if ( (sweep > W) and (sweep % A == 0) )
-                {
-                    nEl += A * ( electronDensities - nEl ) / ( sweep - W ) ;
-                    nUp_nDw += A * ( doubleOcs - nUp_nDw ) / ( sweep - W ) ;
-                    SiSj += A * ( magCorrs - SiSj ) / ( sweep - W ) ;
-                    electronDensities = 0.; doubleOcs = 0.;
-                    magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-                }
                 l = 0; i = 0;
             }
         }
@@ -545,7 +559,7 @@ int main(int argc, char **argv)
     file2.close();
     file3.close();
 
-    delete[] weights; delete uneqMagCorrs[];
+    delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
 
     return 0;

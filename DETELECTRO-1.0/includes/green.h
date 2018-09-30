@@ -359,7 +359,7 @@ void Green<N, L, Lbda>::computeBlockOfGreens(int l, int greenAfreshFreq)
     //  Compute both equal time and unequal time Green's functions
     //  (see Quantum Monte Carlo Methods on Lattices: The Determinantal Approach by Fakher F. Assaad)
     int lbda = (l + 1) / greenAfreshFreq - 1;
-    Eigen::Matrix<double, 2 * N, 2 * N> tempMatrix;
+    Eigen::MatrixXd tempMatrix = Eigen::MatrixXd (2 * N, 2 * N );
 
     tempMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 2].inverse() * Vs[Lbda - lbda - 1].inverse();
     tempMatrix.block(0, N, N, N) = Ds[Lbda - lbda - 2];
@@ -371,14 +371,14 @@ void Green<N, L, Lbda>::computeBlockOfGreens(int l, int greenAfreshFreq)
     Ddouble = decomposition.getD();
     Vdouble = decomposition.getT();
 
-    Eigen::Matrix<double, 2 * N, 2 * N> RightMatrix;
+    Eigen::MatrixXd RightMatrix = Eigen::MatrixXd( 2 * N, 2 * N );
     RightMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 2].inverse();
     RightMatrix.block(0, N, N, N) = Eigen::Matrix<double, N, N>::Zero();
     RightMatrix.block(N, 0, N, N) = Eigen::Matrix<double, N, N>::Zero();
     RightMatrix.block(N, N, N, N) = Us[Lbda - lbda - 1].inverse();
     RightMatrix = Udouble.inverse() * RightMatrix;
 
-    Eigen::Matrix<double, 2 * N, 2 * N> LeftMatrix;
+    Eigen::MatrixXd LeftMatrix = Eigen::MatrixXd( 2 * N, 2 * N );
     LeftMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 1].inverse();
     LeftMatrix.block(0, N, N, N) = Eigen::Matrix<double, N, N>::Zero();
     LeftMatrix.block(N, 0, N, N) = Eigen::Matrix<double, N, N>::Zero();
