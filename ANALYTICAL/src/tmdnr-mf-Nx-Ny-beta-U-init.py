@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[3]:
+# In[19]:
 
 
 import numpy as np
@@ -10,10 +10,19 @@ import os
 import copy
 import warnings
 import scipy.optimize as opt
-import sys
 
 
-##      DEFINE THE MODEL    ##
+# # Save data to local files or from hard drive?
+
+# In[20]:
+
+
+localData = False
+
+
+# # Define the model
+
+# In[28]:
 
 
 nOrb = 3
@@ -21,9 +30,6 @@ nOrb = 3
 nHole = 0
 
 tmd = 'MoS_2'
-
-
-# In[78]:
 
 
 if tmd == 'MoS_2' :
@@ -69,7 +75,7 @@ E6 = np.array([[t0, 0.5 * t1 + np.sqrt(3) / 2 * t2, np.sqrt(3) / 2 * t1 - 0.5 * 
 
 hoppings = np.array([E0, E1, E2, E3, E4, E5, E6])
 
-inftyCutOff = 100 # above it, beta is practically infinity
+inftyCutOff = 50 # above it, beta is practically infinity
 
 def fermi(e, mu, beta):
     '''
@@ -172,14 +178,14 @@ def Hribbon(k, Ny):
 
     return Hrib
 
-
-def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
+def solve_self_consistent(Nx, Ny, invTemp, U, initCond, beta0):
     '''
         Nx : Number of ks;
         Ny : Number of atoms along the ribbon's transverse direction
         intTemp : Inverse Temperature Beta
         U : On-site interaction
         initCond : 1: Ferromagnetic, 2: AF, 3: Paramagnetic
+        beta0 = 1.1 # must be > 1, otherwise beta decreases
         
         Returns nUp, nDown, energies, itSwitch, lastIt, eUp, eDown, wUp, wDown
     '''
@@ -188,7 +194,6 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
     
     N = nOrb * Nx * Ny # number of sites (orbital + spatial)
 
-    beta0 = 1.5 # must be > 1, otherwise beta decreases
     betaTarget = invTemp # inftyCutOff in fermi means infty , i.e. T = 0
     beta = beta0 # beta starts as beta0
 
@@ -202,8 +207,8 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
 
     if initCond == 1:
         
-        nUp = np.ones(3*Ny) - 0.1 * np.random.rand(3*Ny)
-        nDown = np.zeros(3*Ny) + 0.1 * np.random.rand(3*Ny)
+        nUp = np.ones(3*Ny) - 0.01 * np.random.rand(3*Ny)
+        nDown = np.zeros(3*Ny) + 0.01 * np.random.rand(3*Ny)
     
     if initCond == 2:
         
@@ -219,9 +224,9 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
             nDown[i] = 0.5 - spinFlipper *.1 * np.random.rand()
 
     if initCond == 3:
-        nUp = np.ones(3*Ny) - 0.1 * np.random.rand(3*Ny)
+        nUp = np.ones(3*Ny) - 0.01 * np.random.rand(3*Ny)
 
-        nDown = np.ones(3*Ny) + 0.1 * np.random.rand(3*Ny)
+        nDown = np.ones(3*Ny) + 0.01 * np.random.rand(3*Ny)
 
     # Initialize energies
     energies = np.zeros(itMax)
@@ -244,14 +249,13 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
         
        # Annealing
        
-        if (beta < inftyCutOff            and beta < betaTarget) : # > infty: zero temperature case
-           beta = beta0 ** it
-           if beta > betaTarget:
-               itSwitch = it
-               print(itSwitch)
-               beta = betaTarget
+        if (beta < inftyCutOff             and beta < betaTarget) : # > infty: zero temperature case
+            beta = beta0 ** it
+            if beta > betaTarget:
+                itSwitch = it
+                beta = betaTarget
         else:
-           beta = betaTarget
+            beta = betaTarget
 
         print('beta: ', beta)
 
@@ -299,55 +303,68 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond):
         # Check if chemical potential is imposing
         # the right number of particles
         print('<n>: ', (nUp.sum() + nDown.sum() ) / ( 3 * Ny ) )
-                
-        energies[it] = U * np.dot(nUp, nDown) / 3 / Ny + mu * (nUp + nDown).sum()         - 1 / beta * ( ( np.log( 1 + np.exp( - beta * ( eUp - mu ) ) ) ).sum() +                       (np.log( 1 + np.exp( - beta * ( eDown - mu ) ) ) ).sum() )
-            
+        
+        if beta < inftyCutOff:
+            energies[it] = U * np.dot(nUp, nDown) + mu * (nUp + nDown).sum()             - 1 / beta / Nx * ( ( np.log( 1 + np.exp( - beta * ( eUp - mu ) ) ) ).sum() +                           (np.log( 1 + np.exp( - beta * ( eDown - mu ) ) ) ).sum() )
+        else:
+            energies[it] = U * np.dot(nUp, nDown) + mu * (nUp + nDown).sum()             
         it += 1
             
     lastIt = it
-    print(lastIt)
 
-    return nUp, nDown, energies, itSwitch, lastIt, eUp, eDown, wUp, wDown, mu
+    return nUp, nDown, energies, itSwitch, lastIt, eUp, eDown, mu,np.absolute(wUp.flatten('C'))**2, np.absolute(wDown.flatten('C'))**2
 
 def savedata(SAVESUBDIR, data):
     np.savetxt(SAVESUBDIR + "nUp.txt", data[0])
     np.savetxt(SAVESUBDIR + "nDown.txt", data[1])
     np.savetxt(SAVESUBDIR + "energies.txt", data[2])
-    np.savetxt(SAVESUBDIR + "itSwitch_lastIt_mu.txt", (data[3], data[4], data[9]))
+    np.savetxt(SAVESUBDIR + "itSwitch_lastIt_mu.txt", (data[3], data[4], data[7]))
     np.savetxt(SAVESUBDIR + "eUp.txt", (data[5]))
     np.savetxt(SAVESUBDIR + "eDown.txt", (data[6]))
-    np.savetxt(SAVESUBDIR + "wUp.txt", (data[7]).flatten('C'))
-    np.savetxt(SAVESUBDIR + "wDown.txt", (data[8]).flatten('C'))
+    np.savetxt(SAVESUBDIR + "wUp.txt", (data[8]))
+    np.savetxt(SAVESUBDIR + "wDown.txt", (data[9]))
     np.savetxt(SAVESUBDIR + "modelParams.txt",              (abs_t0, e1, e2, t0, t1, t2, t11, t12, t22))
 
 
-# In[79]:
+# In[29]:
 
 
 cwd = os.getcwd()
-SAVEDIR = "../plots/MeanFieldTMDnanoribbon/"
-if not os.path.exists(SAVEDIR):
-    os.makedirs(SAVEDIR)
 
-
-# ## Small ribbon
-
-# In[93]:
-
-
-Nx = int(sys.argv[1])
-Ny = int(sys.argv[2])
-beta = int(sys.argv[3])
-U = int(sys.argv[4])
-initCond = int(sys.argv[5])
-
-
-SAVESUBDIR = SAVEDIR + "/Nx=" + str(Nx) +\
-    "_Ny=" + str(Ny) + "_U=" + str(U) + "_beta=" + str(beta) + "/"
-if not os.path.exists(SAVESUBDIR):
-    os.makedirs(SAVESUBDIR)
+if localData == False:
     
-data = solve_self_consistent(Nx, Ny, beta, U, initCond)
-savedata(SAVESUBDIR, data)
+    ## SAVE FILES TO HARD DRIVE (THEY ARE TOO BIG!). SET PATH BELOW.
+    SAVEDIR = "../../../../../../../Volumes/ADATA HD710/MScData/MeanFieldTMDnanoribbon/"
+else:
+    ## SAVE FILES IN plots FOLDER
+    SAVEDIR = "../plots/MeanFieldTMDnanoribbon/"
 
+
+# ## Sweep U parameter for T = 0 (zero temperature)
+
+# In[ ]:
+
+
+Nx = 512
+Ny = 16
+beta0 = 1.5
+beta = inftyCutOff
+initCond = 1
+
+#Us = [1, 3, 5, 7, 10, 15, 20]
+
+#Us = np.arange(18, 20)
+
+#Us = np.arange(14.8, 16.2, 0.2)
+
+Us = [10, 12, 13, 13.1, 13.2, 13.3, 13.4, 13.5,\
+      14, 14.8, 15, 15.2, 15.4, 15.6, 15.8, 16, 17, 18, 19, 20]
+
+for U in Us:
+    SAVESUBDIR = SAVEDIR + "/Nx=" + str(Nx) +        "_Ny=" + str(Ny) + "_U=" + str(U) + "_beta=" + str(beta) + "/"
+    if not os.path.exists(SAVESUBDIR):
+        os.makedirs(SAVESUBDIR)
+
+    data = solve_self_consistent(Nx, Ny, beta, U, initCond)
+    savedata(SAVESUBDIR, data)
 
