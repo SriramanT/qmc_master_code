@@ -12,6 +12,16 @@
 #define NORB 3  //   number of orbitals
 #endif
 
+double matSq(double x) // element-wise square of a matrix
+{
+    return std::pow(x, 2);
+}
+
+double matSqrt(double x) // element-wise square root of a matrix
+{
+    return std::sqrt(x);
+}
+
 template<int N>
 class Geometry
 {

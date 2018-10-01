@@ -1,2 +1,12 @@
-Electron density <n>,                             Double occupancy <n+ n->,                         ZZ AF Structure Factor,                           < m^2 >,                                          Hkin,                                             Hint,                                             E                                                 
-1                                                 ,0.1357587508                                      ,1.393838824                                       ,0.7284824984                                      ,-1.718803035                                      ,0.5430350032                                      ,-1.175768031                                      
+Electron density <n>,                             0.5239383684                                      
+d<n>,                                             0.0001688273322                                   
+Double occupancy <n+ n->,                         0.07278714289                                     
+d<n+ n->,                                         3.128377344e-05                                   
+ZZ AF Structure Factor,                           0.3783640827                                      
+< m^2 >,                                          0.3783640827                                      
+d< m^2 >,                                         0.0004471596031                                   
+Hkin,                                             -34.74484937                                      
+dHkin,                                            0.001763311301                                    
+Hint,                                             0.2911485715                                      
+E,                                                -34.4537008                                       
+Average sign,                                     1                                                 

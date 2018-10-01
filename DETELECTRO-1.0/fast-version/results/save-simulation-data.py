@@ -27,9 +27,11 @@ ny = int(simulationParameters[11])
 
 weights = np.loadtxt('../temp-data/Log-weights.csv', skiprows = 1)
 
-scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', skiprows = 1, delimiter=',')
+scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', usecols = 1, delimiter=',')
 
-magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1)
+magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1, delimiter = ',')
+
+magCorrMeasError = np.loadtxt('../temp-data/EqTimeSzCorrelationsError.csv', skiprows = 1, delimiter = ',')
 
 try:
     UneqMagCorrMeas = np.loadtxt('../temp-data/UneqTimeSzCorrelations.csv', skiprows = 1)
@@ -64,25 +66,29 @@ if not os.path.exists(directory3):
 
 np.savetxt(directory2 + '/Log-weights.csv', (weights), header = "Configuration log weight")
 
-paramNames  = np.array(['Number of sites', 'dtau', 'beta', 'L',\
-'t', 'U', 'mu', 'Number of MC Sweeps', 'Frequency of recomputing G',\
-'Number of multiplied Bs after stabilization', 'Geometry', 'Ny'])
+paramNames  = np.array(['Number of sites,', 'dtau,', 'beta,', 'L,',\
+'t,', 'U,', 'mu,', 'Number of MC Sweeps,', 'Frequency of recomputing G,',\
+'Number of multiplied Bs after stabilization,', 'Geometry,', 'Ny,'])
 namedParams = np.zeros(paramNames.size, dtype=[('pnames', 'U50'), ('params', float)])
 namedParams['pnames'] = paramNames
 namedParams['params'] = simulationParameters
 
-np.savetxt(directory2 + '/simulationParameters.csv', namedParams, fmt="%50s %10.7f" )
+np.savetxt(directory2 + '/simulationParameters.csv', namedParams, fmt="%50s% 10.7f" )
 
-measNames  = np.array(['Electron density <n>', 'Double occupancy <n+ n->'\
-, 'ZZ AF Structure Factor', 'Sq.Magnetization <m^2>', 'Hkin', 'Hint', 'E', 'Average sign <s>'])
+measNames  = np.array(['Electron density <n>,', 'd<n>,', 'Double occupancy <n+ n->,',\
+'d<n+ n->,', 'ZZ AF Structure Factor,', 'Sq.Magnetization <m^2>,', 'd<m^2>,', 'Hkin,', 'dHkin,',\
+'Hint,', 'E,', 'Average sign <s>,'])
 namedMeas = np.zeros(measNames.size, dtype=[('mnames', 'U50'), ('meas', float)])
 namedMeas['mnames'] = measNames
 namedMeas['meas'] = scalarMeasurements
 
-np.savetxt(directory2 + '/MeasurementsScalars.csv', namedMeas, fmt="%50s %10.7f" )
+np.savetxt(directory2 + '/MeasurementsScalars.csv', namedMeas, fmt="%50s%10.7f" )
 
 np.savetxt(directory2 + '/EqTimeSzCorrelations.csv', (magCorrMeas), \
 header = "<Sz_i Sz_j >")
+
+np.savetxt(directory2 + '/EqTimeSzCorrelationsError.csv', (magCorrMeasError), \
+header = "d<Sz_i Sz_j >")
 
 try:
     np.savetxt(directory2 + '/UneqTimeSzCorrelations.csv', (UneqMagCorrMeas))
