@@ -106,5 +106,5 @@ $(object):$(eq_or_uneq) $(include_dir)/matrixgen.h $(include_dir)/green.h $(incl
 	 $(include_dir)/TDQ.h
 
 clean:
-	rm -f simulation $(object)
+	rm -f simulation src/mainEqTime.o src/mainUneqTime.o
 	rm -f ./temp-data/*
