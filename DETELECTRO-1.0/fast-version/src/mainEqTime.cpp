@@ -445,19 +445,19 @@ int main(int argc, char **argv)
 
     std::cout << "Simulation ended" << std::endl << std::endl;
     std::cout << "nEl: " << nEl << " +- " <<
-     sqrt( nElSq - pow(nEl, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << std::endl << std::endl;
+     sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
     std::cout << "nUp_nDw: " << nUp_nDw << " +- " <<
-     sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << std::endl << std::endl;
+     sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
     std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << " +- " <<
-     (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) / nEl
-     + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) / nUp_nDw ) << std::endl << std::endl;
+     (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nEl
+     + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nUp_nDw ) << std::endl << std::endl;
     std::cout << "Hkin: " << Hkin << " +- " <<
-     sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << std::endl << std::endl;
+     sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
     std::cout << "Hint: " << U * nUp_nDw << " +- " <<
-     U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << std::endl << std::endl;
+     U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
     std::cout << "E: " << Hkin + U * nUp_nDw << " +- " <<
-     sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) +
-     U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 )<< std::endl << std::endl;
+     sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) +
+     U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L )<< std::endl << std::endl;
 
     //  SAVE OUTPUT.
     std::ofstream file0("temp-data/simulationParameters.csv");
@@ -498,13 +498,13 @@ int main(int argc, char **argv)
         << nEl << '\n';
         file2 << std::left << std::setw(50) << "d<n>,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nElSq - pow(nEl, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << '\n';
+        << sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << '\n';
         file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nUp_nDw << '\n';
         file2 << std::left << std::setw(50) << "d<n+ n->,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << '\n';
+        << sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << '\n';
         file2 << std::left << std::setw(50) << "ZZ AF Structure Factor,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << zzAFstFactor << '\n';
@@ -513,14 +513,14 @@ int main(int argc, char **argv)
         << nEl - 2 * nUp_nDw << '\n';
         file2 << std::left << std::setw(50) << "d< m^2 >,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) / nEl
-         + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) / nUp_nDw ) << '\n';
+        << (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nEl
+         + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nUp_nDw ) << '\n';
         file2 << std::left << std::setw(50) << "Hkin,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << Hkin << '\n';
         file2 << std::left << std::setw(50) << "dHkin,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( (totalMCSweeps - W) / A - 1 ) << '\n';
+        << sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << '\n';
         file2 << std::left << std::setw(50) << "Hint,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << U * nUp_nDw << '\n';
@@ -535,7 +535,7 @@ int main(int argc, char **argv)
         file4 << std::left << std::setw(50) << "d<Sz_i Sz_j >" << '\n';
         file4 <<
          std::setprecision(10) << ( ( SiSjSq - SiSj.unaryExpr(&matSq) )
-         .unaryExpr(&matSqrt) / sqrt( (totalMCSweeps - W) / A - 1 ) )
+         .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) )
          .format(CleanFmt) << '\n';
     }
     file1.close();

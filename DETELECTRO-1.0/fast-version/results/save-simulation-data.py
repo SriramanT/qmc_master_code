@@ -34,7 +34,8 @@ magCorrMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1, 
 magCorrMeasError = np.loadtxt('../temp-data/EqTimeSzCorrelationsError.csv', skiprows = 1, delimiter = ',')
 
 try:
-    UneqMagCorrMeas = np.loadtxt('../temp-data/UneqTimeSzCorrelations.csv', skiprows = 1)
+    UneqMagCorrMeas = np.loadtxt('../temp-data/UneqTimeSzCorrelations.csv', skiprows = 1, delimiter = ',')
+    UneqMagCorrMeasError = np.loadtxt('../temp-data/UneqTimeSzCorrelationsError.csv', skiprows = 1, delimiter = ',')
 except IOError:
     print("\nExisting data contains only equal time measurements")
 
@@ -92,6 +93,7 @@ header = "d<Sz_i Sz_j >")
 
 try:
     np.savetxt(directory2 + '/UneqTimeSzCorrelations.csv', (UneqMagCorrMeas))
+    np.savetxt(directory2 + '/UneqTimeSzCorrelationsError.csv', (UneqMagCorrMeasError))
 except NameError:
     print("\nIf you want unequal time measurements as well recompile the code \
 and run the simulation again using\n\nmake clean\n\n\

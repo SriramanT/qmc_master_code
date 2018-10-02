@@ -50,6 +50,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
+
     double t = atof(argv[1]);  //  tight binding parameter
     double U = atof(argv[2]);  //  on-site interaction
     double mu = atof(argv[3]);  //  chemical potential
@@ -197,6 +199,8 @@ int main(int argc, char **argv)
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
     double * weights = new double[W * L];
+    double LOGweight = 0.;
+
     double electronDensities = 0;
     double doubleOcs = 0;
     double energies = 0;
@@ -206,22 +210,34 @@ int main(int argc, char **argv)
     Eigen::MatrixXd uneqMagCorrs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
-    double LOGweight = 0.;
     // double sign = std::copysign(1, Gup->matrix().determinant()
     //   * Gdown->matrix().determinant() );
     double sign = 1;
+    double meanSign = 0;
+
     double electronDensity;
     double doubleOc;
     double energy;
     double zzMag;
     Eigen::MatrixXd magCorr = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+
     double nEl = 0;
     double nUp_nDw = 0;
     double Hkin = 0;
     double zzAFstFactor = 0;
     Eigen::MatrixXd SiSj =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    double meanSign = 0;
+
+    double nElSq = 0;
+    double nUp_nDwSq = 0;
+    double HkinSq = 0;
+    double zzAFstFactorSq = 0;
+    Eigen::MatrixXd SiSjSq =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd intSiTSj =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd intSiTSjSq =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
@@ -473,9 +489,25 @@ int main(int argc, char **argv)
                        / ( (sweep - W)/A + 1 ) ;
                       Hkin += ( energies - Hkin )
                        / ( (sweep - W)/A + 1 ) ;
+                      intSiTSj += ( uneqMagCorrs * dt - intSiTSj )
+                       / ( (sweep - W)/A + 1 ) ;
+
+                      nElSq += ( pow(electronDensities, 2) - nElSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      nUp_nDwSq += ( pow(doubleOcs, 2) - nUp_nDwSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      SiSjSq += ( magCorrs.unaryExpr(&matSq) - SiSjSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      intSiTSjSq += ( uneqMagCorrs.unaryExpr(&matSq) - intSiTSjSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      zzAFstFactorSq += ( pow(zzMags, 2) - zzAFstFactorSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      HkinSq += ( pow(energies, 2) - HkinSq )
+                       / ( (sweep - W)/A + 1 ) ;
                      }
                      electronDensities = 0.; doubleOcs = 0.;
                      magCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                     uneqMagCorrs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                      zzMags = 0.;
                      energies = 0.;
                 }
@@ -489,14 +521,24 @@ int main(int argc, char **argv)
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSj /= meanSign; zzAFstFactor /= meanSign;
     Hkin /= meanSign;
+    nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjSq /= meanSign; zzAFstFactorSq /= meanSign;
+    HkinSq /= meanSign;
 
     std::cout << "Simulation ended" << std::endl << std::endl;
-    std::cout << "nEl: " << nEl << std::endl << std::endl;
-    std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
-    std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << std::endl << std::endl;
-    std::cout << "Hkin: " << Hkin << std::endl << std::endl;
-    std::cout << "Hint: " << U * nUp_nDw << std::endl << std::endl;
-    std::cout << "E: " << Hkin + U * nUp_nDw - mu * NSITES << std::endl << std::endl;
+    std::cout << "nEl: " << nEl << " +- " <<
+     sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
+    std::cout << "nUp_nDw: " << nUp_nDw << " +- " <<
+     sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
+    std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << " +- " <<
+     (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nEl
+     + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nUp_nDw ) << std::endl << std::endl;
+    std::cout << "Hkin: " << Hkin << " +- " <<
+     sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
+    std::cout << "Hint: " << U * nUp_nDw << " +- " <<
+     U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << std::endl << std::endl;
+    std::cout << "E: " << Hkin + U * nUp_nDw << " +- " <<
+     sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) +
+     U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L )<< std::endl << std::endl;
 
     //  SAVE OUTPUT.
     std::ofstream file0("temp-data/simulationParameters.csv");
@@ -521,7 +563,12 @@ int main(int argc, char **argv)
     std::ofstream file1("temp-data/Log-weights.csv");
     std::ofstream file2("temp-data/MeasurementsScalars.csv");
     std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
-    if ( file1.is_open() and file2.is_open() and file3.is_open() )
+    std::ofstream file4("temp-data/EqTimeSzCorrelationsError.csv");
+    std::ofstream file5("temp-data/UneqTimeSzCorrelations.csv");
+    std::ofstream file6("temp-data/UneqTimeSzCorrelationsError.csv");
+    if ( file1.is_open() and file2.is_open() and
+      file3.is_open() and file4.is_open() and
+      file5.is_open() and file6.is_open() )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
@@ -532,32 +579,63 @@ int main(int argc, char **argv)
             }
         }
         file2 << std::left << std::setw(50) << "Electron density <n>,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl << '\n';
+        file2 << std::left << std::setw(50) << "d<n>,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << '\n';
         file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "d<n+ n->,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << '\n';
         file2 << std::left << std::setw(50) << "ZZ AF Structure Factor,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << zzAFstFactor << '\n';
         file2 << std::left << std::setw(50) << "< m^2 >,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl - 2 * nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "d< m^2 >,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nEl
+         + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) / nUp_nDw ) << '\n';
         file2 << std::left << std::setw(50) << "Hkin,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin << '\n';
+        file2 << std::left << std::setw(50) << "dHkin,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) << '\n';
         file2 << std::left << std::setw(50) << "Hint,";
-        file2 << std::left << std::setw(50) << "E" << '\n';
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl << ",";
+        << U * nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "E,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nUp_nDw << ",";
+        << Hkin + U * nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "Average sign,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
-        << zzAFstFactor << ",";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl - 2 * nUp_nDw << ",";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << Hkin << ",";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << U * nUp_nDw << ",";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << Hkin + U * nUp_nDw - mu * NSITES << '\n';
+        << meanSign << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
-        file3 << std::setprecision(10) << SiSj << '\n';
+        file3 << std::setprecision(10) << SiSj.format(CleanFmt) << '\n';
+        file4 << std::left << std::setw(50) << "d<Sz_i Sz_j >" << '\n';
+        file4 <<
+         std::setprecision(10) << ( ( SiSjSq - SiSj.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) * L ) )
+         .format(CleanFmt) << '\n';
+        file5 << std::left << std::setw(50) << "int_0^beta dt <Sz_i (t) Sz_j (0) >" << '\n';
+        file5 << std::setprecision(10) << intSiTSj.format(CleanFmt) << '\n';
+        file6 << std::left << std::setw(50) << "d int_0^beta dt <Sz_i (t) Sz_j (0) >" << '\n';
+        file6 <<
+         std::setprecision(10) << ( ( intSiTSjSq - intSiTSj.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( (totalMCSweeps - W) / A - 1 ) )
+         .format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();
     file3.close();
+    file4.close();
+    file5.close();
+    file6.close();
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
