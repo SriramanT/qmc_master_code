@@ -207,6 +207,10 @@ int main(int argc, char **argv)
     double zzMags = 0;
     Eigen::MatrixXd magCorrZZs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenFunctionUps =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenFunctionDowns =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
     // Eigen::MatrixXd magCorrXXs =
     //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
     Eigen::MatrixXd uneqMagCorrZZs =
@@ -224,9 +228,9 @@ int main(int argc, char **argv)
     double energy;
     double zzMag;
     Eigen::MatrixXd magCorrZZ = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd magCorrXX = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    // Eigen::MatrixXd magCorrXX = Eigen::Matrix<double, NSITES, NSITES>::Zero();
     Eigen::MatrixXd uneqMagCorrZZ = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd uneqMagCorrXX = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    // Eigen::MatrixXd uneqMagCorrXX = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     double nEl = 0;
     double nUp_nDw = 0;
@@ -234,12 +238,14 @@ int main(int argc, char **argv)
     double zzAFstFactor = 0;
     Eigen::MatrixXd SiSjZ =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd SiSjX =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    // Eigen::MatrixXd SiSjX =
+    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
     Eigen::MatrixXd intSiTSjZ =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd intSiTSjX =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    // Eigen::MatrixXd intSiTSjX =
+    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenUp = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenDown = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     double nElSq = 0;
     double nUp_nDwSq = 0;
@@ -247,12 +253,14 @@ int main(int argc, char **argv)
     double zzAFstFactorSq = 0;
     Eigen::MatrixXd SiSjZSq =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd SiSjXSq =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    // Eigen::MatrixXd SiSjXSq =
+    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
     Eigen::MatrixXd intSiTSjZSq =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
     // Eigen::MatrixXd intSiTSjXSq =
     //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenUpSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenDownSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
@@ -416,6 +424,11 @@ int main(int argc, char **argv)
                     }
                 }
             }
+
+            GreenFunctionUps +=
+              ( Gup->matrix() * sign - GreenFunctionUps ) / ( l + 1 ) ;
+            GreenFunctionDowns +=
+              ( Gdown->matrix() * sign - GreenFunctionDowns ) / ( l + 1 ) ;
             electronDensity /= NSITES; electronDensity += 2;
             doubleOc /= NSITES; doubleOc += 1;
             zzMag /= NSITES; energy /= NSITES;
@@ -486,6 +499,10 @@ int main(int argc, char **argv)
                 {
                     if ( sweep % A == 0 )
                     {
+                      GreenUp += ( GreenFunctionUps - GreenUp )
+                       / ( (sweep - W)/A + 1 ) ;
+                      GreenDown += ( GreenFunctionDowns - GreenDown )
+                       / ( (sweep - W)/A + 1 ) ;
                       meanSign += ( sign - meanSign ) / ( ( sweep - W ) / A + 1 );
                       nEl += ( electronDensities - nEl )
                        / ( (sweep - W)/A + 1 ) ;
@@ -504,6 +521,10 @@ int main(int argc, char **argv)
                       // intSiTSjX += ( uneqMagCorrXXs * BETA - intSiTSjX )
                       //  / ( (sweep - W)/A + 1 ) ;
 
+                      GreenUpSq += ( GreenFunctionUps.unaryExpr(&matSq) - GreenUpSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      GreenDownSq += ( GreenFunctionDowns.unaryExpr(&matSq) - GreenDownSq )
+                       / ( (sweep - W)/A + 1 ) ;
                       nElSq += ( pow(electronDensities, 2) - nElSq )
                        / ( (sweep - W)/A + 1 ) ;
                       nUp_nDwSq += ( pow(doubleOcs, 2) - nUp_nDwSq )
@@ -523,6 +544,8 @@ int main(int argc, char **argv)
                      }
                      electronDensities = 0.; doubleOcs = 0.;
                      magCorrZZs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                     GreenFunctionUps = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                     GreenFunctionDowns = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                      // magCorrXXs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                      uneqMagCorrZZs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                      // uneqMagCorrXXs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -538,9 +561,9 @@ int main(int argc, char **argv)
 
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign; zzAFstFactor /= meanSign;
-    Hkin /= meanSign;
+    Hkin /= meanSign; GreenUp /= meanSign; GreenDown /= meanSign;
     nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign; zzAFstFactorSq /= meanSign;
-    HkinSq /= meanSign;
+    HkinSq /= meanSign; GreenUpSq /= meanSign; GreenDownSq /= meanSign;
 
     std::cout << "Simulation ended" << std::endl << std::endl;
     std::cout << "nEl: " << nEl << " +- " <<
@@ -588,12 +611,18 @@ int main(int argc, char **argv)
     // std::ofstream file8("temp-data/EqTimeSxCorrelationsError.csv");
     // std::ofstream file9("temp-data/UneqTimeSxCorrelations.csv");
     // std::ofstream file10("temp-data/UneqTimeSxCorrelationsError.csv");
+    std::ofstream file11("temp-data/GreenUp.csv");
+    std::ofstream file12("temp-data/GreenUpError.csv");
+    std::ofstream file13("temp-data/GreenDown.csv");
+    std::ofstream file14("temp-data/GreenDownError.csv");
     if ( file1.is_open() and file2.is_open() and
       file3.is_open() and file4.is_open() and
-      file5.is_open() and file6.is_open() )
+      file5.is_open() and file6.is_open() and
      //  and
      // file7.is_open() and file8.is_open() and
      // file9.is_open() and file10.is_open()
+      file11.is_open() and file12.is_open() and
+      file13.is_open() and file14.is_open()
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
@@ -668,6 +697,20 @@ int main(int argc, char **argv)
         //  std::setprecision(10) << ( ( intSiTSjXSq - intSiTSjX.unaryExpr(&matSq) )
         //  .unaryExpr(&matSqrt) / sqrt( (totalMCSweeps - W) / A - 1 ) )
         //  .format(CleanFmt) << '\n';
+        file11 << std::left << std::setw(50) << "Gup" << '\n';
+        file11 << std::setprecision(10) << GreenUp.format(CleanFmt) << '\n';
+        file12 << std::left << std::setw(50) << "dGup" << '\n';
+        file12 <<
+         std::setprecision(10) << ( ( GreenUpSq - GreenUp.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) ) )
+         .format(CleanFmt) << '\n';
+        file13 << std::left << std::setw(50) << "Gdown" << '\n';
+        file13 << std::setprecision(10) << GreenDown.format(CleanFmt) << '\n';
+        file14 << std::left << std::setw(50) << "dGdown" << '\n';
+        file14 <<
+         std::setprecision(10) << ( ( GreenDownSq - GreenDown.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) ) )
+         .format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();
@@ -679,6 +722,10 @@ int main(int argc, char **argv)
     // file8.close();
     // file9.close();
     // file10.close();
+    file11.close();
+    file12.close();
+    file13.close();
+    file14.close();
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;

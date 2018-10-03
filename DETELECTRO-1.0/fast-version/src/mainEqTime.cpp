@@ -205,6 +205,10 @@ int main(int argc, char **argv)
     double zzMags = 0;
     Eigen::MatrixXd magCorrZZs =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenFunctionUps =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenFunctionDowns =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     // double sign = std::copysign(1, Gup->matrix().determinant()
     //   * Gdown->matrix().determinant() );
@@ -223,6 +227,8 @@ int main(int argc, char **argv)
     double zzAFstFactor = 0;
     Eigen::MatrixXd SiSjZ =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenUp = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenDown = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     double nElSq = 0;
     double nUp_nDwSq = 0;
@@ -230,6 +236,8 @@ int main(int argc, char **argv)
     double zzAFstFactorSq = 0;
     Eigen::MatrixXd SiSjZSq =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenUpSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenDownSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
@@ -346,6 +354,10 @@ int main(int argc, char **argv)
             doubleOc /= NSITES; doubleOc += 1;
             zzMag /= NSITES; energy /= NSITES;
 
+            GreenFunctionUps +=
+              ( Gup->matrix() * sign - GreenFunctionUps ) / ( l + 1 ) ;
+            GreenFunctionDowns +=
+              ( Gdown->matrix() * sign - GreenFunctionDowns ) / ( l + 1 ) ;
             electronDensities +=
               ( electronDensity * sign - electronDensities ) / ( l + 1 ) ;
             doubleOcs +=
@@ -402,6 +414,10 @@ int main(int argc, char **argv)
                     if ( sweep % A == 0 )
                     {
                       meanSign += ( sign - meanSign ) / ( ( sweep - W ) / A + 1 );
+                      GreenUp += ( GreenFunctionUps - GreenUp )
+                       / ( (sweep - W)/A + 1 ) ;
+                      GreenDown += ( GreenFunctionDowns - GreenDown )
+                       / ( (sweep - W)/A + 1 ) ;
                       nEl += ( electronDensities - nEl )
                        / ( (sweep - W)/A + 1 ) ;
                       nUp_nDw += ( doubleOcs - nUp_nDw )
@@ -413,6 +429,10 @@ int main(int argc, char **argv)
                       Hkin += ( energies - Hkin )
                        / ( (sweep - W)/A + 1 ) ;
 
+                      GreenUpSq += ( GreenFunctionUps.unaryExpr(&matSq) - GreenUpSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      GreenDownSq += ( GreenFunctionDowns.unaryExpr(&matSq) - GreenDownSq )
+                       / ( (sweep - W)/A + 1 ) ;
                       nElSq += ( pow(electronDensities, 2) - nElSq )
                        / ( (sweep - W)/A + 1 ) ;
                       nUp_nDwSq += ( pow(doubleOcs, 2) - nUp_nDwSq )
@@ -426,6 +446,8 @@ int main(int argc, char **argv)
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrZZs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                    GreenFunctionUps = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                    GreenFunctionDowns = Eigen::Matrix<double, NSITES, NSITES>::Zero();
                     zzMags = 0.;
                     energies = 0.;
 
@@ -439,9 +461,9 @@ int main(int argc, char **argv)
 
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign; zzAFstFactor /= meanSign;
-    Hkin /= meanSign;
+    Hkin /= meanSign; GreenUp /= meanSign; GreenDown /= meanSign;
     nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign; zzAFstFactorSq /= meanSign;
-    HkinSq /= meanSign;
+    HkinSq /= meanSign; GreenUpSq /= meanSign; GreenDownSq /= meanSign;
 
     std::cout << "Simulation ended" << std::endl << std::endl;
     std::cout << "nEl: " << nEl << " +- " <<
@@ -483,7 +505,12 @@ int main(int argc, char **argv)
     std::ofstream file2("temp-data/MeasurementsScalars.csv");
     std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
     std::ofstream file4("temp-data/EqTimeSzCorrelationsError.csv");
-    if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() )
+    std::ofstream file5("temp-data/GreenUp.csv");
+    std::ofstream file6("temp-data/GreenUpError.csv");
+    std::ofstream file7("temp-data/GreenDown.csv");
+    std::ofstream file8("temp-data/GreenDownError.csv");
+    if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() and
+      file5.is_open() and file6.is_open() and file7.is_open() and file8.is_open() )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
@@ -537,11 +564,29 @@ int main(int argc, char **argv)
          std::setprecision(10) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
          .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) ) )
          .format(CleanFmt) << '\n';
+        file5 << std::left << std::setw(50) << "Gup" << '\n';
+        file5 << std::setprecision(10) << GreenUp.format(CleanFmt) << '\n';
+        file6 << std::left << std::setw(50) << "dGup" << '\n';
+        file6 <<
+         std::setprecision(10) << ( ( GreenUpSq - GreenUp.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) ) )
+         .format(CleanFmt) << '\n';
+        file7 << std::left << std::setw(50) << "Gdown" << '\n';
+        file7 << std::setprecision(10) << GreenDown.format(CleanFmt) << '\n';
+        file8 << std::left << std::setw(50) << "dGdown" << '\n';
+        file8 <<
+         std::setprecision(10) << ( ( GreenDownSq - GreenDown.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (totalMCSweeps - W) / A - 1 ) ) )
+         .format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();
     file3.close();
     file4.close();
+    file5.close();
+    file6.close();
+    file7.close();
+    file8.close();
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;

@@ -75,7 +75,7 @@ E6 = np.array([[t0, 0.5 * t1 + np.sqrt(3) / 2 * t2, np.sqrt(3) / 2 * t1 - 0.5 * 
 
 hoppings = np.array([E0, E1, E2, E3, E4, E5, E6])
 
-inftyCutOff = 50 # above it, beta is practically infinity
+inftyCutOff = 100 # above it, beta is practically infinity
 
 def fermi(e, mu, beta):
     '''
@@ -185,7 +185,7 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond, beta0):
 
     # Tolerance
 
-    delta = 1e-6
+    delta = 1e-10
 
     deltaUp = delta + 1
     deltaDown = delta + 1
@@ -299,8 +299,8 @@ else:
 
 Nx = 512
 Ny = 16
-beta0 = 1.15
-beta = 8
+beta0 = 1.5
+beta = 100
 initCond = 1
 
 #Us = [1, 3, 5, 7, 10, 15, 20]
