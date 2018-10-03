@@ -623,6 +623,7 @@ int main(int argc, char **argv)
      // file9.is_open() and file10.is_open()
       file11.is_open() and file12.is_open() and
       file13.is_open() and file14.is_open()
+    )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
