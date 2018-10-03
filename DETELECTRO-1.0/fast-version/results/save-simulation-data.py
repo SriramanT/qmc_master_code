@@ -33,6 +33,14 @@ magCorrZZMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1
 
 magCorrZZMeasError = np.loadtxt('../temp-data/EqTimeSzCorrelationsError.csv', skiprows = 1, delimiter = ',')
 
+GreenUp = np.loadtxt('../temp-data/GreenUp.csv', skiprows = 1, delimiter = ',')
+
+GreenUpError = np.loadtxt('../temp-data/GreenUpError.csv', skiprows = 1, delimiter = ',')
+
+GreenDown = np.loadtxt('../temp-data/GreenUp.csv', skiprows = 1, delimiter = ',')
+
+GreenDownError = np.loadtxt('../temp-data/GreenUpError.csv', skiprows = 1, delimiter = ',')
+
 #magCorrXXMeas = np.loadtxt('../temp-data/EqTimeSxCorrelations.csv', skiprows = 1, delimiter = ',')
 #
 #magCorrXXMeasError = np.loadtxt('../temp-data/EqTimeSxCorrelationsError.csv', skiprows = 1, delimiter = ',')
@@ -96,6 +104,18 @@ header = "<Sz_i Sz_j >")
 
 np.savetxt(directory2 + '/EqTimeSzCorrelationsError.csv', (magCorrZZMeasError), \
 header = "d<Sz_i Sz_j >")
+
+np.savetxt(directory2 + '/GreenUp.csv', (GreenUp), \
+header = "Green Up")
+
+np.savetxt(directory2 + '/GreenUpError.csv', (GreenUpError), \
+header = "d Green Up")
+
+np.savetxt(directory2 + '/GreenDown.csv', (GreenDown), \
+header = "Green Down")
+
+np.savetxt(directory2 + '/GreenDownError.csv', (GreenDownError), \
+header = "d Green Down")
 
 #np.savetxt(directory2 + '/EqTimeSxCorrelations.csv', (magCorrXXMeas), \
 #header = "<Sx_i Sx_j >")
