@@ -1,6 +1,6 @@
 //
 //  main.cpp
-//  
+//
 //
 //  Created by Francisco Brito on 08/06/2018.
 //
@@ -31,20 +31,20 @@ int main()
 {
     //  SET SIMULATION PARAMETERS.
     const int N = 4;  //  # sites
+    const int L = 16;  //  # slices
     const int dtInv = 8;    //  Inverse Trotter error
     const double dt = 1. / dtInv;  //  Trotter error, or time subinterval width. error scales as dt^2
-    const int beta = 2;  //  inverse temperature
+    const int beta = L / dtInv;  //  inverse temperature
     const int t = 1;  //  hopping parameter. set to 1 by default.
     const double U = 4.;  //  on-site interaction
     const double mu = 0;  //  chemical potential
     const int greenAfreshFreq = 4;  //   how often to calculate Green's functions afresh (in # im-time slices)
-    const int L = beta * dtInv;  //  # slices
     const double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;  //  HS transformation parameter
-    const int Lbda = L / greenAfreshFreq;  //  Lbda = # intervals in which the product of B's is divided to stabilize.
-    
+    const int Lbda = 4;  //  Lbda = # intervals in which the product of B's is divided to stabilize.
+
     //  DEFINE MATRICES TYPE.
     typedef Eigen::Matrix<double, N, N> MatrixNN;
-    
+
     //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
     const int seed = 1;
     std::mt19937 gen(seed);  //  mt19937 algorithm to generate random numbers
@@ -53,16 +53,16 @@ int main()
     const int totalMCSweeps = 1;
     const int totalMCSteps = totalMCSweeps * N * L;
 
-    
+
     // -- INITIALIZATION ---
-    
-    
+
+
     //  HOPPING MATRIX FOR ARBITRARY GEOMETRY
     Geometry< N > K; K.oneDimensionalChainPBC();
-    
+
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     Configuration< L , N > h; h.genHsMatrix();
-    
+
     //  COMPUTE MATRIX 'PREFACTOR' OF THE B-MATRICES B = e^(t dt K).
     const MatrixNN BpreFactor = ( t * dt * K.matrix() ).exp();
 
@@ -177,16 +177,16 @@ int main()
     }   //  END OF MC LOOP.
 
     Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();
-    
+
     for (int slice = L - 1; slice >= 0; slice--)
     {
         partialProdBs *= Bup.matrix(slice);
         Eigen::JacobiSVD< Eigen::Matrix<double, N, N> > svd( partialProdBs );
         cond[slice] = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size()-1);
     }
-    
-    Eigen::Matrix<double, N * L, N * L> HubbardMat = Eigen::Matrix<double, N * L, N * L>::Zero() ;
-    
+
+    Eigen::MatrixXd HubbardMat = Eigen::Matrix<double, N * L, N * L>::Zero() ;
+
     HubbardMat.block(0, 0 ,N, N) =  Eigen::Matrix<double, N, N>::Identity();
     HubbardMat.block(0, N * ( L - 1 ), N, N) = Bup.matrix(0);
     for (int slice = 1; slice < L; slice++)
@@ -216,4 +216,3 @@ int main()
 //    std::cout << simulation() << std::endl;
 //    return 0;
 //}
-

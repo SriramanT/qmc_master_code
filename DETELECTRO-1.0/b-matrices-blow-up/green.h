@@ -1,6 +1,6 @@
 //
 //  green.h
-//  
+//
 //
 //  Created by Francisco Brito on 09/05/2018.
 //
@@ -97,14 +97,14 @@ void Green<N, L, Lbda>::computeStableGreenNaiveR(Eigen::Matrix<double, N, N>* Bs
     U = Eigen::Matrix<double, N, N>::Identity();
     D = Eigen::Matrix<double, N, N>::Identity();
     V = Eigen::Matrix<double, N, N>::Identity();
-    
+
     int site;
     int slice;
     int sliceCounter = 0;
-    
+
     //  INITIALIZE PARTIAL PRODUCTS.
     Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
-    
+
     for (slice = l + 1; slice < L; slice++)
     {
         partialProdBs = Bs[slice] * partialProdBs;
@@ -121,7 +121,7 @@ void Green<N, L, Lbda>::computeStableGreenNaiveR(Eigen::Matrix<double, N, N>* Bs
             partialProdBs = Eigen::Matrix<double, N, N>::Identity();
         }
     }
-    
+
     for (slice = 0; slice <= l; slice++)
     {
         partialProdBs = Bs[slice] * partialProdBs;
@@ -138,7 +138,7 @@ void Green<N, L, Lbda>::computeStableGreenNaiveR(Eigen::Matrix<double, N, N>* Bs
             partialProdBs = Eigen::Matrix<double, N, N>::Identity();
         }
     }
-    
+
     //  COMPUTE GREEN'S FUNCTION.
     //  See eq. (4.3) of "Stable simulations of models of interacting electrons"
     //  by Loh Jr and Gubernatis
@@ -161,11 +161,11 @@ void Green<N, L, Lbda>::computeStableGreenNaiveL(Eigen::Matrix<double, N, N>* Bs
     U = Eigen::Matrix<double, N, N>::Identity();
     D = Eigen::Matrix<double, N, N>::Identity();
     V = Eigen::Matrix<double, N, N>::Identity();
-    
+
     int site;
     int slice;
     int sliceCounter = 0;
-    
+
     //  INITIALIZE PARTIAL PRODUCTS.
     Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
 
@@ -185,7 +185,7 @@ void Green<N, L, Lbda>::computeStableGreenNaiveL(Eigen::Matrix<double, N, N>* Bs
             partialProdBs = Eigen::Matrix<double, N, N>::Identity();
         }
     }
-    
+
     for (slice = L - 1; slice > l; slice--)
     {
         partialProdBs *= Bs[slice];
@@ -259,14 +259,14 @@ void Green<N, L, Lbda>::storeVDU(Eigen::Matrix<double, N, N>* Bs)
     U = Eigen::Matrix<double, N, N>::Identity();
     D = Eigen::Matrix<double, N, N>::Identity();
     V = Eigen::Matrix<double, N, N>::Identity();
-    
+
     int slice;
     int sliceCounter = 0;
     int lbda = 0;
-    
+
     //  INITIALIZE PARTIAL PRODUCTS.
     Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
-    
+
     //  COMPUTE UDVs.
     for (slice = L - 1; slice >= 0; slice--)
     {
@@ -297,7 +297,7 @@ void Green<N, L, Lbda>::storeUDV(Eigen::Matrix<double, N, N>* Bs, int l, int gre
     int lbda = (l + 1) / greenAfreshFreq - 1;
     int slice;
     Eigen::Matrix<double, N, N> partialProdBs = Eigen::Matrix<double, N, N>::Identity();  //  an array of partial products
-    
+
     //  INITIALIZE PARTIAL PRODUCTS.
     if ( lbda == 0 )
     {
@@ -311,7 +311,7 @@ void Green<N, L, Lbda>::storeUDV(Eigen::Matrix<double, N, N>* Bs, int l, int gre
         D = Ds[Lbda - lbda] ;
         V = Vs[Lbda - lbda] ;
     }
-    
+
     //  COMPUTE UDVs.
     for (slice = ( l - (greenAfreshFreq - 1) ) ; slice <= l ; slice++)
     {
@@ -353,31 +353,31 @@ void Green<N, L, Lbda>::computeBlockOfGreens(int l, int greenAfreshFreq)
     //  (see Quantum Monte Carlo Methods on Lattices: The Determinantal Approach by Fakher F. Assaad)
     int lbda = (l + 1) / greenAfreshFreq - 1;
     Eigen::Matrix<double, 2 * N, 2 * N> tempMatrix;
-    
+
     tempMatrix.block(0, 0, N, N) = ( Vs[Lbda - lbda - 1] * Vs[Lbda - lbda - 2] ).inverse();
     tempMatrix.block(0, N, N, N) = Ds[Lbda - lbda - 2];
     tempMatrix.block(N, 0, N, N) = - Ds[Lbda - lbda - 1];
     tempMatrix.block(N, N, N, N) = ( Us[Lbda - lbda - 2] * Us[Lbda - lbda - 1] ).inverse();
-    
+
     UDV decomposition(tempMatrix);
     Udouble = decomposition.QR_and_getU();
     Ddouble = decomposition.getD();
     Vdouble = decomposition.getV();
-    
+
     Eigen::Matrix<double, 2 * N, 2 * N> RightMatrix;
     RightMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 2].inverse();
     RightMatrix.block(0, N, N, N) = Eigen::Matrix<double, N, N>::Zero();
     RightMatrix.block(N, 0, N, N) = Eigen::Matrix<double, N, N>::Zero();
     RightMatrix.block(N, N, N, N) = Us[Lbda - lbda - 1].inverse();
     RightMatrix = Udouble.inverse() * RightMatrix;
-    
+
     Eigen::Matrix<double, 2 * N, 2 * N> LeftMatrix;
     LeftMatrix.block(0, 0, N, N) = Vs[Lbda - lbda - 1].inverse();
     LeftMatrix.block(0, N, N, N) = Eigen::Matrix<double, N, N>::Zero();
     LeftMatrix.block(N, 0, N, N) = Eigen::Matrix<double, N, N>::Zero();
     LeftMatrix.block(N, N, N, N) = Us[Lbda - lbda - 2].inverse();
     LeftMatrix *= Vdouble.inverse();
-    
+
     tempMatrix = LeftMatrix * Ddouble.inverse() * RightMatrix;
     G = tempMatrix.block(N, N, N, N);
     Gforward = tempMatrix.block(N, 0, N, N);

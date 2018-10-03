@@ -120,6 +120,8 @@ and run
 
 python save-simulation-data.py
 
+(you need version 3 of Python)
+
 
 In the _results/plot-src_ directory there are python scripts that use *matplotlib*
 to plot the results of the simulations saved in _results/data_
@@ -134,10 +136,7 @@ The hopping parameters allowing us to simulate a MoS2 nanoribbon are given in
 
 [Liu2013](https://github.com/fmonteir/msc_references/blob/master/references/tmd/Liu2013.pdf)
 
-When running _simulation_, we  should set t=-1, so as to normalize all the
-hopping parameters to t0, i.e. setting t0=-1, and measuring everything in units of
-t0.
-Moreover, one must pay attention when setting the number of sites because it includes both
+One must pay attention when setting the number of sites because it includes both
 real and orbital space. For three orbitals, this means that if we set nsites=60,
 we will be studying a 20-site system.
 
@@ -164,17 +163,9 @@ A Mathematica notebook by E.V. Castro with some tight binding (3-band model) stu
 
 ## To do
 
-- Benchmark detQMC by applying it to the U / t -> 0, inf limit
-- Benchmark by reproducing Hirsch's 1983 paper
-- U / t >> 1 limit to compare with Heisenberg
-- Compare with White's seminal paper
-- Explore parameter reduction in Mean Field
-- Compare w/ QUEST and ALF
-- Faster version of the code
-- Implement more measurements and comment
 - Implement ideia of Bai2010
-- Add geometries
-- Apply MF and QMC to TMDs
+- Add geometries, and implement more measurements
+- Hybrid QMC
 
 ## Built with
 
@@ -188,7 +179,7 @@ A Mathematica notebook by E.V. Castro with some tight binding (3-band model) stu
 
 ## Versioning
 
-v1 - latest update 14.08.2018
+v1 - latest update 02.10.2018
 
 ## Authors
 

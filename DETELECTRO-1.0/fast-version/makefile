@@ -30,8 +30,8 @@ green_afresh_freq=4
 eq_or_uneq = src/mainEqTime.cpp
 object = src/mainEqTime.o
 
-# eq_or_uneq = src/mainUneqTime.cpp
-# object = src/mainUneqTime.o
+# eq_or_uneq=src/mainUneqTime.cpp
+# object=src/mainUneqTime.o
 
 # Set parameters of the simulation here.
 CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta)\

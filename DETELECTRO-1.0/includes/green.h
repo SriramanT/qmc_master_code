@@ -252,7 +252,7 @@ template<int N, int L, int Lbda>
 void Green<N, L, Lbda>::initializeUneqs()
 {
     Gforward = Gzero;
-    Gbackward = Gzero - Eigen::Matrix<double, N, N>::Identity();
+    Gbackward = - Eigen::Matrix<double, N, N>::Identity() + Gzero;
 }
 
 

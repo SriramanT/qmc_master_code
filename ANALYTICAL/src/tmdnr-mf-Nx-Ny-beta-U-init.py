@@ -17,7 +17,7 @@ import scipy.optimize as opt
 # In[20]:
 
 
-localData = False
+localData = True
 
 
 # # Define the model
@@ -143,7 +143,6 @@ def solve_self_consistent(Nx, Ny, invTemp, U, initCond, beta0):
         Returns nUp, nDown, energies, itSwitch, lastIt, eUp, eDown, wUp, wDown
     '''
     
-    K = triangularNano(Nx, Ny, nOrb, hoppings)
     
     N = nOrb * Nx * Ny # number of sites (orbital + spatial)
 
@@ -300,8 +299,8 @@ else:
 
 Nx = 512
 Ny = 16
-beta0 = 1.5
-beta = inftyCutOff
+beta0 = 1.15
+beta = 8
 initCond = 1
 
 #Us = [1, 3, 5, 7, 10, 15, 20]
@@ -311,13 +310,15 @@ initCond = 1
 #Us = np.arange(14.8, 16.2, 0.2)
 
 Us = [10, 12, 13, 13.1, 13.2, 13.3, 13.4, 13.5,\
-      14, 14.8, 15, 15.2, 15.4, 15.6, 15.8, 16, 17, 18, 19, 20]
+      14, 14.8, 15, 15.2, 15.22, 15.24, 15.26, 15.28, 15.3,15.32,15.34,15.38, 15.4, 15.42, 15.44, 15.46, 15.48, 15.5, 15.6, 15.8, 16, 17, 18, 19]
+
+#Us = [20]
 
 for U in Us:
     SAVESUBDIR = SAVEDIR + "/Nx=" + str(Nx) +        "_Ny=" + str(Ny) + "_U=" + str(U) + "_beta=" + str(beta) + "/"
     if not os.path.exists(SAVESUBDIR):
         os.makedirs(SAVESUBDIR)
 
-    data = solve_self_consistent(Nx, Ny, beta, U, initCond)
+    data = solve_self_consistent(Nx, Ny, beta, U, initCond, beta0)
     savedata(SAVESUBDIR, data)
 
