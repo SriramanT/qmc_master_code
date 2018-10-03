@@ -344,7 +344,7 @@ int main(int argc, char **argv)
                 {
                     uneqMagCorrZZ(x, x) = ( Gup->zero(x, x) + Gdown->zero(x, x) )
                       - 2 * Gup->zero(x, x) * Gdown->zero(x, x);
-                    uneqMagCorrXX(x, x) = - 2 * Gup->zero(x, x) * Gdown->zero(x, x);
+                    // uneqMagCorrXX(x, x) = - 2 * Gup->zero(x, x) * Gdown->zero(x, x);
                 }
                 else
                 {
