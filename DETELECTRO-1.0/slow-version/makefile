@@ -17,7 +17,7 @@
 #	It is only meaningful for options 5, 6, 8, and 9.
 
 nsites = 2
-dt_inv = 64
+dt_inv = 16
 beta = 2
 hopping = 1
 green_afresh_freq = 4

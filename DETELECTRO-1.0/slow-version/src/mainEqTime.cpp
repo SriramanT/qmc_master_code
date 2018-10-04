@@ -20,7 +20,7 @@
 #endif
 
 #ifndef DT_INV
-#define DT_INV 64 //  Inverse Trotter error
+#define DT_INV 16 //  Inverse Trotter error
 #endif
 
 #ifndef BETA
