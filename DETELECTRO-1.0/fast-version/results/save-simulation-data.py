@@ -27,7 +27,7 @@ ny = int(simulationParameters[11])
 
 weights = np.loadtxt('../temp-data/Log-weights.csv', skiprows = 1)
 
-scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', usecols = 1, delimiter=',')
+scalarMeasurements = np.loadtxt('../temp-data/MeasurementsScalars.csv', usecols = (1,), delimiter=',')
 
 magCorrZZMeas = np.loadtxt('../temp-data/EqTimeSzCorrelations.csv', skiprows = 1, delimiter = ',')
 

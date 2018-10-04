@@ -1,12 +1,12 @@
-Electron density <n>,                             1                                                 
-d<n>,                                             7.614137684e-10                                   
-Double occupancy <n+ n->,                         0.1357587508                                      
-d<n+ n->,                                         0.001575604394                                    
-ZZ AF Structure Factor,                           1.393838824                                       
-< m^2 >,                                          0.7284824984                                      
-d< m^2 >,                                         0.01690941109                                     
-Hkin,                                             -1.718803035                                      
-dHkin,                                            0.0182592848                                      
-Hint,                                             0.5430350032                                      
-E,                                                0.8242319686                                      
-Average sign,                                     1                                                 
+Electron density <n>,                             0.7057888591                                      
+d<n>,                                             -nan                                              
+Double occupancy <n+ n->,                         0.09901856475                                     
+d<n+ n->,                                         -nan                                              
+ZZ AF Structure Factor,                           0.5077517296                                      
+< m^2 >,                                          0.5077517296                                      
+d< m^2 >,                                         -nan                                              
+Hkin,                                             -35.46415841                                      
+dHkin,                                            -nan                                              
+Hint,                                             0.792148518                                       
+E,                                                -31.84885446                                      
+Average sign,                                     0.8125                                            

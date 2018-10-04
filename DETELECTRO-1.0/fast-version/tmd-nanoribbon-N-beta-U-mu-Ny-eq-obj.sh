@@ -3,7 +3,7 @@
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=96:00:00
 
-#cd ~/qmc_master_code/DETELECTRO-1.0/fast-version/
+cd ~/qmc_master_code/DETELECTRO-1.0/fast-version/
 
 make clean
 
