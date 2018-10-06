@@ -4,11 +4,11 @@
 
 make clean
 
-make nsites=$1 beta=$2 eq_or_uneq=src/mainSignProblem.cpp object=src/mainSignProblem.o
+make nsites=$1 beta=$2 eq_or_uneq=src/mainSignProblem.cpp object=src/mainSignProblem.o U=$3
 
 for i in $(eval echo {1..$4})
   do
-    
+
     ./simulation 1 $3 $(echo 0.1*$i - 0.1 | bc) 15 $5 $6 $7 $8
 
     cd results
