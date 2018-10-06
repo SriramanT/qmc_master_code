@@ -2,9 +2,9 @@
 
 #cd ~/qmc_master_code/DETELECTRO-1.0/fast-version/
 
-make clean
+make source=mainSignProblem clean
 
-make nsites=$1 beta=$2 source=mainSignProblem U=$3
+make nsites=$1 beta=$2 source="mainSignProblem" U=$3
 
 for i in $(eval echo {1..$4})
   do
