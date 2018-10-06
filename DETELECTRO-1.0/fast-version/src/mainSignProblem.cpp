@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     int A = atof(argv[8]);  //  number of auto-correlation sweeps
 
     double dt = 1. / DT_INV;  //  Trotter error, or time subinterval width. error scales as dt^2
-    const int L = BETA * DT_INV;  //  # slices
+    const int L = (int)(BETA * DT_INV);  //  # slices
     //  Lbda = # intervals in which the product of B's is divided to stabilize.
     const int Lbda = L / GREEN_AFRESH_FREQ;
     //  HS transformation parameter (to order dtau^2)
