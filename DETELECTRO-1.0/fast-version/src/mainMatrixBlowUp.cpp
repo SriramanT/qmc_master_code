@@ -1,8 +1,8 @@
 //
-//  mainUneqTime.cpp
+//  mainEqTime.cpp
 //
 //
-//  Created by Francisco Brito on 17/09/2018.
+//  Created by Francisco Brito on 02/10/2018.
 //
 //  This program simulates the Hubbard model for an arbitrary geometry lattice
 //  using auxiliary field (or determinant) Quantum Monte Carlo: in particular, the BSS algorithm.
@@ -41,7 +41,6 @@
 #include "unsupported/Eigen/KroneckerProduct"
 #include "matrixgen.h"
 #include "green.h"
-
 
 int main(int argc, char **argv)
 {
@@ -113,7 +112,7 @@ int main(int argc, char **argv)
     //  TRIANGULAR LATTICE PBC
     if (geom == 6)
     {
-        //  See Python notebook to implement
+
     }
     //  HONEYCOMB LATTICE PBC
     if (geom == 9)
@@ -192,7 +191,6 @@ int main(int argc, char **argv)
     // Gdown->computeGreenNaive(Bdown->list(), L - 1);
     Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
-    Gup->initializeUneqs(); Gdown->initializeUneqs();
 
     //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
     double alphaUp; double alphaDown; double dUp; double dDown; double accRatio;
@@ -201,66 +199,10 @@ int main(int argc, char **argv)
     double * weights = new double[W * L];
     double LOGweight = 0.;
 
-    double electronDensities = 0;
-    double doubleOcs = 0;
-    double energies = 0;
-    double zzMags = 0;
-    Eigen::MatrixXd magCorrZZs =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd GreenFunctionUps =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd GreenFunctionDowns =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd magCorrXXs =
-    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd uneqMagCorrZZs =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd uneqMagCorrXXs =
-    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
-
     // double sign = std::copysign(1, Gup->matrix().determinant()
     //   * Gdown->matrix().determinant() );
     double sign = 1;
     double meanSign = 0;
-
-    double electronDensity;
-    double doubleOc;
-    double energy;
-    double zzMag;
-    Eigen::MatrixXd magCorrZZ = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd magCorrXX = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd uneqMagCorrZZ = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd uneqMagCorrXX = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-
-    double nEl = 0;
-    double nUp_nDw = 0;
-    double Hkin = 0;
-    double zzAFstFactor = 0;
-    Eigen::MatrixXd SiSjZ =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd SiSjX =
-    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd intSiTSjZ =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd intSiTSjX =
-    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd GreenUp = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd GreenDown = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-
-    double nElSq = 0;
-    double nUp_nDwSq = 0;
-    double HkinSq = 0;
-    double zzAFstFactorSq = 0;
-    Eigen::MatrixXd SiSjZSq =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd SiSjXSq =
-    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd intSiTSjZSq =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    // Eigen::MatrixXd intSiTSjXSq =
-    //   Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd GreenUpSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd GreenDownSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
@@ -320,37 +262,45 @@ int main(int argc, char **argv)
         }
         else
         {
+            //  EITHER WRAP OR COMPUTE GREEN'S FUNCTIONS FROM SCRATCH.
+            latticeSweepUntilAfresh += 1;
+            //  --- MEASUREMENTS ---
+            if ( sweep < W )
+            {
+              //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
+              weights[sweep * L + l] = LOGweight;
+            }
+            //  --- MEASUREMENTS ---
+
+
+
             //  DEAL WITH THE GREEN'S FUNCTIONS.
 
 
-                //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
+            //  DECIDE WHETHER TO COMPUTE GREEN'S FUNCTIONS AFRESH OR TO WRAP.
             if (latticeSweepUntilAfresh == GREEN_AFRESH_FREQ)
             {   //  COMPUTE SPIN-UP AND SPIN-DOWN GREEN'S FUNCTIONS AFRESH.
                 //  Uncomment to compute the product in the naive, unstable manner
-//                Gup->computeGreenNaive(Bup->list(), l);
-//                Gdown->computeGreenNaive(Bdown->list(), l);
-                //  Uncomment to compute the product in the stabilized, but slightly inefficient way
-//                Gup->computeStableGreenNaiveR(Bup->list(), l);
-//                Gdown->computeStableGreenNaiveR(Bdown->list(), l);
+                // Gup->computeGreenNaive(Bup->list(), l);
+                // Gdown->computeGreenNaive(Bdown->list(), l);
+                //  Uncomment to compute the product in the stabilized,
+                //  but slightly inefficient way
+                // Gup->computeStableGreenNaiveR(Bup->list(), l);
+                // Gdown->computeStableGreenNaiveR(Bdown->list(), l);
                 //  Most efficient solution (storing decompositions)
                 if (l != ( L - 1 ) )
                 {
                     Gup->storeUDV(Bup->list(), l, GREEN_AFRESH_FREQ);
                     Gdown->storeUDV(Bdown->list(), l, GREEN_AFRESH_FREQ);
-                    //  This is the standard way described in "Stable simulations
-                    //  of models of interacting electrons"
-//                    Gup->computeStableGreen(l, GREEN_AFRESH_FREQ);
-//                    Gdown->computeStableGreen(l, GREEN_AFRESH_FREQ);
-                    //  Using the BlockOfGreens Method, we can obtain
-                    //  time-displaced Green's as well
-                    Gup->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
-                    Gdown->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
+                    //  This is the standard way described in
+                    //  "Stable simulations of models of interacting electrons"
+                    Gup->computeStableGreen(l, GREEN_AFRESH_FREQ);
+                    Gdown->computeStableGreen(l, GREEN_AFRESH_FREQ);
                 }
                 else
                 {
                     Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
                     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
-                    Gup->initializeUneqs(); Gdown->initializeUneqs();
                 }
                 latticeSweepUntilAfresh = 0;
             }
@@ -365,6 +315,14 @@ int main(int argc, char **argv)
             else
             {
 
+              if ( (sweep >= W) )
+              {
+                  if ( sweep % A == 0 )
+                  {
+                    meanSign += ( sign - meanSign ) / ( ( sweep - W ) / A + 1 );
+                  }
+              }
+
                 //  MOVE SWEEP COUNTER
                 sweep += 1;
                 l = 0; i = 0;
@@ -372,17 +330,65 @@ int main(int argc, char **argv)
         }
     }   //  END OF MC LOOP.
 
-    //  Normalize to mean sign
-    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign; zzAFstFactor /= meanSign;
-    Hkin /= meanSign; GreenUp /= meanSign; GreenDown /= meanSign;
-    nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign; zzAFstFactorSq /= meanSign;
-    HkinSq /= meanSign; GreenUpSq /= meanSign; GreenDownSq /= meanSign;
+    std::ofstream file0("temp-data/simulationParameters.csv");
+    if (file0.is_open())
+    {
+      file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
+      file0 << std::left << std::setw(50) << "dt," << dt << '\n';
+      file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
+      file0 << std::left << std::setw(50) << "L," << L << '\n';
+      file0 << std::left << std::setw(50) << "t," << t << '\n';
+      file0 << std::left << std::setw(50) << "U," << U << '\n';
+      file0 << std::left << std::setw(50) << "mu," << mu << '\n';
+      file0 << std::left << std::setw(50) << "totalMCSweeps," << totalMCSweeps << '\n';
+      file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
+        << GREEN_AFRESH_FREQ << '\n';
+      file0 << std::left << std::setw(50)
+        << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+      file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
+      file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
+    } file0.close();
 
-    std::cout << "Simulation ended" << std::endl << std::endl;
-    file14.close();
+    std::ofstream file1("temp-data/Log-weights.csv");
+    if ( file1.is_open() )
+    {
+        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
+        for (int s = 0; s < W; s++)
+        {
+            for (int slice = 0; slice < L; slice++)
+            {
+                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
+            }
+        }
+    }
+
+    std::ofstream file2("temp-data/Dup.csv");
+    if ( file2.is_open() )
+    {
+        file2 << std::setprecision(10) << Gup->outputD().format(CleanFmt) << '\n';
+    }
+
+    std::ofstream file3("temp-data/Ddown.csv");
+    if ( file3.is_open() )
+    {
+        file3 << std::setprecision(10) << Gdown->outputD().format(CleanFmt) << '\n';
+    }
+
+    std::ofstream file4("temp-data/conditionNumbers.csv");
+    if ( file4.is_open() )
+    {
+      file4 << std::setprecision(10) << Gup->conditionNumberMatrixToInvert(GREEN_AFRESH_FREQ) << ',';
+      file4 << std::setprecision(10) << Gdown->conditionNumberMatrixToInvert(GREEN_AFRESH_FREQ) << '\n';
+    }
+
+
+    file1.close();
+    file2.close();
+    file3.close();
+    file4.close();
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
 
     return 0;
-    }
+}

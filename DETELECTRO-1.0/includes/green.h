@@ -51,6 +51,8 @@ public:
     double zero(int x, int y);
     double get(int x, int y);
     Eigen::MatrixXd getM();
+    Eigen::MatrixXd outputD();
+    double conditionNumberMatrixToInvert(int greenAfreshFreq);
     Green() : M(N, N), G(N, N), u(N, 1), w(1, N),
     U(N, N), D(N, N), V(N, N), Udouble(2 * N, 2 * N),
     Ddouble(2 * N, 2 * N), Vdouble(2 * N, 2 * N),
@@ -416,7 +418,7 @@ double Green<N, L, Lbda>::uneqBackward(int x, int y)
     return Gbackward(x, y);
 }
 
-template<int N, int L, int Lbda>
+template<int N, int L, int Lbda >
 double Green<N, L, Lbda>::zero(int x, int y)
 {
     return Gzero(x, y);
@@ -427,5 +429,22 @@ Eigen::MatrixXd Green<N, L, Lbda>::getM()
 {
     return M;
 }
+
+template<int N, int L, int Lbda>
+Eigen::MatrixXd Green<N, L, Lbda>::outputD()
+{
+    return D;
+}
+
+template<int N, int L, int Lbda>
+double Green<N, L, Lbda>::conditionNumberMatrixToInvert(int greenAfreshFreq)
+{
+    int lbda = (L + 1) / greenAfreshFreq - 1;
+    Eigen::JacobiSVD< Eigen::MatrixXd > svd(
+       Us[Lbda - lbda - 1].inverse() * Us[Lbda - lbda - 2].inverse()
+      + Ds[Lbda - lbda - 1] * Vs[Lbda - lbda - 1] * Vs[Lbda - lbda - 2] * Ds[Lbda - lbda - 2] );
+    return svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size()-1);
+}
+
 
 #endif /* green_h */

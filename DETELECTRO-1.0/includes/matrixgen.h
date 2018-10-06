@@ -56,6 +56,7 @@ public:
     void triangleNanoribbon(int Ny);
     void hcPBC();
     void hcNanoribbon(int Ny); //  Ny = width of the ribbon
+    void hcDot(int Ny); //  Ny = width of the dot
     void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8]);
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
@@ -473,6 +474,98 @@ void Geometry<N>::hcNanoribbon(int Ny)
                     B(Nx * Ny + Nx * y + x, Nx * y) = 1;
                     B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
                     B(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                }
+                else
+                {
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                }
+            }
+            else
+            {
+                if (x == Nx - 1)
+                {
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
+                }
+                else
+                {
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
+                }
+            }
+        }
+    }
+    Hoppings = B;
+}
+
+template<int N>
+void Geometry<N>::hcDot(int Ny)
+{   //  Ny = width of the ribbon
+    B = Eigen::Matrix<double, N, N>::Zero();
+    int Nx = N / Ny / 2;
+    for (int x = 0; x < Nx; x++)
+    {
+        for (int y = 0; y < Ny; y++)
+        {
+            //  SUBLATTICE A
+            if (y == Ny - 1)
+            {
+                if (x == 0)
+                {
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    // B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    // B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                }
+                else
+                {
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                }
+            }
+            else
+            {
+                if (x == 0)
+                {
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
+                    // B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
+                    // B(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
+                    // B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    // B(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
+                }
+                else
+                {
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
+                }
+            }
+            //  SUBLATTICE B
+            if (y == 0)
+            {
+                if (x == Nx - 1)
+                {
+                    // B(Nx * Ny + Nx * y + x, Nx * y) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    // B(Nx * y, Nx * Ny + Nx * y + x) = 1;
                     B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
                 }
                 else
