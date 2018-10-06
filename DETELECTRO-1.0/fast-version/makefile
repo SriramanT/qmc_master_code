@@ -22,13 +22,13 @@
 
 #	DEFAULT PARAMETERS
 
-nsites=2 # orbital + real space
+nsites=2
+# orbital + real space
 dt_inv=16
 beta=2
 green_afresh_freq=4
 
-eq_or_uneq = src/mainEqTime.cpp
-object = src/mainEqTime.o
+source=mainEqTime
 
 # eq_or_uneq=src/mainUneqTime.cpp
 # object=src/mainUneqTime.o
@@ -41,8 +41,8 @@ include_dir = ../includes
 
 CXXFLAGS = -Wall -g -O3 -std=c++11 -I$(include_dir)
 
-simulation: $(object)
-	$(CXX) $(CXXFLAGS) -o simulation $(object)
+simulation_$(source)_nsites$(nsites)_dt_inv$(dt_inv)_beta$(beta)_green_afresh_freq$(green_afresh_freq): src/$(source).o
+	$(CXX) $(CXXFLAGS) -o simulation_$(source)_nsites$(nsites)_dt_inv$(dt_inv)_beta$(beta)_green_afresh_freq$(green_afresh_freq) src/$(source).o
 	@echo ""
 	@echo "		DETELECTRO - Determinant Quantum Monte Carlo for Hubbard-like models"
 	@echo ""
@@ -102,9 +102,9 @@ simulation: $(object)
 	@echo "The Ny parameter is only meaningful for geometry options 5, 6, 8, 10, 13, and 15"
 	@echo ""
 
-$(object):$(eq_or_uneq) $(include_dir)/matrixgen.h $(include_dir)/green.h $(include_dir)/QDT.h\
+src/$(source).o: src/$(source).cpp $(include_dir)/matrixgen.h $(include_dir)/green.h $(include_dir)/QDT.h\
 	 $(include_dir)/TDQ.h
 
 clean:
-	rm -f simulation src/mainEqTime.o src/mainUneqTime.o src/mainMatrixBlowUp.o src/mainSignProblem.o
+	rm -f simulation_$(source)_nsites$(nsites)_dt_inv$(dt_inv)_beta$(beta)_green_afresh_freq$(green_afresh_freq) src/$(source).o
 	rm -f ./temp-data/*
