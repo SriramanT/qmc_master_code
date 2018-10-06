@@ -4,7 +4,7 @@
 
 make clean
 
-make nsites=$1 beta=$2 eq_or_uneq=src/mainSignProblem.cpp object=src/mainSignProblem.o U=$3
+make nsites=$1 beta=$2 source=mainSignProblem U=$3
 
 for i in $(eval echo {1..$4})
   do
