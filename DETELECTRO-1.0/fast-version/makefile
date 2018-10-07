@@ -14,7 +14,7 @@
 #		(8) 	2D Nanoribbon Triangular Lattice
 #		(9) 	2D Periodic Honeycomb Lattice
 #		(10)	2D Honeycomb Nanoribbon
-#		(11)	2D Honeycomb Hexagonal Dot
+#		(11)	2D Honeycomb Strained Nanoribbon
 #		(12)	2D Honeycomb Triangular Dot
 #		(13)	2D Honeycomb Rectangular Dot
 #		(14)	2D Minimal model of a periodic TMD sample (Liu2013)

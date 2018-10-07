@@ -56,7 +56,7 @@ public:
     void triangleNanoribbon(int Ny);
     void hcPBC();
     void hcNanoribbon(int Ny); //  Ny = width of the ribbon
-    void hcDot(int Ny); //  Ny = width of the dot
+    void hcStrainedNanoribbon(int Ny, double Delta); //  Ny = width of the ribbon
     void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8]);
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
@@ -511,7 +511,7 @@ void Geometry<N>::hcNanoribbon(int Ny)
 }
 
 template<int N>
-void Geometry<N>::hcDot(int Ny)
+void Geometry<N>::hcStrainedNanoribbon(int Ny, double Delta)
 {   //  Ny = width of the ribbon
     B = Eigen::Matrix<double, N, N>::Zero();
     int Nx = N / Ny / 2;
@@ -524,37 +524,37 @@ void Geometry<N>::hcDot(int Ny)
             {
                 if (x == 0)
                 {
-                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
-                    // B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
-                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
-                    // B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1 - Delta;
+                    B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1 - Delta;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1 - Delta;
                 }
                 else
                 {
-                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
-                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1 - Delta;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1 - Delta;
                 }
             }
             else
             {
                 if (x == 0)
                 {
-                    B(Nx * y + x, Nx * Ny + Nx * y) = 1;
-                    // B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1;
-                    // B(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
-                    B(Nx * Ny + Nx * y, Nx * y + x) = 1;
-                    // B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1;
-                    // B(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y) = 1 - Delta;
+                    B(Nx * y + x, Nx * Ny + Nx * y + Nx - 1) = 1 - Delta;
+                    B(Nx * y + x, Nx * Ny + Nx * (y + 1) + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + Nx - 1, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * (y + 1) + Nx - 1, Nx * y + x) = 1;
                 }
                 else
                 {
-                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1 - Delta;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x - 1) = 1 - Delta;
                     B(Nx * y + x, Nx * Ny + Nx * ( y + 1 ) + x - 1) = 1;
-                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x - 1, Nx * y + x) = 1 - Delta;
                     B(Nx * Ny + Nx * ( y + 1 ) + x - 1, Nx * y + x) = 1;
                 }
             }
@@ -563,37 +563,37 @@ void Geometry<N>::hcDot(int Ny)
             {
                 if (x == Nx - 1)
                 {
-                    // B(Nx * Ny + Nx * y + x, Nx * y) = 1;
-                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
-                    // B(Nx * y, Nx * Ny + Nx * y + x) = 1;
-                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1 - Delta;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1 - Delta;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1 - Delta;
                 }
                 else
                 {
-                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
-                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1 - Delta;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1 - Delta;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1 - Delta;
                 }
             }
             else
             {
                 if (x == Nx - 1)
                 {
-                    B(Nx * Ny + Nx * y + x, Nx * y) = 1;
-                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x, Nx * y + Nx - 1) = 1 - Delta;
                     B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) ) = 1;
-                    B(Nx * y, Nx * Ny + Nx * y + x) = 1;
-                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y, Nx * Ny + Nx * y + x) = 1 - Delta;
+                    B(Nx * y + Nx - 1, Nx * Ny + Nx * y + x) = 1 - Delta;
                     B(Nx * ( y - 1 ) , Nx * Ny + Nx * y + x) = 1;
                 }
                 else
                 {
-                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1;
-                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x) = 1 - Delta;
+                    B(Nx * Ny + Nx * y + x, Nx * y + x + 1) = 1 - Delta;
                     B(Nx * Ny + Nx * y + x, Nx * ( y - 1 ) + x + 1) = 1;
-                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1;
-                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1;
+                    B(Nx * y + x, Nx * Ny + Nx * y + x) = 1 - Delta;
+                    B(Nx * y + x + 1, Nx * Ny + Nx * y + x) = 1 - Delta;
                     B(Nx * ( y - 1 ) + x + 1, Nx * Ny + Nx * y + x) = 1;
                 }
             }

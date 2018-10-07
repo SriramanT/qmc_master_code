@@ -126,6 +126,14 @@ int main(int argc, char **argv)
         K.hcNanoribbon(Ny);
         K.computeExponential(t, dt);
     }
+    //  STRAINED NANORIBBON
+    if (geom == 11)
+    {
+        K.hcNanoribbon(Ny);
+        K.computeExponential(t, dt);
+        double Delta = 0.3;
+        K.hcStrainedNanoribbon(Ny, Delta)
+    }
     //  3 ORBITAL TIGHT BIDING MODEL ON THE M-ATOM TRIANGULAR LATTICE
     //  MODEL OF A TMD NANORIBBON (SEE Liu2013)
     //  MoS2

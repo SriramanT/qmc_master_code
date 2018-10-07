@@ -9,7 +9,7 @@ make nsites=$1 beta=$2 source="mainSignProblem" U=$3
 for i in $(eval echo {1..$4})
   do
 
-    ./simulation_mainSignProblem_nsites$1_dt_inv16_beta$2_green_afresh_freq4_U_$3 1 $3 $(echo 0.1*$i - 0.1 | bc) 15 $5 $6 $7 $8
+    ./simulation_mainSignProblem_nsites$1_dt_inv16_beta$2_green_afresh_freq4_U_$3 1 $3 $(echo 0.3*$i - 0.3 | bc) 15 $5 $6 $7 $8
 
     cd results
 
